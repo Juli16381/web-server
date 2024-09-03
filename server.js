@@ -1,62 +1,61 @@
-try {
-    const express = require('express');
-    const mysql = require('mysql2');
-    const bodyParser = require('body-parser');
-    const http = require('http');
-    const socketIo = require('socket.io');
+const express = require('express');
+const mysql = require('mysql');
+const cors = require('cors');
 
-    const app = express();
-    const server = http.createServer(app);
-    const io = socketIo(server);
+const app = express();
+const PORT = 1010; // Cambia el puerto si es necesario
 
-    app.use(bodyParser.json());
+// Configuración de la base de datos MySQL
+const dbConfig = {
+  host: 'localhost',
+  user: 'root',
+  password: 'Paocuentas1',
+  database: 'app'
+};
 
-    console.log("El servidor está iniciando...");
+// Crear la conexión a la base de datos
+const connection = mysql.createConnection(dbConfig);
 
-    // Configuración de la base de datos MySQL
-    const db = mysql.createConnection({
-        host: 'localhost',
-        user: 'root',
-        password: 'Bebe200',
-        database: 'mi_base_de_datos'
-    });
+connection.connect((err) => {
+  if (err) {
+    console.error('Error al conectar a la base de datos: ', err);
+    return;
+  }
+  console.log('Conexión a la base de datos MySQL establecida.');
+});
 
-    db.connect((err) => {
-        if (err) {
-            console.error('Error conectando a la base de datos MySQL:', err);
-            return;
-        }
-        console.log('Conectado a la base de datos MySQL.');
-    });
+// Middleware
+app.use(cors());
+app.use(express.json());
 
-    // Ruta para recibir datos desde el sniffer
-    app.post('/api/data', (req, res) => {
-        const { Latitud, Longitud, Fecha, Hora } = req.body;
+// Ruta para obtener los datos más recientes de la base de datos
+app.get('/get-coordinates', (req, res) => {
+  const query = 'SELECT Latitud, Longitud, Fecha, Hora FROM tables ORDER BY id DESC LIMIT 1';
 
-        const query = 'INSERT INTO datos_gps (Latitud, Longitud, Fecha, Hora) VALUES (?, ?, ?, ?)';
-        db.execute(query, [Latitud, Longitud, Fecha, Hora], (err, results) => {
-            if (err) {
-                console.error('Error al insertar datos en la base de datos:', err);
-                res.status(500).send('Error al insertar datos.');
-                return;
-            }
-            console.log('Datos insertados en la base de datos:', results);
-            io.emit('new-data', { Latitud, Longitud, Fecha, Hora });  // Emite un evento cuando llegan nuevos datos
-            res.status(200).send('Datos recibidos e insertados correctamente.');
-        });
-    });
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error('Error al obtener datos de la base de datos: ', err);
+      res.status(500).json({ error: 'Error al consultar la base de datos' });
+    } else if (results.length > 0) {
+      const data = results[0];
+      res.json({
+        Latitud: data.Latitud,
+        Longitud: data.Longitud,
+        Fecha: data.Fecha,
+        Hora: data.Hora
+      });
+    } else {
+      res.json({ error: 'No hay datos disponibles' });
+    }
+  });
+});
 
-    // Ruta para servir la página web
-    app.get('/', (req, res) => {
-        res.sendFile(__dirname + '/index.html');
-    });
+// Ruta para servir el archivo HTML
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/pag.html');
+});
 
-    // Iniciar el servidor
-    server.listen(3000, '0.0.0.0', () => {
-        console.log('Servidor escuchando en el puerto 3000');
-    });
-
-} catch (error) {
-    console.error('Error al iniciar el servidor:', error);
-}
-
+// Iniciar el servidor
+app.listen(PORT, () => {
+  console.log(Servidor ejecutándose en http://localhost:${PORT});
+});
