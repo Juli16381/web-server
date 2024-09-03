@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datos GPS</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        table {
+            border-collapse: collapse;
+            width: 50%;
+            margin: auto;
+            text-align: center;
+            background-color: #ffffff;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 8px;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        #historicos {
+            margin-top: 20px;
+            text-align: center;
+        }
+        #historicos-btn {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h1>Datos GPS</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Latitud</th>
+                    <th>Longitud</th>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                </tr>
+            </thead>
+            <tbody id="gps-data">
+                <tr>
+                    <td id="latitud"></td>
+                    <td id="longitud"></td>
+                    <td id="fecha"></td>
+                    <td id="hora"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div id="historicos">
+            <button id="historicos-btn">Ver Históricos</button>
+            <table id="historicos-table" style="display: none; margin-top: 20px;">
+                <thead>
+                    <tr>
+                        <th>Latitud</th>
+                        <th>Longitud</th>
+                        <th>Fecha</th>
+                        <th>Hora</th>
+                    </tr>
+                </thead>
+                <tbody id="historicos-data">
+                    <!-- Aquí se insertarán los datos históricos dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        // Actualiza las celdas individuales con el último dato recibido
+        socket.on('new-data', (data) => {
+            document.getElementById('latitud').innerText = data.Latitud;
+            document.getElementById('longitud').innerText = data.Longitud;
+            document.getElementById('fecha').innerText = data.Fecha;
+            document.getElementById('hora').innerText = data.Hora;
+
+            // También añade el dato al historial
+            const historicosTable = document.getElementById('historicos-data');
+            const historicosRow = document.createElement('tr');
+
+            historicosRow.innerHTML = `
+                <td>${data.Latitud}</td>
+                <td>${data.Longitud}</td>
+                <td>${data.Fecha}</td>
+                <td>${data.Hora}</td>
+            `;
+
+            historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
+        });
+
+        // Mostrar/ocultar la tabla de históricos
+        document.getElementById('historicos-btn').addEventListener('click', () => {
+            const historicosTable = document.getElementById('historicos-table');
+            if (historicosTable.style.display === 'none') {
+                historicosTable.style.display = 'table';
+                document.getElementById('historicos-btn').innerText = 'Ocultar Históricos';
+            } else {
+                historicosTable.style.display = 'none';
+                document.getElementById('historicos-btn').innerText = 'Ver Históricos';
+            }
+        });
+    </script>
+</body>
+</html>
+
+
