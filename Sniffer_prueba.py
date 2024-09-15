@@ -40,7 +40,7 @@ def procesar_paquete(paquete):
             # Filtrar por IP de destino y puerto
             if ip_layer.dst.startswith(FILTER_IP.split('/')[0]) and udp_layer.dport == FILTER_PORT:
                 # Extraer el payload del paquete
-                payload = paquete[UDP].payload.load.decode('utf-8')
+                payload = paquete[UDP].payload.load.decode('utf-8', errors='replace')
 
                 # Verificar el contenido del payload
                 print(f"Payload capturado: {payload}")
