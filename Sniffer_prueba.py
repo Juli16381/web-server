@@ -4,6 +4,8 @@ from scapy.all import sniff, UDP, IP
 import requests
 import mysql.connector
 from datetime import datetime
+import os
+import json
 
 # Configuracion
 INTERFACE = "enX0"  # Interfaz de red a monitorear 
@@ -11,16 +13,23 @@ FILTER_IP = "172.31.24.118"  # Rango de red privada
 FILTER_PORT = 10000  # Puerto especiÂ­fico a filtrar 
 NODEJS_SERVER_URL = "http://52.201.28.44/api/data"  # URL del servidor Node.js
 
-# Configuracion de la base de datos MySQL
+
+# Cargar credenciales desde el archivo credenciales.json
+with open('/home/ubuntu/todoproyect/credenciales.json', 'r') as f:
+    credenciales = json.load(f)
+
+# Usar las credenciales para la configuración de la base de datos
 DB_CONFIG = {
-    'user': 'root',  # Usuario de tu base de datos
-    'password': 'BEBEbebe200',  # ContraseÃ±a de la base de datos
-    'host': 'mibasededatos.cl6cu6wia5dv.us-east-1.rds.amazonaws.com',  # El endpoint de tu instancia RDS
-    'database': 'mibasededatos',  # Nombre de tu base de datos
-    'port': 3306,  # Puerto de MySQL, normalmente 3306
-    'auth_plugin': 'mysql_native_password',	
+    'user': credenciales['DB_USER'],
+    'password': credenciales['DB_PASSWORD'],
+    'host': credenciales['DB_HOST'],
+    'database': credenciales['DB_NAME'],
+    'port': 3306,
+    'auth_plugin': 'mysql_native_password',
     'ssl_disabled': True
 }
+
+
 def procesar_paquete(paquete):
     print("Paquete capturado")  # Para verificar que se captura un paquete
     try:
