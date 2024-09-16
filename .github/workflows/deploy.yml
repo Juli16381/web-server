@@ -20,13 +20,13 @@ jobs:
       run: npm install
       working-directory: /home/ubuntu/actions-runner/_work/web-server/web-server  # Ruta de tu proyecto Node.js
 
-    - name: Start Node.js application
-      run: |
-        nohup sudo node /home/ubuntu/actions-runner/_work/web-server/web-server/server.js > /home/ubuntu/actions-runner/_work/web-server/web-server/server.log 2>&1 &
-
     - name: Run Python Sniffer
       run: |
         nohup sudo python3 /home/ubuntu/actions-runner/_work/web-server/web-server/Sniffer_prueba.py > /home/ubuntu/actions-runner/_work/web-server/web-server/sniffer.log 2>&1 &
+
+    - name: Start Node.js application
+      run: |
+        nohup sudo node /home/ubuntu/actions-runner/_work/web-server/web-server/server.js > /home/ubuntu/actions-runner/_work/web-server/web-server/server.log 2>&1 &
 
   deploy-on-mlcuentas:
     runs-on: [self-hosted, mlcuentas]
@@ -42,10 +42,10 @@ jobs:
       run: npm install
       working-directory: /home/ubuntu/actions-runner/_work/web-server/web-server  # Ruta de tu proyecto Node.js
 
-    - name: Start Node.js application
-      run: |
-        nohup sudo node /home/ubuntu/actions-runner/_work/web-server/web-server/server.js > /home/ubuntu/actions-runner/_work/web-server/web-server/server.log 2>&1 &
-
     - name: Run Python Sniffer
       run: |
         nohup sudo python3 /home/ubuntu/actions-runner/_work/web-server/web-server/Sniffer_prueba.py > /home/ubuntu/actions-runner/_work/web-server/web-server/sniffer.log 2>&1 &
+
+    - name: Start Node.js application
+      run: |
+        nohup sudo node /home/ubuntu/actions-runner/_work/web-server/web-server/server.js > /home/ubuntu/actions-runner/_work/web-server/web-server/server.log 2>&1 &
