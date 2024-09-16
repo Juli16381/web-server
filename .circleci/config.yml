@@ -1,17 +1,15 @@
 version: 2.1
 
 jobs:
-  deploy:
+  build:
     docker:
       - image: circleci/python:3.8
     steps:
       - checkout
-
       - run:
-    name: Probar conexión SSH
-    command: ssh -i ~/.ssh/id_rsa ubuntu@ec2-52-201-28-44.compute-1.amazonaws.com echo "Conexión SSH exitosa"
-
-
+          name: Probar conexión SSH
+          command: |
+            ssh -i ~/.ssh/id_rsa ubuntu@ec2-52-201-28-44.compute-1.amazonaws.com echo "Conexión SSH exitosa"
       - run:
           name: Install SSH key
           command: |
@@ -19,23 +17,20 @@ jobs:
             echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
             chmod 600 ~/.ssh/id_rsa
             ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
-
       - run:
           name: Deploy Python Sniffer and Node.js
           command: |
             ssh -i ~/.ssh/id_rsa $EC2_USER@$EC2_HOST "
-              cd web-server &&
-              git pull origin main &&
-              pip install -r requirements.txt &&
-              sudo pm2 restart python-sniffer || pm2 start Sniffer_prueba.py --name python-sniffer --interpreter python3 --watch &&
-              npm install &&
-              sudo pm2 restart node-app || pm2 start server.js --name node-app --watch
+            cd web-server &&
+            git pull origin main &&
+            pip install -r requirements.txt &&
+            sudo pm2 restart python-sniffer || pm2 start Sniffer_prueba.py --name python-sniffer --interpreter python3 --watch &&
+            npm install &&
+            sudo pm2 restart node-app || pm2 start server.js --name node-app --watch
             "
 
 workflows:
   version: 2
   deploy_workflow:
     jobs:
-      - deploy
-
-
+      - build
