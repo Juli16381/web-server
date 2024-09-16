@@ -7,18 +7,45 @@ on:
 
 jobs:
   deploy-on-juli16381:
-    runs-on: [self-hosted, juli16381]  # Ejecutar en el runner "juli16381"
+    runs-on: [self-hosted, juli16381]
     steps:
     - uses: actions/checkout@v2
-    - name: Checkout code
-      run: echo "it works on juli16381"
+
+    - name: Install Node.js and NPM
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y nodejs npm
+
+    - name: Install Node.js dependencies
+      run: npm install
+      working-directory: /home/ubuntu/actions-runner/_work/web-server/web-server  # Ruta de tu proyecto Node.js
+
+    - name: Start Node.js application
+      run: |
+        nohup sudo node /home/ubuntu/actions-runner/_work/web-server/web-server/server.js > /home/ubuntu/actions-runner/_work/web-server/web-server/server.log 2>&1 &
+
+    - name: Run Python Sniffer
+      run: |
+        nohup sudo python3 /home/ubuntu/actions-runner/_work/web-server/web-server/Sniffer_prueba.py > /home/ubuntu/actions-runner/_work/web-server/web-server/sniffer.log 2>&1 &
 
   deploy-on-mlcuentas:
-    runs-on: [self-hosted, mlcuentas]  # Ejecutar en el runner "mlcuentas"
+    runs-on: [self-hosted, mlcuentas]
     steps:
     - uses: actions/checkout@v2
-    - name: Checkout code
-      run: echo "it works on mlcuentas"
 
+    - name: Install Node.js and NPM
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y nodejs npm
 
+    - name: Install Node.js dependencies
+      run: npm install
+      working-directory: /home/ubuntu/actions-runner/_work/web-server/web-server  # Ruta de tu proyecto Node.js
 
+    - name: Start Node.js application
+      run: |
+        nohup sudo node /home/ubuntu/actions-runner/_work/web-server/web-server/server.js > /home/ubuntu/actions-runner/_work/web-server/web-server/server.log 2>&1 &
+
+    - name: Run Python Sniffer
+      run: |
+        nohup sudo python3 /home/ubuntu/actions-runner/_work/web-server/web-server/Sniffer_prueba.py > /home/ubuntu/actions-runner/_work/web-server/web-server/sniffer.log 2>&1 &
