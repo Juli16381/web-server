@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: juli16381
 
     steps:
     - name: Checkout code
@@ -26,8 +26,10 @@ jobs:
           
           # Desplegar y reiniciar el sniffer de Python
           pip install -r requirements.txt
-          sudo pm2 restart python-sniffer || pm2 start Sniffer_prueba.py --name python-sniffer --interpreter python3 --watch
+          sudo pm2 restart python-sniffer || pm2 start Sniffer_prueba.py --name python-sniffer --interpreter python3 --watch+
 
           # Desplegar y reiniciar el servidor Node.js
           npm install
           sudo pm2 restart node-app || pm2 start server.js --name node-app --watch
+
+
