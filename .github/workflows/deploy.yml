@@ -26,7 +26,7 @@ jobs:
           
           # Desplegar y reiniciar el sniffer de Python
           pip install -r requirements.txt
-          pm2 restart python-sniffer || pm2 start sniffer.py --name python-sniffer --interpreter python3 --watch
+          pm2 restart python-sniffer || pm2 start Sniffer_prueba.py --name python-sniffer --interpreter python3 --watch
 
           # Desplegar y reiniciar el servidor Node.js
           npm install
