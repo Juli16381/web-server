@@ -3,33 +3,34 @@ version: 2.1
 jobs:
   deploy:
     docker:
-      - image: circleci/python:3.8  # Puedes cambiar la versión de Python si es necesario
+      - image: circleci/python:3.8
     steps:
       - checkout
 
-      # Configurar SSH para acceder a tu instancia EC2
       - run:
-          name: Configurar SSH
+          name: Install SSH key
           command: |
             mkdir -p ~/.ssh
-            echo "$EC2_SSH_KEY" > ~/.ssh/id_rsa
+            echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
             chmod 600 ~/.ssh/id_rsa
             ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
 
-      # Conectar a EC2 y ejecutar comandos remotos
       - run:
           name: Deploy Python Sniffer and Node.js
           command: |
-            ssh -i ~/.ssh/id_rsa $EC2_USER@$EC2_HOST << 'EOF'
-              cd web-server
-              git pull origin main
-
-              # Desplegar y reiniciar el sniffer de Python
-              pip install -r requirements.txt
-              sudo pm2 restart python-sniffer || pm2 start Sniffer_prueba.py --name python-sniffer --interpreter python3 --watch
-
-              # Desplegar y reiniciar el servidor Node.js
-              npm install
+            ssh -i ~/.ssh/id_rsa $EC2_USER@$EC2_HOST "
+              cd web-server &&
+              git pull origin main &&
+              pip install -r requirements.txt &&
+              sudo pm2 restart python-sniffer || pm2 start Sniffer_prueba.py --name python-sniffer --interpreter python3 --watch &&
+              npm install &&
               sudo pm2 restart node-app || pm2 start server.js --name node-app --watch
-            EOF
+            "
+
+workflows:
+  version: 2
+  deploy_workflow:
+    jobs:
+      - deploy
+
 
