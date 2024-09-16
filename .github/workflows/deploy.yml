@@ -6,13 +6,19 @@ on:
       - main
 
 jobs:
-  deploy:
-    runs-on: juli16381
-
+  deploy-on-juli16381:
+    runs-on: [self-hosted, juli16381]  # Ejecutar en el runner "juli16381"
     steps:
     - uses: actions/checkout@v2
     - name: Checkout code
-      run: echo "it works"
+      run: echo "it works on juli16381"
+
+  deploy-on-mlcuentas:
+    runs-on: [self-hosted, mlcuentas]  # Ejecutar en el runner "mlcuentas"
+    steps:
+    - uses: actions/checkout@v2
+    - name: Checkout code
+      run: echo "it works on mlcuentas"
 
 
 
