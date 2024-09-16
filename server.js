@@ -108,7 +108,7 @@ app.get('/historicos', (req, res) => {
     });
 });
 
-// Iniciar el servidor
+// start server
 server.listen(80, '0.0.0.0', () => {
     console.log('Servidor escuchando en el puerto 80');
 });
