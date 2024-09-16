@@ -4,20 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Datos GPS</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
         body {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            height: 100vh;
             margin: 0;
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
         }
+        .container {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: flex-start;
+            margin-top: 20px;
+            width: 90%;
+        }
+        #map {
+            height: 500px; 
+            width: 60%;
+            border: 2px solid #ce72c0;
+            margin-right: 20px;
+            position: relative; 
+        }
         table {
             border-collapse: collapse;
-            width: 50%;
-            margin: auto;
+            width: 100%;
             text-align: center;
             background-color: #ffffff;
         }
@@ -26,7 +40,7 @@
             padding: 8px;
         }
         th {
-            background-color: #4CAF50;
+            background-color: #ce72c0;
             color: white;
         }
         #historicos {
@@ -35,91 +49,213 @@
         }
         #historicos-btn {
             padding: 10px 20px;
-            background-color: #4CAF50;
+            background-color: #ce72c0;
             color: white;
             border: none;
             cursor: pointer;
             font-size: 16px;
+            margin-bottom: 10px;
+        }
+        #historicos-table {
+            margin-top: 20px;
+        }
+        .data-container {
+            width: 35%;
+        }
+        .title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .leaflet-control {
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        }
+        /* Media query para pantallas móviles */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+            #map {
+                width: 90%;
+                margin-right: 0;
+                margin-bottom: 20px;
+            }
+            .data-container {
+                width: 90%;
+            }
         }
     </style>
 </head>
 <body>
-    <div>
-        <h1>Datos GPS</h1>
-        <table>
-            <thead>
-                <tr>
-                    <th>Latitud</th>
-                    <th>Longitud</th>
-                    <th>Fecha</th>
-                    <th>Hora</th>
-                </tr>
-            </thead>
-            <tbody id="gps-data">
-                <tr>
-                    <td id="latitud"></td>
-                    <td id="longitud"></td>
-                    <td id="fecha"></td>
-                    <td id="hora"></td>
-                </tr>
-            </tbody>
-        </table>
-        <div id="historicos">
-            <button id="historicos-btn">Ver Históricos</button>
-            <table id="historicos-table" style="display: none; margin-top: 20px;">
-                <thead>
-                    <tr>
-                        <th>Latitud</th>
-                        <th>Longitud</th>
-                        <th>Fecha</th>
-                        <th>Hora</th>
-                    </tr>
-                </thead>
-                <tbody id="historicos-data">
-                    <!-- Aquí se insertarán los datos históricos dinámicamente -->
-                </tbody>
-            </table>
+    <h1 class="title">Datos GPS</h1>
+    <div class="container">
+        <!-- Contenedor para el Mapa -->
+        <div id="map"></div>
+
+        <!-- Contenedor de Datos -->
+        <div class="data-container">
+            <div id="historicos">
+                <button id="historicos-btn">Ver historial</button>
+                <table id="historicos-table" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Latitud</th>
+                            <th>Longitud</th>
+                            <th>Fecha</th>
+                            <th>Hora</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historicos-data">
+                        <!-- Aquí se insertarán los datos históricos dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
-        const socket = io();
+        document.addEventListener('DOMContentLoaded', function() {
+            const socket = io();
 
-        // Actualiza las celdas individuales con el último dato recibido
-        socket.on('new-data', (data) => {
-            document.getElementById('latitud').innerText = data.Latitud;
-            document.getElementById('longitud').innerText = data.Longitud;
-            document.getElementById('fecha').innerText = data.Fecha;
-            document.getElementById('hora').innerText = data.Hora;
+            let autoCenter = true;  // Controla si el mapa debe centrarse automáticamente
+            let autoCenterTimeout;  // Variable para almacenar el temporizador
 
-            // También añade el dato al historial
-            const historicosTable = document.getElementById('historicos-data');
-            const historicosRow = document.createElement('tr');
+            // Inicializar el mapa de Leaflet 
+            const map = L.map('map').setView([0, 0], 2); 
 
-            historicosRow.innerHTML = `
-                <td>${data.Latitud}</td>
-                <td>${data.Longitud}</td>
-                <td>${data.Fecha}</td>
-                <td>${data.Hora}</td>
-            `;
+            // Evento para desactivar el auto-centrado cuando el usuario mueve el mapa
+            map.on('movestart', function() {
+                autoCenter = false;  // Desactivar el auto-centrado cuando el usuario mueva el mapa
+                clearTimeout(autoCenterTimeout);  // Reiniciar el temporizador
+                autoCenterTimeout = setTimeout(function() {
+                    autoCenter = true;  // Reactivar el auto-centrado después de 10 segundos de inactividad
+                }, 10000);  // 10 segundos
+            });
 
-            historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
-        });
+            // Añadir un tile layer (capa de mosaicos) al mapa
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 18,
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
 
-        // Mostrar/ocultar la tabla de históricos
-        document.getElementById('historicos-btn').addEventListener('click', () => {
-            const historicosTable = document.getElementById('historicos-table');
-            if (historicosTable.style.display === 'none') {
-                historicosTable.style.display = 'table';
-                document.getElementById('historicos-btn').innerText = 'Ocultar Históricos';
-            } else {
-                historicosTable.style.display = 'none';
-                document.getElementById('historicos-btn').innerText = 'Ver Históricos';
+            let ultimaUbicacionControl = L.control({position: 'bottomleft'});
+            ultimaUbicacionControl.onAdd = function(map) {
+                const div = L.DomUtil.create('div', 'leaflet-control');
+                div.id = 'ultima-ubicacion-info';
+                div.innerHTML = `
+                    <b>Última ubicación</b><br>
+                    Latitud: <span id="ultima-latitud">-</span><br>
+                    Longitud: <span id="ultima-longitud">-</span><br>
+                    Fecha: <span id="ultima-fecha">-</span><br>
+                    Hora: <span id="ultima-hora">-</span>
+                `;
+                return div;
+            };
+            ultimaUbicacionControl.addTo(map);
+
+            let recorrido = L.polyline([], { color: '#800080' }).addTo(map); 
+            let marcadorUltimaUbicacion = L.circleMarker([0, 0], {
+                radius: 10,
+                color: '#800080',
+                fillColor: '#800080',
+                fillOpacity: 1,
+            }).addTo(map);
+
+            cargarDatosDesdeServidor();
+
+            socket.on('new-data', (data) => {
+                actualizarMapa(data); 
+            });
+
+            function actualizarMapa(data) {
+                const nuevaLatitud = parseFloat(data.Latitud);
+                const nuevaLongitud = parseFloat(data.Longitud);
+
+                const fechaFormateada = data.Fecha.split('T')[0];
+
+                document.getElementById('ultima-latitud').innerText = data.Latitud;
+                document.getElementById('ultima-longitud').innerText = data.Longitud;
+                document.getElementById('ultima-fecha').innerText = fechaFormateada;
+                document.getElementById('ultima-hora').innerText = data.Hora;
+
+                // Solo centrar el mapa si autoCenter es verdadero
+                if (autoCenter) {
+                    map.setView([nuevaLatitud, nuevaLongitud], 15); 
+                }
+
+                recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
+                marcadorUltimaUbicacion.setLatLng([nuevaLatitud, nuevaLongitud]);
+
+                setTimeout(() => {
+                    const historicosTable = document.getElementById('historicos-data');
+                    const historicosRow = document.createElement('tr');
+                    historicosRow.innerHTML = `
+                        <td>${data.Latitud}</td>
+                        <td>${data.Longitud}</td>
+                        <td>${fechaFormateada}</td>
+                        <td>${data.Hora}</td>
+                    `;
+                    historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
+                }, 2000);
             }
+
+            function cargarDatosDesdeServidor() {
+                fetch('/historicos')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.length > 0) {
+                            let ultimaLatitud = null;
+                            let ultimaLongitud = null;
+
+                            data.reverse().forEach((registro) => {
+                                const nuevaLatitud = parseFloat(registro.Latitud);
+                                const nuevaLongitud = parseFloat(registro.Longitud);
+
+                                const fechaFormateada = registro.Fecha.split('T')[0];
+
+                                recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
+
+                                ultimaLatitud = nuevaLatitud;
+                                ultimaLongitud = nuevaLongitud;
+
+                                const historicosTable = document.getElementById('historicos-data');
+                                const historicosRow = document.createElement('tr');
+                                historicosRow.innerHTML = `
+                                    <td>${registro.Latitud}</td>
+                                    <td>${registro.Longitud}</td>
+                                    <td>${fechaFormateada}</td>
+                                    <td>${registro.Hora}</td>
+                                `;
+                                historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
+                            });
+
+                            if (ultimaLatitud !== null && ultimaLongitud !== null) {
+                                map.setView([ultimaLatitud, ultimaLongitud], 15);
+                                marcadorUltimaUbicacion.setLatLng([ultimaLatitud, ultimaLongitud]);
+                            }
+                        }
+                    })
+                    .catch(error => console.error('Error al cargar los datos históricos:', error));
+            }
+
+            document.getElementById('historicos-btn').addEventListener('click', () => {
+                const historicosTable = document.getElementById('historicos-table');
+                if (historicosTable.style.display === 'none') {
+                    historicosTable.style.display = 'table';
+                    document.getElementById('historicos-btn').innerText = 'Ocultar historial';
+                } else {
+                    historicosTable.style.display = 'none';
+                    document.getElementById('historicos-btn').innerText = 'Ver historial';
+                }
+            });
+
         });
     </script>
 </body>
 </html>
-
-
