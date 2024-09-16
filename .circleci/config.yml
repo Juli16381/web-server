@@ -8,6 +8,11 @@ jobs:
       - checkout
 
       - run:
+    name: Probar conexión SSH
+    command: ssh -i ~/.ssh/id_rsa ubuntu@ec2-52-201-28-44.compute-1.amazonaws.com echo "Conexión SSH exitosa"
+
+
+      - run:
           name: Install SSH key
           command: |
             mkdir -p ~/.ssh
