@@ -10,3 +10,4 @@ Sigue estos pasos:
    cp config/credenciales.example.json config/credenciales.json
 
 CIRCLECI
+EN credenciales tambien deben poner su ip privada
