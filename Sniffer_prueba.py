@@ -9,9 +9,9 @@ import json
 
 # Configuracion
 INTERFACE = "enX0"  # Interfaz de red a monitorear 
-FILTER_IP = "172.31.24.118"  # Rango de red privada 
+FILTER_IP = credenciales['DB_IP']  # Rango de red privada 
 FILTER_PORT = 10000  # Puerto especiÂ­fico a filtrar 
-NODEJS_SERVER_URL = "http://52.201.28.44/api/data"  # URL del servidor Node.js
+NODEJS_SERVER_URL = credenciales['DB_NODEJS'] # URL del servidor Node.js
 
 
 # Cargar credenciales desde el archivo credenciales.json
