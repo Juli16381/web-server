@@ -1,0 +1,3 @@
+scapy
+requests
+mysql-connector-python
