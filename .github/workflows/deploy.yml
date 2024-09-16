@@ -1,0 +1,33 @@
+name: Deploy Python Sniffer and Node.js
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Run SSH commands to deploy Python sniffer and Node.js
+      uses: appleboy/ssh-action@v0.1.3
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        port: 22
+        script: |
+          cd /ruta/a/tu/proyecto
+          git pull origin main
+          
+          # Desplegar y reiniciar el sniffer de Python
+          pip install -r requirements.txt
+          pm2 restart python-sniffer || pm2 start sniffer.py --name python-sniffer --interpreter python3 --watch
+
+          # Desplegar y reiniciar el servidor Node.js
+          npm install
+          pm2 restart node-app || pm2 start server.js --name node-app --watch
