@@ -6,7 +6,10 @@ import mysql.connector
 from datetime import datetime
 import os
 import json
-
+# Cargar credenciales desde el archivo credenciales.json
+with open('/home/ubuntu/todoproyect/credenciales.json', 'r') as f:
+    credenciales = json.load(f)
+    
 # Configuracion
 INTERFACE = "enX0"  # Interfaz de red a monitorear 
 FILTER_IP = credenciales['DB_IP']  # Rango de red privada 
@@ -14,9 +17,7 @@ FILTER_PORT = 10000  # Puerto especiÂ­fico a filtrar
 NODEJS_SERVER_URL = credenciales['DB_NODEJS'] # URL del servidor Node.js
 
 
-# Cargar credenciales desde el archivo credenciales.json
-with open('/home/ubuntu/todoproyect/credenciales.json', 'r') as f:
-    credenciales = json.load(f)
+
 
 # Usar las credenciales para la configuración de la base de datos
 DB_CONFIG = {
