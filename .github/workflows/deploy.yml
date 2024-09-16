@@ -1,4 +1,4 @@
-name: Deploy Python Sniffer and Node.js
+name: Deploy Python Sniffer and Node.js 
 
 on:
   push:
@@ -7,45 +7,64 @@ on:
 
 jobs:
   deploy-on-juli16381:
-    runs-on: [self-hosted, juli16381]
+    runs-on: [self-hosted, juli16381]  # Ejecutar en el runner "juli16381"
     steps:
     - uses: actions/checkout@v2
+    
+    # Configurar el entorno de Python
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
 
-    - name: Install Node.js and NPM
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y nodejs npm
-
-    - name: Install Node.js dependencies
-      run: npm install
-      working-directory: /home/ubuntu/actions-runner/_work/web-server/web-server  # Ruta de tu proyecto Node.js
+    - name: Install Python dependencies
+      run: pip install -r requirements.txt
 
     - name: Run Python Sniffer
       run: |
-        nohup sudo python3 /home/ubuntu/actions-runner/_work/web-server/web-server/Sniffer_prueba.py > /home/ubuntu/actions-runner/_work/web-server/web-server/sniffer.log 2>&1 &
+        nohup python Sniffer_prueba.py &
 
-    - name: Start Node.js application
+    # Configurar el entorno de Node.js
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+        
+    - name: Install Node.js dependencies
+      run: npm install
+
+    - name: Start Node.js server
       run: |
-        nohup sudo node /home/ubuntu/actions-runner/_work/web-server/web-server/server.js > /home/ubuntu/actions-runner/_work/web-server/web-server/server.log 2>&1 &
+        nohup node server.js &
 
   deploy-on-mlcuentas:
-    runs-on: [self-hosted, mlcuentas]
+    runs-on: [self-hosted, mlcuentas]  # Ejecutar en el runner "mlcuentas"
     steps:
     - uses: actions/checkout@v2
 
-    - name: Install Node.js and NPM
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y nodejs npm
+    # Configurar el entorno de Python
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
 
-    - name: Install Node.js dependencies
-      run: npm install
-      working-directory: /home/ubuntu/actions-runner/_work/web-server/web-server  # Ruta de tu proyecto Node.js
+    - name: Install Python dependencies
+      run: pip install -r requirements.txt
 
     - name: Run Python Sniffer
       run: |
-        nohup sudo python3 /home/ubuntu/actions-runner/_work/web-server/web-server/Sniffer_prueba.py > /home/ubuntu/actions-runner/_work/web-server/web-server/sniffer.log 2>&1 &
+        nohup python Sniffer_prueba.py &
 
-    - name: Start Node.js application
+    # Configurar el entorno de Node.js 
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+        
+    - name: Install Node.js dependencies
+      run: npm install
+
+    - name: Start Node.js server
       run: |
-        nohup sudo node /home/ubuntu/actions-runner/_work/web-server/web-server/server.js > /home/ubuntu/actions-runner/_work/web-server/web-server/server.log 2>&1 &
+        nohup node server.js &
+
