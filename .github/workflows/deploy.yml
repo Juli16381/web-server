@@ -1,4 +1,4 @@
-name: Deploy Python Sniffer and Node.js
+name: Deploy Python Sniffer and Node.js 
 
 on:
   push:
@@ -6,28 +6,65 @@ on:
       - main
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
+  deploy-on-juli16381:
+    runs-on: [self-hosted, juli16381]  # Ejecutar en el runner "juli16381"
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Run SSH commands to deploy Python sniffer and Node.js
-      uses: appleboy/ssh-action@v0.1.3
+    - uses: actions/checkout@v2
+    
+    # Configurar el entorno de Python
+    - name: Set up Python
+      uses: actions/setup-python@v2
       with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.EC2_SSH_KEY }}
-        port: 22
-        script: |
-          cd web-server
-          git pull origin main
-          
-          # Desplegar y reiniciar el sniffer de Python
-          pip install -r requirements.txt
-          sudo pm2 restart python-sniffer || pm2 start Sniffer_prueba.py --name python-sniffer --interpreter python3 --watch
+        python-version: '3.x'
 
-          # Desplegar y reiniciar el servidor Node.js
-          npm install
-          sudo pm2 restart node-app || pm2 start server.js --name node-app --watch
+    - name: Install Python dependencies
+      run: pip install -r requirements.txt
+
+    - name: Run Python Sniffer
+      run: |
+        nohup python Sniffer_prueba.py &
+
+    # Configurar el entorno de Node.js
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+        
+    - name: Install Node.js dependencies
+      run: npm install
+
+    - name: Start Node.js server
+      run: |
+        nohup node server.js &
+
+  deploy-on-mlcuentas:
+    runs-on: [self-hosted, mlcuentas]  # Ejecutar en el runner "mlcuentas"
+    steps:
+    - uses: actions/checkout@v2
+
+    # Configurar el entorno de Python
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install Python dependencies
+      run: pip install -r requirements.txt
+
+    - name: Run Python Sniffer
+      run: |
+        nohup python Sniffer_prueba.py &
+
+    # Configurar el entorno de Node.js 
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+        
+    - name: Install Node.js dependencies
+      run: npm install
+
+    - name: Start Node.js server
+      run: |
+        nohup node server.js &
+
