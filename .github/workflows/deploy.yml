@@ -20,9 +20,11 @@ jobs:
     - name: Install Python dependencies
       run: pip install -r requirements.txt
 
+    - name: Install PM2
+      run: npm install -g pm2
+
     - name: Run Python Sniffer
-      run: |
-        nohup python Sniffer_prueba.py &
+      run: pm2 start Sniffer_prueba.py --interpreter python3 --name python-sniffer
 
     # Configurar el entorno de Node.js
     - name: Set up Node.js
@@ -34,8 +36,7 @@ jobs:
       run: npm install
 
     - name: Start Node.js server
-      run: |
-        nohup node server.js &
+      run: pm2 start server.js --name node-server
 
   deploy-on-mlcuentas:
     runs-on: [self-hosted, mlcuentas]  # Ejecutar en el runner "mlcuentas"
@@ -51,9 +52,11 @@ jobs:
     - name: Install Python dependencies
       run: pip install -r requirements.txt
 
+    - name: Install PM2
+      run: npm install -g pm2
+
     - name: Run Python Sniffer
-      run: |
-        nohup python Sniffer_prueba.py &
+      run: pm2 start Sniffer_prueba.py --interpreter python3 --name python-sniffer
 
     # Configurar el entorno de Node.js 
     - name: Set up Node.js
@@ -65,6 +68,6 @@ jobs:
       run: npm install
 
     - name: Start Node.js server
-      run: |
-        nohup node server.js &
+      run: pm2 start server.js --name node-server
+
 
