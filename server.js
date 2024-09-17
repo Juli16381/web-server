@@ -97,7 +97,7 @@ app.get('/historicos', (req, res) => {
         return;
     }
 
-    let query = 'SELECT * FROM datos_gps ORDER BY Hora DESC';
+    let query = 'SELECT * FROM datos_gps ORDER BY Fecha DESC, id DESC';
     db.query(query, (err, results) => {
         if (err) {
             console.error('Error al consultar la base de datos:', err);
