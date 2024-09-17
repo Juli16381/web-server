@@ -1,4 +1,4 @@
-name: Deploy Python Sniffer and Node.js 
+name: Deploy Python Sniffer and Node.js
 
 on:
   push:
@@ -20,13 +20,15 @@ jobs:
     - name: Install Python dependencies
       run: pip install -r requirements.txt
 
+    # Instalar PM2 localmente
     - name: Install PM2
-      run: sudo npm install -g pm2
+      run: npm install pm2
 
+    # Ejecutar el Sniffer de Python primero
     - name: Run Python Sniffer
-      run: pm2 start Sniffer_prueba.py --interpreter python3 --name python-sniffer
+      run: sudo ./node_modules/.bin/pm2 start "python3 Sniffer_prueba.py" --name python-sniffer
 
-    # Configurar el entorno de Node.js
+    # Configurar el entorno de Node.js después de iniciar el Sniffer
     - name: Set up Node.js
       uses: actions/setup-node@v2
       with:
@@ -35,8 +37,9 @@ jobs:
     - name: Install Node.js dependencies
       run: npm install
 
+    # Iniciar el servidor Node.js después del Sniffer
     - name: Start Node.js server
-      run: pm2 start server.js --name node-server
+      run: sudo ./node_modules/.bin/pm2 start "node server.js" --name node-server
 
   deploy-on-mlcuentas:
     runs-on: [self-hosted, mlcuentas]  # Ejecutar en el runner "mlcuentas"
@@ -52,13 +55,15 @@ jobs:
     - name: Install Python dependencies
       run: pip install -r requirements.txt
 
+    # Instalar PM2 localmente
     - name: Install PM2
-      run: sudo npm install -g pm2
+      run: npm install pm2
 
+    # Ejecutar el Sniffer de Python primero
     - name: Run Python Sniffer
-      run: pm2 start Sniffer_prueba.py --interpreter python3 --name python-sniffer
+      run: sudo ./node_modules/.bin/pm2 start "python3 Sniffer_prueba.py" --name python-sniffer
 
-    # Configurar el entorno de Node.js 
+    # Configurar el entorno de Node.js después de iniciar el Sniffer 
     - name: Set up Node.js
       uses: actions/setup-node@v2
       with:
@@ -67,7 +72,8 @@ jobs:
     - name: Install Node.js dependencies
       run: npm install
 
+    # Iniciar el servidor Node.js después del Sniffer
     - name: Start Node.js server
-      run: pm2 start server.js --name node-server
+      run: sudo ./node_modules/.bin/pm2 start "node server.js" --name node-server
 
 
