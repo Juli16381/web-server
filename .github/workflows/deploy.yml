@@ -21,7 +21,7 @@ jobs:
       run: pip install -r requirements.txt
 
     - name: Install PM2
-      run: npm install -g pm2
+      run: sudo npm install -g pm2
 
     - name: Run Python Sniffer
       run: pm2 start Sniffer_prueba.py --interpreter python3 --name python-sniffer
