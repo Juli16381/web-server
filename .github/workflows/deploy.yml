@@ -45,68 +45,42 @@ jobs:
     - name: Deploy and Restart Node.js server
       run: |
         sudo pm2 restart node-app || pm2 start server.js --name node-app --watch
-
-
   deploy-on-mlcuentas:
-    runs-on: [self-hosted, mlcuentas]  # Ejecutar en el runner "mlcuentas"
+    runs-on: [self-hosted, mlcuentas]  
+    
     steps:
-    - uses: actions/checkout@v2
-
+    - uses: actions/checkout@v2  # Checkout del código
+    
     # Configurar el entorno de Python
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: '3.x'
-
+    
+    # Instalar dependencias de Python
     - name: Install Python dependencies
       run: pip install -r requirements.txt
 
+    # Instalar PM2 globalmente
     - name: Install PM2
-      run: npm install pm2
+      run: sudo npm install -g pm2
 
-    - name: Run Python Sniffer
-      run: pm2 start Sniffer_prueba.py --interpreter python3 --name python-sniffer
+    # Desplegar y reiniciar el sniffer de Python
+    - name: Deploy and Restart Python Sniffer
+      run: |
+        sudo pm2 restart python-sniffer || pm2 start Sniffer_prueba.py --name python-sniffer --interpreter python3 --watch
 
-    # Configurar el entorno de Node.js 
+    # Configurar el entorno de Node.js
     - name: Set up Node.js
       uses: actions/setup-node@v2
       with:
         node-version: '14'
-        
+
+    # Instalar dependencias de Node.js
     - name: Install Node.js dependencies
       run: npm install
 
-    - name: Start Node.js server
-      run: pm2 start server.js --name node-server
-
-deploy-on-spantoja23:
-    runs-on: [self-hosted, spantoja23]  # Ejecutar en el runner "spantoja23"
-    steps:
-    - uses: actions/checkout@v2
-
-    # Configurar el entorno de Python
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
-
-    - name: Install Python dependencies
-      run: pip install -r requirements.txt
-
-    - name: Install PM2
-      run: npm install pm2
-
-    - name: Run Python Sniffer
-      run: pm2 start Sniffer_prueba.py --interpreter python3 --name python-sniffer
-
-    # Configurar el entorno de Node.js 
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: '14'
-        
-    - name: Install Node.js dependencies
-      run: npm install
-
-    - name: Start Node.js server
-      run: pm2 start server.js --name node-server
+    # Desplegar y reiniciar el servidor Node.js
+    - name: Deploy and Restart Node.js server
+      run: |
+        sudo pm2 restart node-app || pm2 start server.js --name node-app --watch
