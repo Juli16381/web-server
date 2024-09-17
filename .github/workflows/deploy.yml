@@ -43,7 +43,7 @@ jobs:
         sudo pm2 restart node-app || pm2 start server.js --name node-app --watch
 
   deploy-on-mlcuentas:
-    runs-on: [self-hosted, mlcuentas]  
+    runs-on: [self-hosted, mlcuentas]
     
     steps:
     - uses: actions/checkout@v2
@@ -77,6 +77,7 @@ jobs:
     - name: Deploy and Restart Node.js server
       run: |
         sudo pm2 restart node-app || pm2 start server.js --name node-app --watch
+
   deploy-on-spantoja23:
     runs-on: [self-hosted, spantoja23]
     
@@ -112,7 +113,8 @@ jobs:
     - name: Deploy and Restart Node.js server
       run: |
         sudo pm2 restart node-app || pm2 start server.js --name node-app --watch
-deploy-on-sebastian:
+
+  deploy-on-sebastian:
     runs-on: [self-hosted, sebastian]
     
     steps:
@@ -147,3 +149,4 @@ deploy-on-sebastian:
     - name: Deploy and Restart Node.js server
       run: |
         sudo pm2 restart node-app || pm2 start server.js --name node-app --watch
+
