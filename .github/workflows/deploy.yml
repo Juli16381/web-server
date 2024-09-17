@@ -15,28 +15,12 @@ jobs:
         clean: true
         submodules: false  # Desactivar la actualización de submódulos
     
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
-    
     - name: Install Python dependencies
       run: pip install -r requirements.txt
-
-    - name: Remove pm2 directory
-      run: sudo rm -rf /usr/local/lib/node_modules/pm2
-
-    - name: Install PM2
-      run: sudo npm install -g pm2
 
     - name: Deploy and Restart Python Sniffer
       run: |
         sudo pm2 restart python-sniffer || pm2 start Sniffer_prueba.py --name python-sniffer --interpreter python3 --watch
-
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: '14'
 
     - name: Install Node.js dependencies
       run: npm install
