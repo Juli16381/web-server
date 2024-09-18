@@ -18,9 +18,6 @@ jobs:
     - name: Deploy and Restart Python Sniffer
       run: |
         sudo pm2 restart python-sniffer || pm2 start Sniffer_prueba.py --name python-sniffer --interpreter python3 --watch
-
-    - name: Install Node.js dependencies
-      run: sudo npm install express mysql2 socket.io
       
     - name: Deploy and Restart Node.js server
       run: |
