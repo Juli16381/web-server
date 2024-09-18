@@ -37,8 +37,6 @@ jobs:
       run: |
         sudo pm2 restart python-sniffer || pm2 start Sniffer_prueba.py --name python-sniffer --interpreter python3 --watch
         
-    - name: Install Node.js dependencies
-      run: npm install
 
     - name: Deploy and Restart Node.js server
       run: |
