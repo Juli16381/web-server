@@ -9,5 +9,4 @@ Sigue estos pasos:
 2. tener el mismo NOMBRE DE LA CARPETA QUE GENERAL DONDE GUARDAREMOS ESE .JSON
    cp config/credenciales.example.json config/credenciales.json
 
-CIRCLECI
 EN credenciales tambien deben poner su ip privada
