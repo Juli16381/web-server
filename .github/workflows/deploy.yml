@@ -39,21 +39,10 @@ jobs:
     - name: Install Python dependencies
       run: pip install -r requirements.txt
       
-    - name: Clean npm cache
-      run: npm cache clean --force
-
-    - name: Install PM2
-      run: sudo npm install -g pm2
-
     - name: Deploy and Restart Python Sniffer
       run: |
         sudo pm2 restart python-sniffer || pm2 start Sniffer_prueba.py --name python-sniffer --interpreter python3 --watch
         
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: '14'
-
     - name: Install Node.js dependencies
       run: npm install
 
