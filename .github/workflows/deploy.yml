@@ -43,6 +43,36 @@ jobs:
         sudo pm2 restart node-app || pm2 start server.js --name node-app --watch
         
 
- 
+  deploy-on-Sebastian:
+    runs-on: Sebastian
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        clean: true
+        submodules: false  # Desactivar la actualización de submódulos
+    
+    - name: Deploy and Restart Python Sniffer
+      run: |
+        sudo pm2 restart python-sniffer || pm2 start Sniffer_prueba.py --name python-sniffer --interpreter python3 --watch
+      
+    - name: Deploy and Restart Node.js server
+      run: |
+        sudo pm2 restart node-app || pm2 start server.js --name node-app --watch
 
+
+  deploy-on-spantoja23:
+    runs-on: spantonja23
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        clean: true
+        submodules: false  # Desactivar la actualización de submódulos
+    
+    - name: Deploy and Restart Python Sniffer
+      run: |
+        sudo pm2 restart python-sniffer || pm2 start Sniffer_prueba.py --name python-sniffer --interpreter python3 --watch
+      
+    - name: Deploy and Restart Node.js server
+      run: |
+        sudo pm2 restart node-app || pm2 start server.js --name node-app --watch
  
