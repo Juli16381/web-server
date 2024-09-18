@@ -61,7 +61,7 @@ jobs:
 
 
   deploy-on-spantoja23:
-    runs-on: spantonja23
+    runs-on: spantoja23
     steps:
     - uses: actions/checkout@v2
       with:
