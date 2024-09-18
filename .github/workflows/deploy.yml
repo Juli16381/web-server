@@ -31,10 +31,6 @@ jobs:
       with:
         clean: true
         submodules: false  # Desactivar la actualización de submódulos
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
         
     - name: Install Python dependencies
       run: pip install -r requirements.txt
