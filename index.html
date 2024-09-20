@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Datos GPS</title>
+    <title>Nombre</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
         body {
@@ -27,6 +27,7 @@
             width: 60%;
             border: 2px solid #ce7272;
             margin-right: 20px;
+            margin-top: 10px;
             position: relative; 
         }
         table {
@@ -63,9 +64,22 @@
             width: 35%;
         }
         .title {
-            font-size: 24px;
+            font-size: 28px;
             color: #333;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        #filterForm {
+            margin-top: 5px; 
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 20px; 
+        }
+        #filterForm label {
+            margin-right: 2px; 
+        }
+        #filterForm input {
+            margin-right: 20px; 
         }
         .leaflet-control {
             background-color: white;
@@ -91,7 +105,17 @@
     </style>
 </head>
 <body>
-    <h1 class="title">Laura</h1>
+    <h1 class="title">Datos GPS</h1>
+
+    <!-- Formulario de filtrado -->
+    <form id="filterForm">
+        <label for="startDate">Fecha y hora de inicio:</label>
+        <input type="datetime-local" id="startDate" name="startDate">
+        <label for="endDate">Fecha y hora de fin:</label>
+        <input type="datetime-local" id="endDate" name="endDate">
+        <button type="submit">Filtrar</button>
+    </form>
+
     <div class="container">
         <!-- Contenedor para el Mapa -->
         <div id="map"></div>
@@ -149,7 +173,7 @@
                 const div = L.DomUtil.create('div', 'leaflet-control');
                 div.id = 'ultima-ubicacion-info';
                 div.innerHTML = `
-                    <b>Última ubicación</b><br>
+                    <b>Ultima ubicacion</b><br>
                     Latitud: <span id="ultima-latitud">-</span><br>
                     Longitud: <span id="ultima-longitud">-</span><br>
                     Fecha: <span id="ultima-fecha">-</span><br>
@@ -232,29 +256,95 @@
                                     <td>${fechaFormateada}</td>
                                     <td>${registro.Hora}</td>
                                 `;
-                                historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
+                                historicosTable.appendChild(historicosRow);
                             });
 
-                            if (ultimaLatitud !== null && ultimaLongitud !== null) {
-                                map.setView([ultimaLatitud, ultimaLongitud], 15);
-                                marcadorUltimaUbicacion.setLatLng([ultimaLatitud, ultimaLongitud]);
-                            }
+                            document.getElementById('ultima-latitud').innerText = data[0].Latitud;
+                            document.getElementById('ultima-longitud').innerText = data[0].Longitud;
+                            document.getElementById('ultima-fecha').innerText = data[0].Fecha.split('T')[0];
+                            document.getElementById('ultima-hora').innerText = data[0].Hora;
+
+                            marcadorUltimaUbicacion.setLatLng([ultimaLatitud, ultimaLongitud]);
+                            map.setView([ultimaLatitud, ultimaLongitud], 15); 
                         }
                     })
-                    .catch(error => console.error('Error al cargar los datos históricos:', error));
+                    .catch(error => console.error('Error:', error));
             }
 
-            document.getElementById('historicos-btn').addEventListener('click', () => {
+            document.getElementById('filterForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                let startDate = new Date(document.getElementById('startDate').value);
+                let endDate = new Date(document.getElementById('endDate').value);
+                
+                // Validar que la fecha de fin no sea menor que la fecha de inicio
+                if (endDate < startDate) {
+                    alert('La fecha de fin no puede ser menor que la fecha de inicio.');
+                    return;
+                }
+
+                // Convertir a UTC antes de enviar
+                startDate = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000);
+                endDate = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000);
+
+                fetch(`/filterData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        updateTable(data);
+                        updateMap(data);
+                    })
+                    .catch(error => console.error('Error:', error));
+            });
+
+            function updateTable(data) {
+                const historicosTable = document.getElementById('historicos-data');
+                historicosTable.innerHTML = '';
+
+                data.forEach((registro) => {
+                    const fechaFormateada = registro.Fecha.split('T')[0];
+
+                    const historicosRow = document.createElement('tr');
+                    historicosRow.innerHTML = `
+                        <td>${registro.Latitud}</td>
+                        <td>${registro.Longitud}</td>
+                        <td>${fechaFormateada}</td>
+                        <td>${registro.Hora}</td>
+                    `;
+                    historicosTable.appendChild(historicosRow);
+                });
+            }
+
+            function updateMap(data) {
+                recorrido.setLatLngs([]);
+                if (data.length > 0) {
+                    let ultimaLatitud = null;
+                    let ultimaLongitud = null;
+
+                    data.forEach((registro) => {
+                        const nuevaLatitud = parseFloat(registro.Latitud);
+                        const nuevaLongitud = parseFloat(registro.Longitud);
+
+                        recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
+
+                        ultimaLatitud = nuevaLatitud;
+                        ultimaLongitud = nuevaLongitud;
+                    });
+
+                    marcadorUltimaUbicacion.setLatLng([ultimaLatitud, ultimaLongitud]);
+                    map.setView([ultimaLatitud, ultimaLongitud], 15); 
+                }
+            }
+
+            document.getElementById('historicos-btn').addEventListener('click', function() {
                 const historicosTable = document.getElementById('historicos-table');
                 if (historicosTable.style.display === 'none') {
                     historicosTable.style.display = 'table';
-                    document.getElementById('historicos-btn').innerText = 'Ocultar historial';
+                    this.innerText = 'Ocultar historial';
                 } else {
                     historicosTable.style.display = 'none';
-                    document.getElementById('historicos-btn').innerText = 'Ver historial';
+                    this.innerText = 'Ver historial';
                 }
             });
-
         });
     </script>
 </body>
