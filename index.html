@@ -195,13 +195,14 @@
 
             socket.on('new-data', (data) => {
                 actualizarMapa(data); 
+                actualizarTablaHistoricos(data); // Actualiza la tabla de históricos
             });
 
             function actualizarMapa(data) {
                 const nuevaLatitud = parseFloat(data.Latitud);
                 const nuevaLongitud = parseFloat(data.Longitud);
 
-                const fechaFormateada = data.Fecha.split('T')[0];
+                const fechaFormateada = data.FechaHora.split(' ')[0];
 
                 document.getElementById('ultima-latitud').innerText = data.Latitud;
                 document.getElementById('ultima-longitud').innerText = data.Longitud;
@@ -215,18 +216,22 @@
 
                 recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
                 marcadorUltimaUbicacion.setLatLng([nuevaLatitud, nuevaLongitud]);
+            }
 
-                setTimeout(() => {
-                    const historicosTable = document.getElementById('historicos-data');
-                    const historicosRow = document.createElement('tr');
-                    historicosRow.innerHTML = `
-                        <td>${data.Latitud}</td>
-                        <td>${data.Longitud}</td>
-                        <td>${fechaFormateada}</td>
-                        <td>${data.Hora}</td>
-                    `;
-                    historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
-                }, 2000);
+            // Nueva función para actualizar la tabla de históricos sin refrescar la página
+            function actualizarTablaHistoricos(data) {
+                const historicosTable = document.getElementById('historicos-data');
+                const historicosRow = document.createElement('tr');
+                const fechaFormateada = data.FechaHora.split(' ')[0];
+                const horaFormateada = data.FechaHora.split(' ')[1];
+
+                historicosRow.innerHTML = `
+                    <td>${data.Latitud}</td>
+                    <td>${data.Longitud}</td>
+                    <td>${fechaFormateada}</td>
+                    <td>${horaFormateada}</td>
+                `;
+                historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
             }
 
             function cargarDatosDesdeServidor() {
@@ -237,7 +242,7 @@
                             let ultimaLatitud = null;
                             let ultimaLongitud = null;
 
-                            data.reverse().forEach((registro) => {
+                            data.forEach((registro) => {
                                 const nuevaLatitud = parseFloat(registro.Latitud);
                                 const nuevaLongitud = parseFloat(registro.Longitud);
 
@@ -277,13 +282,11 @@
                 let startDate = new Date(document.getElementById('startDate').value);
                 let endDate = new Date(document.getElementById('endDate').value);
                 
-                // Validar que la fecha de fin no sea menor que la fecha de inicio
                 if (endDate < startDate) {
                     alert('La fecha de fin no puede ser menor que la fecha de inicio.');
                     return;
                 }
 
-                // Convertir a UTC antes de enviar
                 startDate = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000);
                 endDate = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000);
 
