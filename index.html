@@ -173,7 +173,7 @@
                 const div = L.DomUtil.create('div', 'leaflet-control');
                 div.id = 'ultima-ubicacion-info';
                 div.innerHTML = `
-                    <b>Ultima ubicacion</b><br>
+                    <b>Última ubicación</b><br>
                     Latitud: <span id="ultima-latitud">-</span><br>
                     Longitud: <span id="ultima-longitud">-</span><br>
                     Fecha: <span id="ultima-fecha">-</span><br>
@@ -195,19 +195,30 @@
 
             socket.on('new-data', (data) => {
                 actualizarMapa(data); 
-                actualizarTablaHistoricos(data); // Actualiza la tabla de históricos
             });
 
             function actualizarMapa(data) {
                 const nuevaLatitud = parseFloat(data.Latitud);
                 const nuevaLongitud = parseFloat(data.Longitud);
 
-                const fechaFormateada = data.FechaHora.split(' ')[0];
+                // Verifica la validez de la fecha y hora
+                let fecha = data.Fecha;
+                let hora = data.Hora;
+
+                if (!fecha || fecha === "Invalid Date") {
+                    fecha = "Fecha no válida";
+                }
+                
+                if (!hora || hora === "Invalid Date") {
+                    hora = "Hora no válida";
+                }
+
+                const fechaFormateada = fecha.split('T')[0];
 
                 document.getElementById('ultima-latitud').innerText = data.Latitud;
                 document.getElementById('ultima-longitud').innerText = data.Longitud;
-                document.getElementById('ultima-fecha').innerText = fechaFormateada;
-                document.getElementById('ultima-hora').innerText = data.Hora;
+                document.getElementById('ultima-fecha').innerText = fechaFormateada || "Fecha no válida";
+                document.getElementById('ultima-hora').innerText = data.Hora || "Hora no válida";
 
                 // Solo centrar el mapa si autoCenter es verdadero
                 if (autoCenter) {
@@ -216,22 +227,18 @@
 
                 recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
                 marcadorUltimaUbicacion.setLatLng([nuevaLatitud, nuevaLongitud]);
-            }
 
-            // Nueva función para actualizar la tabla de históricos sin refrescar la página
-            function actualizarTablaHistoricos(data) {
-                const historicosTable = document.getElementById('historicos-data');
-                const historicosRow = document.createElement('tr');
-                const fechaFormateada = data.FechaHora.split(' ')[0];
-                const horaFormateada = data.FechaHora.split(' ')[1];
-
-                historicosRow.innerHTML = `
-                    <td>${data.Latitud}</td>
-                    <td>${data.Longitud}</td>
-                    <td>${fechaFormateada}</td>
-                    <td>${horaFormateada}</td>
-                `;
-                historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
+                setTimeout(() => {
+                    const historicosTable = document.getElementById('historicos-data');
+                    const historicosRow = document.createElement('tr');
+                    historicosRow.innerHTML = `
+                        <td>${data.Latitud}</td>
+                        <td>${data.Longitud}</td>
+                        <td>${fechaFormateada || "Fecha no válida"}</td>
+                        <td>${data.Hora || "Hora no válida"}</td>
+                    `;
+                    historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
+                }, 2000);
             }
 
             function cargarDatosDesdeServidor() {
@@ -242,7 +249,7 @@
                             let ultimaLatitud = null;
                             let ultimaLongitud = null;
 
-                            data.forEach((registro) => {
+                            data.reverse().forEach((registro) => {
                                 const nuevaLatitud = parseFloat(registro.Latitud);
                                 const nuevaLongitud = parseFloat(registro.Longitud);
 
@@ -282,11 +289,13 @@
                 let startDate = new Date(document.getElementById('startDate').value);
                 let endDate = new Date(document.getElementById('endDate').value);
                 
+                // Validar que la fecha de fin no sea menor que la fecha de inicio
                 if (endDate < startDate) {
                     alert('La fecha de fin no puede ser menor que la fecha de inicio.');
                     return;
                 }
 
+                // Convertir a UTC antes de enviar
                 startDate = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000);
                 endDate = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000);
 
