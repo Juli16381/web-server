@@ -213,12 +213,10 @@
                     hora = "Hora no válida";
                 }
 
-                const fechaFormateada = fecha.split('T')[0];
-
                 document.getElementById('ultima-latitud').innerText = data.Latitud;
                 document.getElementById('ultima-longitud').innerText = data.Longitud;
-                document.getElementById('ultima-fecha').innerText = fechaFormateada || "Fecha no válida";
-                document.getElementById('ultima-hora').innerText = data.Hora || "Hora no válida";
+                document.getElementById('ultima-fecha').innerText = fecha;
+                document.getElementById('ultima-hora').innerText = hora;
 
                 // Solo centrar el mapa si autoCenter es verdadero
                 if (autoCenter) {
@@ -234,8 +232,8 @@
                     historicosRow.innerHTML = `
                         <td>${data.Latitud}</td>
                         <td>${data.Longitud}</td>
-                        <td>${fechaFormateada || "Fecha no válida"}</td>
-                        <td>${data.Hora || "Hora no válida"}</td>
+                        <td>${fecha}</td>
+                        <td>${hora}</td>
                     `;
                     historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
                 }, 2000);
@@ -361,3 +359,4 @@
     </script>
 </body>
 </html>
+
