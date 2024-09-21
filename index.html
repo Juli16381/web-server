@@ -173,7 +173,7 @@
                 const div = L.DomUtil.create('div', 'leaflet-control');
                 div.id = 'ultima-ubicacion-info';
                 div.innerHTML = `
-                    <b>Última ubicación</b><br>
+                    <b>Ultima ubicacion</b><br>
                     Latitud: <span id="ultima-latitud">-</span><br>
                     Longitud: <span id="ultima-longitud">-</span><br>
                     Fecha: <span id="ultima-fecha">-</span><br>
@@ -201,22 +201,12 @@
                 const nuevaLatitud = parseFloat(data.Latitud);
                 const nuevaLongitud = parseFloat(data.Longitud);
 
-                // Verifica la validez de la fecha y hora
-                let fecha = data.Fecha;
-                let hora = data.Hora;
-
-                if (!fecha || fecha === "Invalid Date") {
-                    fecha = "Fecha no válida";
-                }
-                
-                if (!hora || hora === "Invalid Date") {
-                    hora = "Hora no válida";
-                }
+                const fechaFormateada = data.Fecha.split('T')[0];
 
                 document.getElementById('ultima-latitud').innerText = data.Latitud;
                 document.getElementById('ultima-longitud').innerText = data.Longitud;
-                document.getElementById('ultima-fecha').innerText = fecha;
-                document.getElementById('ultima-hora').innerText = hora;
+                document.getElementById('ultima-fecha').innerText = fechaFormateada;
+                document.getElementById('ultima-hora').innerText = data.Hora;
 
                 // Solo centrar el mapa si autoCenter es verdadero
                 if (autoCenter) {
@@ -232,8 +222,8 @@
                     historicosRow.innerHTML = `
                         <td>${data.Latitud}</td>
                         <td>${data.Longitud}</td>
-                        <td>${fecha}</td>
-                        <td>${hora}</td>
+                        <td>${fechaFormateada}</td>
+                        <td>${data.Hora}</td>
                     `;
                     historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
                 }, 2000);
@@ -359,4 +349,5 @@
     </script>
 </body>
 </html>
+
 
