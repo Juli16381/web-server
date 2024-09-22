@@ -344,7 +344,7 @@ function cargarDatosDesdeServidor() {
     intervaloActivo = false;
 });
 
-// Verificar el estado del formulario y activar el intervalo si está en "clear"
+// Verificar el estado del formulario 
     function verificarIntervalo() {
     if (document.getElementById('startDate').value === "" && document.getElementById('endDate').value === "") {
     setInterval(cargarDatosDesdeServidor, 10000);
