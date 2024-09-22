@@ -197,7 +197,7 @@
                 actualizarMapa(data); 
             });
 
-            function actualizarMapa(data) {
+                function actualizarMapa(data) {
                 const nuevaLatitud = parseFloat(data.Latitud);
                 const nuevaLongitud = parseFloat(data.Longitud);
 
@@ -307,40 +307,57 @@ function cargarDatosDesdeServidor() {
         .catch(error => console.error('Error al cargar los datos históricos:', error));
 }
 
-	// Configurar un intervalo para actualizar
-	setInterval(cargarDatosDesdeServidor, 20000); 
+	let intervaloActivo = true; // Controla si el intervalo está activo
 
+	document.getElementById('filterForm').addEventListener('submit', function(event) {
+    	event.preventDefault();
+    
+    	let startDate = new Date(document.getElementById('startDate').value);
+   	let endDate = new Date(document.getElementById('endDate').value);
+    
+    	// Validar que la fecha de fin no sea menor que la fecha de inicio
+   	 if (endDate < startDate) {
+       	 alert('La fecha de fin no puede ser menor que la fecha de inicio.');
+       	 return;
+    }
 
-		document.getElementById('filterForm').addEventListener('submit', function(event) {
-                event.preventDefault();
-                
-                let startDate = new Date(document.getElementById('startDate').value);
-                let endDate = new Date(document.getElementById('endDate').value);
-                
-                // Validar que la fecha de fin no sea menor que la fecha de inicio
-                if (endDate < startDate) {
-                    alert('La fecha de fin no puede ser menor que la fecha de inicio.');
-                    return;
-                }
+   	 // Convertir a UTC antes de enviar
+   	 startDate = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000);
+    	 endDate = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000);
 
-                // Convertir a UTC antes de enviar
-                startDate = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000);
-                endDate = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000);
+    	fetch(`/filterData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.length === 0) {
+                // Si no hay datos en el rango de tiempo, cargar todos los datos históricos
+                cargarDatosDesdeServidor();
+		setInterval(cargarDatosDesdeServidor, 10000);
+                alert('No se encontraron datos en el rango de tiempo especificado');
+            } else {
+                updateTable(data);
+                updateMap(data);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    
+    // Desactivar el intervalo cuando se filtran datos
+    intervaloActivo = false;
+});
 
-                fetch(`/filterData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.length === 0) {
-                            // Si no hay datos en el rango de tiempo, cargar todos los datos históricos
-                            cargarDatosDesdeServidor();
-                            alert('No se encontraron datos en el rango de tiempo especificado. Se cargan todos los historicos.');
-                        } else {
-                            updateTable(data);
-                            updateMap(data);
-                        }
-                    })
-                    .catch(error => console.error('Error:', error));
-            });
+// Verificar el estado del formulario y activar el intervalo si está en "clear"
+    function verificarIntervalo() {
+    if (document.getElementById('startDate').value === "" && document.getElementById('endDate').value === "") {
+    setInterval(cargarDatosDesdeServidor, 10000);
+            }
+}
+
+// Llama a verificarIntervalo cada vez que el formulario cambia
+document.getElementById('startDate').addEventListener('input', verificarIntervalo);
+document.getElementById('endDate').addEventListener('input', verificarIntervalo);
+
+// Iniciar el intervalo solo si el formulario está en estado "clear" al cargar la página
+verificarIntervalo();
+
 
             function updateTable(data) {
                 const historicosTable = document.getElementById('historicos-data');
@@ -395,6 +412,5 @@ function cargarDatosDesdeServidor() {
     </script>
 </body>
 </html>
-
 
 
