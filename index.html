@@ -307,11 +307,8 @@ function cargarDatosDesdeServidor() {
         .catch(error => console.error('Error al cargar los datos históricos:', error));
 }
 
-// Configurar un intervalo para actualizar
-setInterval(cargarDatosDesdeServidor, 10000); 
-
- 
-
+	// Configurar un intervalo para actualizar
+	setInterval(cargarDatosDesdeServidor, 20000); 
 
 
 		document.getElementById('filterForm').addEventListener('submit', function(event) {
