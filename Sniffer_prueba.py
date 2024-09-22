@@ -3,21 +3,17 @@
 from scapy.all import sniff, UDP, IP
 import requests
 import mysql.connector
-from datetime import datetime
-import os
 import json
+
 # Cargar credenciales desde el archivo credenciales.json
 with open('/home/ubuntu/todoproyect/credenciales.json', 'r') as f:
     credenciales = json.load(f)
-    
-# Configuracion
+
+# Configuración
 INTERFACE = "enX0"  # Interfaz de red a monitorear 
 FILTER_IP = credenciales['DB_IP']  # Rango de red privada 
-FILTER_PORT = 10000  # Puerto especiÂ­fico a filtrar 
-NODEJS_SERVER_URL = credenciales['DB_NODEJS'] # URL del servidor Node.js
-
-
-
+FILTER_PORT = 10000  # Puerto específico a filtrar 
+NODEJS_SERVER_URL = credenciales['DB_NODEJS']  # URL del servidor Node.js
 
 # Usar las credenciales para la configuración de la base de datos
 DB_CONFIG = {
@@ -29,7 +25,6 @@ DB_CONFIG = {
     'auth_plugin': 'mysql_native_password',
     'ssl_disabled': True
 }
-
 
 def procesar_paquete(paquete):
     print("Paquete capturado")  # Para verificar que se captura un paquete
@@ -43,6 +38,11 @@ def procesar_paquete(paquete):
                 # Extraer el payload del paquete
                 payload = paquete[UDP].payload.load.decode('utf-8', errors='replace')
 
+                # Verificar si el payload está vacío
+                if not payload:
+                    print("Payload vacío recibido, ignorando el paquete.")
+                    return
+
                 # Verificar el contenido del payload
                 print(f"Payload capturado: {payload}")
 
@@ -50,46 +50,51 @@ def procesar_paquete(paquete):
                 datos = parsear_payload(payload)
 
                 if datos:
-                    print(f"Datos extraiÂ­dos: {datos}")  # Verificar los datos extraÃƒÂ­dos
+                    print(f"Datos extraídos: {datos}")  # Verificar los datos extraídos
                     enviar_a_nodejs(datos)
                     insertar_en_mysql(datos)
                 else:
-                    print("Datos no validos para insercion.")
+                    print("Datos no válidos para inserción.")
     except Exception as e:
         print(f"Error al procesar el paquete: {e}")
 
 def parsear_payload(payload):
     """
-    Parsea la carga util del paquete para extraer Latitud, Longitud, Fecha y Hora
+    Parsea la carga útil del paquete para extraer Latitud, Longitud, Fecha y Hora
     desde un formato de texto plano.
     """
     try:
-        # Dividir el payload por liÂ­neas
+        # Dividir el payload por líneas
         lineas = payload.splitlines()
         
         # Crear un diccionario para almacenar los datos
         datos = {}
 
-        # Iterar sobre cada lÃƒÂ­nea y extraer los valores
+        # Iterar sobre cada línea y extraer los valores
         for linea in lineas:
             clave, valor = linea.split(':', 1)  # Limitar el split al primer ':'
             datos[clave.strip()] = valor.strip()
 
-        # Validar que todos los datos necesarios estan presentes
+        # Validar que todos los datos necesarios están presentes
         latitud = datos.get('Latitud')
         longitud = datos.get('Longitud')
         timestamp = datos.get('Timestamp')
 
         if latitud and longitud and timestamp:
             # Dividir el timestamp en fecha y hora
-            fecha, hora = timestamp.split(' ')
-            print(f"Datos validos extraiÂ­dos: Latitud={latitud}, Longitud={longitud}, Fecha={fecha}, Hora={hora}")
-            return {
-                'Latitud': float(latitud),
-                'Longitud': float(longitud),
-                'Fecha': fecha,
-                'Hora': hora
-            }
+            partes_timestamp = timestamp.split(' ')
+            if len(partes_timestamp) == 2:
+                fecha, hora = partes_timestamp
+                print(f"Datos válidos extraídos: Latitud={latitud}, Longitud={longitud}, Fecha={fecha}, Hora={hora}")
+                return {
+                    'Latitud': float(latitud),
+                    'Longitud': float(longitud),
+                    'Fecha': fecha,
+                    'Hora': hora,
+                    'FechaHora': f"{fecha} {hora}"  # Crear FechaHora
+                }
+            else:
+                print("Formato de timestamp incorrecto.")
         else:
             print("Datos incompletos en el payload.")
             return None
@@ -98,12 +103,9 @@ def parsear_payload(payload):
         print(f"Error al procesar el payload: {e}")
         return None
 
-
-
-
 def enviar_a_nodejs(datos):
     """
-    EnviÂ­a los datos al servidor Node.js mediante una solicitud POST.
+    Envía los datos al servidor Node.js mediante una solicitud POST.
     """
     try:
         print(f"Enviando datos a Node.js: {datos}")
@@ -113,42 +115,42 @@ def enviar_a_nodejs(datos):
         else:
             print(f"Error al enviar datos al servidor Node.js: {response.status_code}")
     except requests.exceptions.RequestException as e:
-        print(f"Excepcion al enviar datos al servidor Node.js: {e}")
+        print(f"Excepción al enviar datos al servidor Node.js: {e}")
 
 def insertar_en_mysql(datos):
     """
     Inserta los datos en la base de datos MySQL.
     """
     try:
-        print(f"Insertando datos en MySQL: {datos}")  # Verificar que se estÃƒÂ¡n intentando insertar datos
+        print(f"Insertando datos en MySQL: {datos}")  # Verificar que se están intentando insertar datos
 
         cnx = mysql.connector.connect(**DB_CONFIG)
         cursor = cnx.cursor()
 
+        # Concatenar Fecha y Hora para obtener FechaHora
+        fecha_hora = f"{datos['Fecha']} {datos['Hora']}"
+        
         add_dato = ("INSERT INTO datos_gps "
-                    "(Latitud, Longitud, Fecha, Hora) "
-                    "VALUES (%s, %s, %s, %s)")
-        data_dato = (datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'])
+                    "(Latitud, Longitud, Fecha, Hora, FechaHora) "
+                    "VALUES (%s, %s, %s, %s, %s)")
+        data_dato = (datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'], fecha_hora)
 
         cursor.execute(add_dato, data_dato)
         cnx.commit()
 
-        print("Datos insertados correctamente en la base de datos MySQL.")  # Verificar que se han insertado datos
+        print("Datos insertados correctamente en la base de datos MySQL.")
 
         cursor.close()
         cnx.close()
 
     except mysql.connector.Error as err:
-        print(f"Error al insertar en MySQL: {err}")  # Capturar y mostrar cualquier error durante la inserciÃƒÂ³n
-
+        print(f"Error al insertar en MySQL: {err}")  # Capturar y mostrar cualquier error durante la inserción
     except Exception as e:
-        print(f"Otro error ocurriÃƒÂ³ al insertar en MySQL: {e}")  # Capturar cualquier otro tipo de error
-
-
+        print(f"Otro error ocurrió al insertar en MySQL: {e}")  # Capturar cualquier otro tipo de error
 
 def main():
     """
-    Funcion principal que inicia el sniffer.
+    Función principal que inicia el sniffer.
     """
     print("Iniciando sniffer de paquetes...")
     # Construir el filtro de BPF para scapy
@@ -157,3 +159,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
