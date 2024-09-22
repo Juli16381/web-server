@@ -27,6 +27,7 @@
             width: 60%;
             border: 2px solid #ce7272;
             margin-right: 20px;
+            margin-top: 10px;
             position: relative; 
         }
         table {
@@ -63,9 +64,22 @@
             width: 35%;
         }
         .title {
-            font-size: 24px;
+            font-size: 28px;
             color: #333;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        #filterForm {
+            margin-top: 5px; 
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 20px; 
+        }
+        #filterForm label {
+            margin-right: 2px; 
+        }
+        #filterForm input {
+            margin-right: 20px; 
         }
         .leaflet-control {
             background-color: white;
@@ -92,6 +106,16 @@
 </head>
 <body>
     <h1 class="title">Datos GPS</h1>
+
+    <!-- Formulario de filtrado -->
+    <form id="filterForm">
+        <label for="startDate">Fecha y hora de inicio:</label>
+        <input type="datetime-local" id="startDate" name="startDate">
+        <label for="endDate">Fecha y hora de fin:</label>
+        <input type="datetime-local" id="endDate" name="endDate">
+        <button type="submit">Filtrar</button>
+    </form>
+
     <div class="container">
         <!-- Contenedor para el Mapa -->
         <div id="map"></div>
@@ -149,7 +173,7 @@
                 const div = L.DomUtil.create('div', 'leaflet-control');
                 div.id = 'ultima-ubicacion-info';
                 div.innerHTML = `
-                    <b>Última ubicación</b><br>
+                    <b>Ultima ubicacion</b><br>
                     Latitud: <span id="ultima-latitud">-</span><br>
                     Longitud: <span id="ultima-longitud">-</span><br>
                     Fecha: <span id="ultima-fecha">-</span><br>
@@ -173,7 +197,7 @@
                 actualizarMapa(data); 
             });
 
-            function actualizarMapa(data) {
+                function actualizarMapa(data) {
                 const nuevaLatitud = parseFloat(data.Latitud);
                 const nuevaLongitud = parseFloat(data.Longitud);
 
@@ -205,57 +229,187 @@
                 }, 2000);
             }
 
-            function cargarDatosDesdeServidor() {
-                fetch('/historicos')
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.length > 0) {
-                            let ultimaLatitud = null;
-                            let ultimaLongitud = null;
 
-                            data.reverse().forEach((registro) => {
-                                const nuevaLatitud = parseFloat(registro.Latitud);
-                                const nuevaLongitud = parseFloat(registro.Longitud);
+let ventanaTiempoAbierta = false; // Variable para controlar el estado de la ventana de tiempo
 
-                                const fechaFormateada = registro.Fecha.split('T')[0];
+function mostrarVentanaTiempo() {
+    ventanaTiempoAbierta = true; // La ventana de tiempo está abierta
+    document.getElementById('historicos-data').innerHTML = ''; // Limpia los históricos
+}
 
-                                recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
+function cerrarVentanaTiempo() {
+    ventanaTiempoAbierta = false; // Cerrar la ventana de tiempo
+    
+}
 
-                                ultimaLatitud = nuevaLatitud;
-                                ultimaLongitud = nuevaLongitud;
+function cargarDatosDesdeServidor() {
+    fetch('/historicos')
+        .then(response => response.json())
+        .then(data => {
+            if (!ventanaTiempoAbierta) { // Verifica si la ventana de tiempo está abierta
+                if (data.length > 0) {
+                    let ultimaLatitud = null;
+                    let ultimaLongitud = null;
 
-                                const historicosTable = document.getElementById('historicos-data');
-                                const historicosRow = document.createElement('tr');
-                                historicosRow.innerHTML = `
-                                    <td>${registro.Latitud}</td>
-                                    <td>${registro.Longitud}</td>
-                                    <td>${fechaFormateada}</td>
-                                    <td>${registro.Hora}</td>
-                                `;
-                                historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
-                            });
+                    // Ordenar los datos por Fecha en orden descendente
+                    data.sort((a, b) => new Date(b.Fecha) - new Date(a.Fecha));
 
-                            if (ultimaLatitud !== null && ultimaLongitud !== null) {
-                                map.setView([ultimaLatitud, ultimaLongitud], 15);
-                                marcadorUltimaUbicacion.setLatLng([ultimaLatitud, ultimaLongitud]);
-                            }
-                        }
-                    })
-                    .catch(error => console.error('Error al cargar los datos históricos:', error));
+                    const historicosRows = [];
+                    data.forEach((registro) => {
+                        const nuevaLatitud = parseFloat(registro.Latitud);
+                        const nuevaLongitud = parseFloat(registro.Longitud);
+                        const fechaFormateada = registro.Fecha.split('T')[0];
+
+                        recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
+
+                        ultimaLatitud = nuevaLatitud;
+                        ultimaLongitud = nuevaLongitud;
+
+                        // Preparar la fila para la tabla
+                        historicosRows.push(`
+                            <tr>
+                                <td>${registro.Latitud}</td>
+                                <td>${registro.Longitud}</td>
+                                <td>${fechaFormateada}</td>
+                                <td>${registro.Hora}</td>
+                            </tr>
+                        `);
+                    });
+
+                    // Insertar las filas en la tabla
+                    const historicosTable = document.getElementById('historicos-data');
+                    historicosTable.innerHTML = historicosRows.join('');
+
+                    // Actualizar la última ubicación
+                    const ultimaEntrada = data[0]; // Primer elemento tras la ordenación
+                    if (ultimaLatitud !== null && ultimaLongitud !== null) {
+                        document.getElementById('ultima-latitud').innerText = ultimaLatitud;
+                        document.getElementById('ultima-longitud').innerText = ultimaLongitud;
+                        document.getElementById('ultima-fecha').innerText = ultimaEntrada.Fecha.split('T')[0];
+                        document.getElementById('ultima-hora').innerText = ultimaEntrada.Hora;
+
+                        marcadorUltimaUbicacion.setLatLng([ultimaLatitud, ultimaLongitud]);
+                        map.setView([ultimaLatitud, ultimaLongitud], 15);
+                    }
+                } else {
+                    // Manejo de caso cuando no hay datos
+                    document.getElementById('historicos-data').innerHTML = '';
+                    document.getElementById('ultima-latitud').innerText = '-';
+                    document.getElementById('ultima-longitud').innerText = '-';
+                    document.getElementById('ultima-fecha').innerText = '-';
+                    document.getElementById('ultima-hora').innerText = '-';
+                }
+            } else {
+                // Si la ventana de tiempo está abierta, asegurarse de que los datos históricos estén vacíos
+                document.getElementById('historicos-data').innerHTML = '';
+            }
+        })
+        .catch(error => console.error('Error al cargar los datos históricos:', error));
+}
+
+	let intervaloActivo = true; // Controla si el intervalo está activo
+
+	document.getElementById('filterForm').addEventListener('submit', function(event) {
+    	event.preventDefault();
+    
+    	let startDate = new Date(document.getElementById('startDate').value);
+   	let endDate = new Date(document.getElementById('endDate').value);
+    
+    	// Validar que la fecha de fin no sea menor que la fecha de inicio
+   	 if (endDate < startDate) {
+       	 alert('La fecha de fin no puede ser menor que la fecha de inicio.');
+       	 return;
+    }
+
+   	 // Convertir a UTC antes de enviar
+   	 startDate = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000);
+    	 endDate = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000);
+
+    	fetch(`/filterData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.length === 0) {
+                // Si no hay datos en el rango de tiempo, cargar todos los datos históricos
+                cargarDatosDesdeServidor();
+                alert('No se encontraron datos en el rango de tiempo especificado');
+            } else {
+                updateTable(data);
+                updateMap(data);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    
+    // Desactivar el intervalo cuando se filtran datos
+    intervaloActivo = false;
+});
+
+// Verificar el estado del formulario 
+    function verificarIntervalo() {
+    if (document.getElementById('startDate').value === "" && document.getElementById('endDate').value === "") {
+    setInterval(cargarDatosDesdeServidor, 10000);
+            }
+}
+
+// Llama a verificarIntervalo cada vez que el formulario cambia
+document.getElementById('startDate').addEventListener('input', verificarIntervalo);
+document.getElementById('endDate').addEventListener('input', verificarIntervalo);
+
+setInterval(verificarIntervalo, 5000);
+
+
+            function updateTable(data) {
+                const historicosTable = document.getElementById('historicos-data');
+                historicosTable.innerHTML = '';
+
+                data.forEach((registro) => {
+                    const fechaFormateada = registro.Fecha.split('T')[0];
+
+                    const historicosRow = document.createElement('tr');
+                    historicosRow.innerHTML = `
+                        <td>${registro.Latitud}</td>
+                        <td>${registro.Longitud}</td>
+                        <td>${fechaFormateada}</td>
+                        <td>${registro.Hora}</td>
+                    `;
+                    historicosTable.appendChild(historicosRow);
+                });
             }
 
-            document.getElementById('historicos-btn').addEventListener('click', () => {
+            function updateMap(data) {
+                recorrido.setLatLngs([]);
+                if (data.length > 0) {
+                    let ultimaLatitud = null;
+                    let ultimaLongitud = null;
+
+                    data.forEach((registro) => {
+                        const nuevaLatitud = parseFloat(registro.Latitud);
+                        const nuevaLongitud = parseFloat(registro.Longitud);
+
+                        recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
+
+                        ultimaLatitud = nuevaLatitud;
+                        ultimaLongitud = nuevaLongitud;
+                    });
+
+                    marcadorUltimaUbicacion.setLatLng([ultimaLatitud, ultimaLongitud]);
+                    map.setView([ultimaLatitud, ultimaLongitud], 15); 
+                }
+            }
+
+            document.getElementById('historicos-btn').addEventListener('click', function() {
                 const historicosTable = document.getElementById('historicos-table');
                 if (historicosTable.style.display === 'none') {
                     historicosTable.style.display = 'table';
-                    document.getElementById('historicos-btn').innerText = 'Ocultar historial';
+                    this.innerText = 'Ocultar historial';
                 } else {
                     historicosTable.style.display = 'none';
-                    document.getElementById('historicos-btn').innerText = 'Ver historial';
+                    this.innerText = 'Ver historial';
                 }
             });
-
         });
     </script>
 </body>
 </html>
+
+
+
