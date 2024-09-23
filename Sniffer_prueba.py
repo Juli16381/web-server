@@ -131,7 +131,7 @@ def insertar_en_mysql(datos):
         fecha_hora = f"{datos['Fecha']} {datos['Hora']}"
         
         add_dato = ("INSERT INTO datos_gps "
-                    "(Latitud, Longitud, Fecha, Hora, FechaHora) "
+                    "(Latitud, Longitud, Fecha, Hora) "
                     "VALUES (%s, %s, %s, %s, %s)")
         data_dato = (datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'], fecha_hora)
 
