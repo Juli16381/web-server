@@ -63,11 +63,14 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
                     console.log('Nuevos datos encontrados:', latestData);
 
                     try {
-                        // Concatenar Fecha y Hora y generar un objeto Date correctamente
-                        const fechaHoraStr = `${latestData.Fecha}T${latestData.Hora}`;
-                        const fechaHora = new Date(fechaHoraStr);
+                        // Asegurarse de que la fecha y hora sean tratadas correctamente
+                        const fechaHoraStr = `${latestData.Fecha} ${latestData.Hora}`;
+                        console.log('Fecha y Hora combinadas:', fechaHoraStr);
 
-                        if (isNaN(fechaHora.getTime())) {
+                        // Convertir la fecha y hora a un objeto de fecha adecuado
+                        const fechaHora = new Date(`${latestData.Fecha}T${latestData.Hora}`);
+
+                        if (isNaN(fechaHora)) {
                             throw new Error('Fecha inválida');
                         }
 
@@ -122,25 +125,42 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
         const startDate = new Date(req.query.startDate);
         const endDate = new Date(req.query.endDate);
 
+        console.log('Fechas recibidas:', {
+            startDate: startDate.toISOString(),
+            endDate: endDate.toISOString()
+        });
+
         startDate.setHours(startDate.getHours() - startDate.getTimezoneOffset() / 60);
         endDate.setHours(endDate.getHours() - endDate.getTimezoneOffset() / 60);
 
         const formattedStartDate = startDate.toISOString().slice(0, 19).replace('T', ' ');
         const formattedEndDate = endDate.toISOString().slice(0, 19).replace('T', ' ');
 
+        console.log('Fechas formateadas:', {
+            formattedStartDate,
+            formattedEndDate
+        });
+
         const query = `SELECT * FROM datos_gps WHERE FechaHora BETWEEN ? AND ?`;
+
+        console.log('Consulta SQL:', query);
+        console.log('Parámetros:', [formattedStartDate, formattedEndDate]);
 
         db.query(query, [formattedStartDate, formattedEndDate], (error, results) => {
             if (error) {
                 console.error('Error al realizar la consulta:', error);
                 res.status(500).json({ error: 'Error al realizar la consulta.' });
             } else {
+                console.log('Resultados de la consulta:', results);
                 res.json(results);
             }
         });
     });
 
+    // Ensure the server starts listening only after the db connection is established
     server.listen(80, '0.0.0.0', () => {
         console.log('Servidor escuchando en el puerto 80');
     });
+
 });
+
