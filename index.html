@@ -114,6 +114,7 @@
         <label for="endDate">Fecha y hora de fin:</label>
         <input type="datetime-local" id="endDate" name="endDate">
         <button type="submit">Filtrar</button>
+	<button type="button" id="resetFilters">Quitar Filtro</button>
     </form>
 
     <div class="container">
@@ -341,6 +342,13 @@ function cargarDatosDesdeServidor() {
     
     // Desactivar el intervalo cuando se filtran datos
     intervaloActivo = false;
+});
+
+// Código para manejar el botón de quitar el filtro
+document.getElementById('resetFilters').addEventListener('click', function() {
+    document.getElementById('startDate').value = '';
+    document.getElementById('endDate').value = '';
+    cargarDatosDesdeServidor(); // Llama a la función para recargar los datos completos
 });
 
 // Verificar el estado del formulario 
