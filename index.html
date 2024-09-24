@@ -178,10 +178,11 @@
                 fillOpacity: 1,
             }).addTo(map);
 
-            cargarDatosDesdeServidor();
+            // Cargar datos automáticamente cada 10 segundos
+            setInterval(cargarDatosDesdeServidor, 10000);
 
             socket.on('new-data', (data) => {
-                console.log('Recibiendo datos del servidor:', data);
+                console.log('Recibiendo datos del servidor:', data);  // Verificar que los datos llegan correctamente
                 if (!filtrando) {
                     actualizarMapa(data);
                 }
@@ -198,6 +199,7 @@
                 const fechaFormateada = data.Fecha.split('T')[0];
                 const horaFormateada = data.Hora;
 
+                // Actualizamos el cuadro flotante con la última ubicación de la tabla (no la primera)
                 document.getElementById('ultima-latitud').innerText = nuevaLatitud.toFixed(3);
                 document.getElementById('ultima-longitud').innerText = nuevaLongitud.toFixed(3);
                 document.getElementById('ultima-fecha').innerText = fechaFormateada;
@@ -210,6 +212,7 @@
                 recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
                 marcadorUltimaUbicacion.setLatLng([nuevaLatitud, nuevaLongitud]);
 
+                // Agregar los datos al historial
                 agregarDatosATabla(data);
             }
 
@@ -234,6 +237,7 @@
                 `;
                 historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
 
+                // Actualizar la ventana de última ubicación con el último registro añadido
                 document.getElementById('ultima-latitud').innerText = nuevaLatitud;
                 document.getElementById('ultima-longitud').innerText = nuevaLongitud;
                 document.getElementById('ultima-fecha').innerText = fechaFormateada;
@@ -274,6 +278,7 @@
                     .catch(error => console.error('Error al cargar los datos históricos:', error));
             }
 
+            // Código para manejo del filtrado
             document.getElementById('filterForm').addEventListener('submit', function(event) {
                 event.preventDefault();
 
@@ -303,6 +308,7 @@
                     .catch(error => console.error('Error:', error));
             });
 
+            // Quitar filtro y volver a cargar los datos completos
             document.getElementById('resetFilters').addEventListener('click', function() {
                 document.getElementById('startDate').value = '';
                 document.getElementById('endDate').value = '';
@@ -310,6 +316,7 @@
                 cargarDatosDesdeServidor();
             });
 
+            // Actualización del historial en la tabla
             function updateTable(data) {
                 const historicosTable = document.getElementById('historicos-data');
                 historicosTable.innerHTML = '';
@@ -319,6 +326,7 @@
                 });
             }
 
+            // Manejar el historial con botón de visualización
             document.getElementById('historicos-btn').addEventListener('click', function() {
                 const historicosTable = document.getElementById('historicos-table');
                 if (historicosTable.style.display === 'none') {
@@ -333,5 +341,3 @@
     </script>
 </body>
 </html>
-
-
