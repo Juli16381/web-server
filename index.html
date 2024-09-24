@@ -170,7 +170,6 @@
             };
             ultimaUbicacionControl.addTo(map);
 
-            // Inicializar la polilínea vacía y el marcador
             let recorrido = L.polyline([], { color: '#800080' }).addTo(map);
             let marcadorUltimaUbicacion = L.circleMarker([0, 0], {
                 radius: 10,
@@ -178,6 +177,9 @@
                 fillColor: '#800080',
                 fillOpacity: 1,
             }).addTo(map);
+
+            // Almacenaremos las coordenadas en este array para hacer un recorrido continuo
+            let coordenadasRecorrido = [];
 
             // Cargar datos automáticamente cada 10 segundos
             setInterval(cargarDatosDesdeServidor, 10000);
@@ -206,14 +208,19 @@
                 document.getElementById('ultima-fecha').innerText = fechaFormateada;
                 document.getElementById('ultima-hora').innerText = horaFormateada;
 
-                // Reiniciar la polilínea para evitar que se conecte a puntos viejos incorrectamente
-                recorrido.setLatLngs([]);  // Reseteamos la polilínea
+                // Agregar la nueva coordenada al array de coordenadas
+                coordenadasRecorrido.push([nuevaLatitud, nuevaLongitud]);
 
-                // Aquí añadimos los puntos de recorrido al mapa en secuencia
-                recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
+                // Actualizar la polilínea con las coordenadas actuales
+                recorrido.setLatLngs(coordenadasRecorrido);
 
-                // Mover el marcador a la última ubicación (el último punto en la polilínea)
+                // Mover el marcador a la última ubicación
                 marcadorUltimaUbicacion.setLatLng([nuevaLatitud, nuevaLongitud]);
+
+                // Centrar el mapa en la nueva ubicación si es necesario
+                if (autoCenter) {
+                    map.setView([nuevaLatitud, nuevaLongitud], 15);
+                }
 
                 // Agregar los datos al historial
                 agregarDatosATabla(data);
@@ -231,20 +238,6 @@
                 const horaFormateada = data.Hora;
 
                 const historicosTable = document.getElementById('historicos-data');
-                
-                // Verificar si el último dato en la tabla es igual al nuevo dato
-                const primeraFila = historicosTable.firstChild;
-                if (primeraFila) {
-                    const latitudUltimaFila = primeraFila.children[0].innerText;
-                    const longitudUltimaFila = primeraFila.children[1].innerText;
-                    const horaUltimaFila = primeraFila.children[3].innerText;
-
-                    // Si el último dato es el mismo que el nuevo, no añadirlo
-                    if (latitudUltimaFila === nuevaLatitud && longitudUltimaFila === nuevaLongitud && horaUltimaFila === horaFormateada) {
-                        return; // No se añaden datos duplicados
-                    }
-                }
-
                 const historicosRow = document.createElement('tr');
                 historicosRow.innerHTML = `
                     <td>${nuevaLatitud}</td>
@@ -259,9 +252,6 @@
                 document.getElementById('ultima-longitud').innerText = nuevaLongitud;
                 document.getElementById('ultima-fecha').innerText = fechaFormateada;
                 document.getElementById('ultima-hora').innerText = horaFormateada;
-
-                // Mover el marcador a la última ubicación
-                marcadorUltimaUbicacion.setLatLng([parseFloat(data.Latitud), parseFloat(data.Longitud)]);
             }
 
             function cargarDatosDesdeServidor() {
@@ -282,7 +272,9 @@
                                 const nuevaLongitud = parseFloat(registro.Longitud);
                                 const fechaFormateada = registro.Fecha.split('T')[0];
 
-                                recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
+                                coordenadasRecorrido.push([nuevaLatitud, nuevaLongitud]); // Añadir cada punto al recorrido
+                                recorrido.setLatLngs(coordenadasRecorrido); // Actualizar la polilínea
+
                                 ultimaLatitud = nuevaLatitud;
                                 ultimaLongitud = nuevaLongitud;
 
@@ -361,4 +353,5 @@
     </script>
 </body>
 </html>
+
 
