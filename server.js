@@ -63,16 +63,11 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
                     console.log('Nuevos datos encontrados:', latestData);
 
                     try {
-                        // Asegurarse de que la fecha y hora sean tratadas correctamente
                         const fechaHoraStr = `${latestData.Fecha} ${latestData.Hora}`;
                         console.log('Fecha y Hora combinadas:', fechaHoraStr);
 
-                        // Convertir la fecha y hora a un objeto de fecha adecuado
-                        const fechaHora = new Date(`${latestData.Fecha}T${latestData.Hora}`);
-
-                        if (isNaN(fechaHora)) {
-                            throw new Error('Fecha inválida');
-                        }
+                        const fechaHora = new Date(fechaHoraStr);
+                        console.log('FechaHora como Date:', fechaHora);
 
                         const fechaFormateada = fechaHora.toLocaleDateString('es-ES', {
                             day: '2-digit',
@@ -162,5 +157,4 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
         console.log('Servidor escuchando en el puerto 80');
     });
 
-});
-
+}); 
