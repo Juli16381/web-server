@@ -189,12 +189,8 @@
                 fillOpacity: 1,
             }).addTo(map);
 
-            let intervaloActivo = true;
-
             socket.on('new-data', (data) => {
-                if (intervaloActivo) {
-                    actualizarMapa(data); 
-                }
+                actualizarMapa(data); 
             });
 
             function actualizarMapa(data) {
@@ -214,19 +210,21 @@
 
                 recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
                 marcadorUltimaUbicacion.setLatLng([nuevaLatitud, nuevaLongitud]);
+
+                setTimeout(() => {
+                    const historicosTable = document.getElementById('historicos-data');
+                    const historicosRow = document.createElement('tr');
+                    historicosRow.innerHTML = `
+                        <td>${data.Latitud}</td>
+                        <td>${data.Longitud}</td>
+                        <td>${fechaFormateada}</td>
+                        <td>${data.Hora}</td>
+                    `;
+                    historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
+                }, 2000);
             }
 
-            function cargarDatosDesdeServidor() {
-                fetch('/historicos')
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.length > 0) {
-                            updateTable(data);
-                            updateMap(data);
-                        }
-                    })
-                    .catch(error => console.error('Error al cargar los datos históricos:', error));
-            }
+            let intervaloActivo = true; 
 
             document.getElementById('filterForm').addEventListener('submit', function(event) {
                 event.preventDefault();
@@ -248,18 +246,34 @@
                         updateTable(data);
                         updateMap(data);
                         intervaloActivo = false;
-                        document.getElementById('clear-filter-btn').style.display = 'inline-block'; // Mostrar botón de quitar filtro
+                        document.getElementById('clear-filter-btn').style.display = 'inline-block'; 
                     })
                     .catch(error => console.error('Error:', error));
             });
 
             document.getElementById('clear-filter-btn').addEventListener('click', function() {
                 cargarDatosDesdeServidor(); 
-                intervaloActivo = true; // Reactivar el intervalo
+                intervaloActivo = true;
                 document.getElementById('startDate').value = '';
                 document.getElementById('endDate').value = '';
-                document.getElementById('clear-filter-btn').style.display = 'none'; // Ocultar botón de quitar filtro
+                document.getElementById('clear-filter-btn').style.display = 'none';
             });
+
+            function cargarDatosDesdeServidor() {
+                fetch('/historicos')
+                    .then(response => response.json())
+                    .then(data => {
+                        updateTable(data);
+                        updateMap(data);
+                    })
+                    .catch(error => console.error('Error al cargar los datos históricos:', error));
+            }
+
+            setInterval(function() {
+                if (intervaloActivo) {
+                    cargarDatosDesdeServidor();
+                }
+            }, 10000);
 
             function updateTable(data) {
                 const historicosTable = document.getElementById('historicos-data');
@@ -310,14 +324,7 @@
                     this.innerText = 'Ver historial';
                 }
             });
-
-            setInterval(function() {
-                if (intervaloActivo) {
-                    cargarDatosDesdeServidor();
-                }
-            }, 10000);
         });
     </script>
 </body>
 </html>
-
