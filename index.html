@@ -170,7 +170,7 @@
             };
             ultimaUbicacionControl.addTo(map);
 
-            // Polilínea que conectará los puntos en el recorrido
+            // Polilínea que conectará los puntos en el recorrido (normal)
             let recorrido = L.polyline([], { color: '#800080' }).addTo(map);
             let marcadorUltimaUbicacion = L.circleMarker([0, 0], {
                 radius: 10,
@@ -179,15 +179,14 @@
                 fillOpacity: 1,
             }).addTo(map);
 
-            // Almacenar la última posición para evitar errores al agregar puntos
+            let ubicaciones = [];
             let ultimaLatitud = null;
             let ultimaLongitud = null;
 
-            // Cargar datos automáticamente cada 10 segundos
-            setInterval(cargarDatosDesdeServidor, 10000);
+            // Polilínea para los datos filtrados
+            let polilineaFiltrada = null;
 
             socket.on('new-data', (data) => {
-                console.log('Recibiendo datos del servidor:', data);  // Verificar que los datos llegan correctamente
                 if (!filtrando) {
                     actualizarMapa(data);
                 }
@@ -201,26 +200,15 @@
 
                 const nuevaLatitud = parseFloat(data.Latitud);
                 const nuevaLongitud = parseFloat(data.Longitud);
-                const fechaFormateada = data.Fecha.split('T')[0];
-                const horaFormateada = data.Hora;
 
                 // Evitar agregar puntos duplicados
-                if (ultimaLatitud !== null && ultimaLongitud !== null && 
-                    ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
-                    console.log("Punto duplicado, no se añade al recorrido.");
+                if (ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
                     return;
                 }
 
-                // Actualizamos el cuadro flotante con la última ubicación de la tabla
-                document.getElementById('ultima-latitud').innerText = nuevaLatitud.toFixed(3);
-                document.getElementById('ultima-longitud').innerText = nuevaLongitud.toFixed(3);
-                document.getElementById('ultima-fecha').innerText = fechaFormateada;
-                document.getElementById('ultima-hora').innerText = horaFormateada;
-
-                recorrido.setLatLngs([]);
-
-                // Agregar el nuevo punto a la polilínea
-                recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
+                // Limpiar la polilínea antes de agregar el nuevo punto
+                ubicaciones = [[nuevaLatitud, nuevaLongitud], [ultimaLatitud, ultimaLongitud]];
+                recorrido.setLatLngs(ubicaciones);
 
                 // Actualizar la última posición
                 ultimaLatitud = nuevaLatitud;
@@ -233,83 +221,32 @@
                 if (autoCenter) {
                     map.setView([nuevaLatitud, nuevaLongitud], 15);
                 }
-                document.getElementById('ultima-latitud').innerText = nuevaLatitud.toFixed(3);
-                document.getElementById('ultima-longitud').innerText = nuevaLongitud.toFixed(3);
-                document.getElementById('ultima-fecha').innerText = fechaFormateada;
-                document.getElementById('ultima-hora').innerText = horaFormateada;
-                
             }
 
-            function agregarDatosATabla(data) {
-                if (!data || !data.Latitud || !data.Longitud || !data.Fecha || !data.Hora) {
-                    console.error('Datos inválidos para la tabla:', data);
-                    return;
+            // Función para actualizar el mapa con datos filtrados
+            function actualizarMapaFiltrado(data, color) {
+                if (polilineaFiltrada) {
+                    map.removeLayer(polilineaFiltrada);
                 }
 
-                const nuevaLatitud = parseFloat(data.Latitud).toFixed(3);
-                const nuevaLongitud = parseFloat(data.Longitud).toFixed(3);
-                const fechaFormateada = data.Fecha.split('T')[0];
-                const horaFormateada = data.Hora;
+                polilineaFiltrada = L.polyline([], { color: color }).addTo(map);
 
-                const historicosTable = document.getElementById('historicos-data');
-                const historicosRow = document.createElement('tr');
-                historicosRow.innerHTML = `
-                    <td>${nuevaLatitud}</td>
-                    <td>${nuevaLongitud}</td>
-                    <td>${fechaFormateada}</td>
-                    <td>${horaFormateada}</td>
-                `;
-                historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
+                ubicaciones = [];
+                data.forEach((registro) => {
+                    const nuevaLatitud = parseFloat(registro.Latitud);
+                    const nuevaLongitud = parseFloat(registro.Longitud);
+                    ubicaciones.push([nuevaLatitud, nuevaLongitud]);
+                });
 
-                // Actualizar la ventana de última ubicación con el último registro añadido
-                document.getElementById('ultima-latitud').innerText = nuevaLatitud;
-                document.getElementById('ultima-longitud').innerText = nuevaLongitud;
-                document.getElementById('ultima-fecha').innerText = fechaFormateada;
-                document.getElementById('ultima-hora').innerText = horaFormateada;
+                polilineaFiltrada.setLatLngs(ubicaciones);
+
+                if (ubicaciones.length > 0) {
+                    const ultimaUbicacion = ubicaciones[ubicaciones.length - 1];
+                    map.setView(ultimaUbicacion, 15);
+                }
             }
 
-            function cargarDatosDesdeServidor() {
-                fetch('/historicos')
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Error en la respuesta del servidor: ' + response.statusText);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (!filtrando && data.length > 0) {
-                            data.reverse().forEach((registro) => {
-                                const nuevaLatitud = parseFloat(registro.Latitud);
-                                const nuevaLongitud = parseFloat(registro.Longitud);
-                                const fechaFormateada = registro.Fecha.split('T')[0];
-
-                                // Evitar agregar puntos duplicados
-                                if (ultimaLatitud !== null && ultimaLongitud !== null && 
-                                    ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
-                                    return;
-                                }
-
-                                // Agregar el nuevo punto a la polilínea
-                                recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
-
-                                // Actualizar la última posición
-                                ultimaLatitud = nuevaLatitud;
-                                ultimaLongitud = nuevaLongitud;
-
-                                agregarDatosATabla(registro);
-                            });
-
-                            // Centrar el mapa en la última ubicación
-                            if (ultimaLatitud !== null && ultimaLongitud !== null) {
-                                map.setView([ultimaLatitud, ultimaLongitud], 15);
-                                marcadorUltimaUbicacion.setLatLng([ultimaLatitud, ultimaLongitud]);
-                            }
-                        }
-                    })
-                    .catch(error => console.error('Error al cargar los datos históricos:', error));
-            }
-
-            // Código para manejo del filtrado
+            // Filtrar datos
             document.getElementById('filterForm').addEventListener('submit', function(event) {
                 event.preventDefault();
 
@@ -321,54 +258,56 @@
                     return;
                 }
 
-                startDate = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000);
-                endDate = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000);
-
                 filtrando = true;
                 fetch(`/filterData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.length === 0) {
-                            cargarDatosDesdeServidor();
                             alert('No se encontraron datos en el rango de tiempo especificado');
                         } else {
-                            updateTable(data);
-                            updateMap(data, '#38113b');
+                            actualizarMapaFiltrado(data, '#50C878'); // Verde esmeralda
                         }
                     })
                     .catch(error => console.error('Error:', error));
             });
 
-            // Quitar filtro y volver a cargar los datos completos
+            // Quitar filtro y restaurar datos normales
             document.getElementById('resetFilters').addEventListener('click', function() {
                 document.getElementById('startDate').value = '';
                 document.getElementById('endDate').value = '';
                 filtrando = false;
+
+                if (polilineaFiltrada) {
+                    map.removeLayer(polilineaFiltrada);
+                    polilineaFiltrada = null;
+                }
+
                 cargarDatosDesdeServidor();
             });
 
-            // Actualización del historial en la tabla
-            function updateTable(data) {
-                const historicosTable = document.getElementById('historicos-data');
-                historicosTable.innerHTML = '';
+            function cargarDatosDesdeServidor() {
+                fetch('/historicos')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.length > 0) {
+                            ubicaciones = [];
 
-                data.forEach((registro) => {
-                    agregarDatosATabla(registro);
-                });
+                            data.forEach((registro) => {
+                                const nuevaLatitud = parseFloat(registro.Latitud);
+                                const nuevaLongitud = parseFloat(registro.Longitud);
+                                ubicaciones.push([nuevaLatitud, nuevaLongitud]);
+                            });
+
+                            recorrido.setLatLngs(ubicaciones);
+
+                            const ultimaUbicacion = [parseFloat(data[data.length - 1].Latitud), parseFloat(data[data.length - 1].Longitud)];
+                            map.setView(ultimaUbicacion, 15);
+                        }
+                    })
+                    .catch(error => console.error('Error al cargar los datos históricos:', error));
             }
-
-            // Manejar el historial con botón de visualización
-            document.getElementById('historicos-btn').addEventListener('click', function() {
-                const historicosTable = document.getElementById('historicos-table');
-                if (historicosTable.style.display === 'none') {
-                    historicosTable.style.display = 'table';
-                    this.innerText = 'Ocultar historial';
-                } else {
-                    historicosTable.style.display = 'none';
-                    this.innerText = 'Ver historial';
-                }
-            });
         });
     </script>
 </body>
 </html>
+
