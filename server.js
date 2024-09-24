@@ -2,14 +2,18 @@ const express = require('express');
 const mysql = require('mysql2');
 const http = require('http');
 const socketIo = require('socket.io');
-const fs = require('fs'); // Ensure fs is imported
+const fs = require('fs');
+const bodyParser = require('body-parser'); // Import bodyParser to handle JSON payloads
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
-let db;  // Define db globally
-let lastProcessedId = null; // Initialize lastProcessedId
+// Middleware to parse JSON requests
+app.use(bodyParser.json());
+
+let db;
+let lastProcessedId = null;
 
 console.log("El servidor está iniciando...");
 
@@ -41,6 +45,26 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
         console.log('Conectado a la base de datos MySQL.');
     });
 
+    // Ruta para recibir datos desde el sniffer
+    app.post('/api/data', (req, res) => {
+        const { Latitud, Longitud, Fecha, Hora, FechaHora } = req.body;
+        console.log('Datos recibidos:', req.body);
+
+        // Inserta los datos en MySQL
+        const query = 'INSERT INTO datos_gps (Latitud, Longitud, Fecha, Hora, FechaHora) VALUES (?, ?, ?, ?, ?)';
+        const values = [Latitud, Longitud, Fecha, Hora, FechaHora];
+
+        db.query(query, values, (err, result) => {
+            if (err) {
+                console.error('Error al insertar datos en MySQL:', err);
+                res.status(500).send('Error al insertar datos en la base de datos.');
+            } else {
+                console.log('Datos insertados correctamente.');
+                res.status(200).send('Datos recibidos correctamente.');
+            }
+        });
+    });
+
     function checkForNewData() {
         if (!db) {
             console.error('La conexión a la base de datos aún no está lista.');
@@ -57,17 +81,15 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
 
             if (results.length > 0) {
                 const latestData = results[0];
-                
+
                 if (lastProcessedId === null || latestData.id > lastProcessedId) {
                     lastProcessedId = latestData.id;
                     console.log('Nuevos datos encontrados:', latestData);
 
                     try {
-                        // Asegurarse de que la fecha y hora sean tratadas correctamente
                         const fechaHoraStr = `${latestData.Fecha} ${latestData.Hora}`;
                         console.log('Fecha y Hora combinadas:', fechaHoraStr);
 
-                        // Convertir la fecha y hora a un objeto de fecha adecuado
                         const fechaHora = new Date(`${latestData.Fecha}T${latestData.Hora}`);
 
                         if (isNaN(fechaHora)) {
@@ -130,37 +152,23 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
             endDate: endDate.toISOString()
         });
 
-        startDate.setHours(startDate.getHours() - startDate.getTimezoneOffset() / 60);
-        endDate.setHours(endDate.getHours() - endDate.getTimezoneOffset() / 60);
-
         const formattedStartDate = startDate.toISOString().slice(0, 19).replace('T', ' ');
         const formattedEndDate = endDate.toISOString().slice(0, 19).replace('T', ' ');
 
-        console.log('Fechas formateadas:', {
-            formattedStartDate,
-            formattedEndDate
-        });
-
         const query = `SELECT * FROM datos_gps WHERE FechaHora BETWEEN ? AND ?`;
-
-        console.log('Consulta SQL:', query);
-        console.log('Parámetros:', [formattedStartDate, formattedEndDate]);
-
         db.query(query, [formattedStartDate, formattedEndDate], (error, results) => {
             if (error) {
                 console.error('Error al realizar la consulta:', error);
                 res.status(500).json({ error: 'Error al realizar la consulta.' });
             } else {
-                console.log('Resultados de la consulta:', results);
                 res.json(results);
             }
         });
     });
 
-    // Ensure the server starts listening only after the db connection is established
     server.listen(80, '0.0.0.0', () => {
         console.log('Servidor escuchando en el puerto 80');
     });
-
 });
+
 
