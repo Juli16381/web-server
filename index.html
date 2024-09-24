@@ -217,6 +217,8 @@
                 document.getElementById('ultima-fecha').innerText = fechaFormateada;
                 document.getElementById('ultima-hora').innerText = horaFormateada;
 
+                recorrido.setLatLngs([]);
+
                 // Agregar el nuevo punto a la polilínea
                 recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
 
@@ -231,9 +233,11 @@
                 if (autoCenter) {
                     map.setView([nuevaLatitud, nuevaLongitud], 15);
                 }
-
-                // Agregar los datos al historial
-                agregarDatosATabla(data);
+                document.getElementById('ultima-latitud').innerText = nuevaLatitud.toFixed(3);
+                document.getElementById('ultima-longitud').innerText = nuevaLongitud.toFixed(3);
+                document.getElementById('ultima-fecha').innerText = fechaFormateada;
+                document.getElementById('ultima-hora').innerText = horaFormateada;
+                
             }
 
             function agregarDatosATabla(data) {
