@@ -3,14 +3,10 @@ const mysql = require('mysql2');
 const http = require('http');
 const socketIo = require('socket.io');
 const fs = require('fs');
-const bodyParser = require('body-parser'); // Para manejar los payloads JSON
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
-
-// Middleware para parsear JSON en las solicitudes
-app.use(bodyParser.json());
 
 let db;
 let lastProcessedId = null;
@@ -45,27 +41,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
         console.log('Conectado a la base de datos MySQL.');
     });
 
-    // Ruta para recibir datos desde el sniffer
-    app.post('/api/data', (req, res) => {
-        const { Latitud, Longitud, Fecha, Hora } = req.body;
-        console.log('Datos recibidos:', req.body);
-
-        // Inserta los datos en MySQL, sin el campo 'FechaHora' ya que es generado automáticamente
-        const query = 'INSERT INTO datos_gps (Latitud, Longitud, Fecha, Hora) VALUES (?, ?, ?, ?)';
-        const values = [Latitud, Longitud, Fecha, Hora];
-
-        db.query(query, values, (err, result) => {
-            if (err) {
-                console.error('Error al insertar datos en MySQL:', err);
-                res.status(500).send('Error al insertar datos en la base de datos.');
-            } else {
-                console.log('Datos insertados correctamente.');
-                res.status(200).send('Datos recibidos correctamente.');
-            }
-        });
-    });
-
-    // Función para verificar nuevos datos
+    // Función para verificar y emitir nuevos datos
     function checkForNewData() {
         if (!db) {
             console.error('La conexión a la base de datos aún no está lista.');
@@ -88,7 +64,6 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
                     console.log('Nuevos datos encontrados:', latestData);
 
                     try {
-                        // Ya tienes FechaHora directamente en el resultado
                         const fechaHora = new Date(latestData.FechaHora);
 
                         if (isNaN(fechaHora)) {
