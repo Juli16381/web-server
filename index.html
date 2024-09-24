@@ -316,6 +316,11 @@
             document.getElementById('resetFilters').addEventListener('click', function() {
                 document.getElementById('startDate').value = '';
                 document.getElementById('endDate').value = '';
+                map.eachLayer(function(layer) {
+                    if (layer instanceof L.Polyline && layer.options.color === '#38113b') {
+                        map.removeLayer(layer);
+                    }
+            });
                 // Restaurar el temporizador después de quitar el filtro
                 intervaloActivo = setInterval(cargarDatosDesdeServidor, 10000);
                 filtrando = false;
