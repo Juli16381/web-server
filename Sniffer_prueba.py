@@ -10,9 +10,9 @@ with open('/home/ubuntu/todoproyect/credenciales.json', 'r') as f:
     credenciales = json.load(f)
 
 # Configuración
-INTERFACE = "enX0"  # Interfaz de red a monitorear 
-FILTER_IP = credenciales['DB_IP']  # Rango de red privada 
-FILTER_PORT = 10000  # Puerto específico a filtrar 
+INTERFACE = "enX0"  # Interfaz de red a monitorear
+FILTER_IP = credenciales['DB_IP']  # Rango de red privada
+FILTER_PORT = 10000  # Puerto específico a filtrar
 NODEJS_SERVER_URL = credenciales['DB_NODEJS']  # URL del servidor Node.js
 
 # Usar las credenciales para la configuración de la base de datos
@@ -80,7 +80,7 @@ def parsear_payload(payload):
         longitud = datos.get('Longitud')
         timestamp = datos.get('Timestamp')
 
-        if latitud and longitud and timestamp:
+        if latitud, longitud, timestamp:
             # Dividir el timestamp en fecha y hora
             partes_timestamp = timestamp.split(' ')
             if len(partes_timestamp) == 2:
@@ -138,9 +138,9 @@ def insertar_en_mysql(datos):
 
         if result[0] == 0:  # Si no existen registros duplicados
             add_dato = ("INSERT INTO datos_gps "
-                        "(Latitud, Longitud, Fecha, Hora) "
+                        "(Latitud, Longitud, Fecha, Hora, FechaHora) "
                         "VALUES (%s, %s, %s, %s, %s)")
-            data_dato = (datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'])
+            data_dato = (datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'], fecha_hora)
 
             cursor.execute(add_dato, data_dato)
             cnx.commit()
@@ -168,5 +168,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
