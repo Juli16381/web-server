@@ -181,19 +181,23 @@
             cargarDatosDesdeServidor();
 
             socket.on('new-data', (data) => {
-                console.log('Recibiendo datos del servidor:', data);  // Verificar que los datos llegan correctamente
+                console.log('Recibiendo datos del servidor:', data);
                 if (!filtrando) {
                     actualizarMapa(data);
                 }
             });
 
             function actualizarMapa(data) {
+                if (!data || !data.Latitud || !data.Longitud || !data.Fecha || !data.Hora) {
+                    console.error('Datos inválidos recibidos:', data);
+                    return;
+                }
+
                 const nuevaLatitud = parseFloat(data.Latitud);
                 const nuevaLongitud = parseFloat(data.Longitud);
                 const fechaFormateada = data.Fecha.split('T')[0];
                 const horaFormateada = data.Hora;
 
-                // Actualizamos el cuadro flotante con la última ubicación de la tabla (no la primera)
                 document.getElementById('ultima-latitud').innerText = nuevaLatitud.toFixed(3);
                 document.getElementById('ultima-longitud').innerText = nuevaLongitud.toFixed(3);
                 document.getElementById('ultima-fecha').innerText = fechaFormateada;
@@ -206,11 +210,15 @@
                 recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
                 marcadorUltimaUbicacion.setLatLng([nuevaLatitud, nuevaLongitud]);
 
-                // Agregar los datos al historial
                 agregarDatosATabla(data);
             }
 
             function agregarDatosATabla(data) {
+                if (!data || !data.Latitud || !data.Longitud || !data.Fecha || !data.Hora) {
+                    console.error('Datos inválidos para la tabla:', data);
+                    return;
+                }
+
                 const nuevaLatitud = parseFloat(data.Latitud).toFixed(3);
                 const nuevaLongitud = parseFloat(data.Longitud).toFixed(3);
                 const fechaFormateada = data.Fecha.split('T')[0];
@@ -226,7 +234,6 @@
                 `;
                 historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
 
-                // Actualizar la ventana de última ubicación con el último registro añadido
                 document.getElementById('ultima-latitud').innerText = nuevaLatitud;
                 document.getElementById('ultima-longitud').innerText = nuevaLongitud;
                 document.getElementById('ultima-fecha').innerText = fechaFormateada;
@@ -235,7 +242,12 @@
 
             function cargarDatosDesdeServidor() {
                 fetch('/historicos')
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Error en la respuesta del servidor: ' + response.statusText);
+                        }
+                        return response.json();
+                    })
                     .then(data => {
                         if (!filtrando && data.length > 0) {
                             let ultimaLatitud = null;
@@ -262,7 +274,6 @@
                     .catch(error => console.error('Error al cargar los datos históricos:', error));
             }
 
-            // Código para manejo del filtrado
             document.getElementById('filterForm').addEventListener('submit', function(event) {
                 event.preventDefault();
 
@@ -292,7 +303,6 @@
                     .catch(error => console.error('Error:', error));
             });
 
-            // Quitar filtro y volver a cargar los datos completos
             document.getElementById('resetFilters').addEventListener('click', function() {
                 document.getElementById('startDate').value = '';
                 document.getElementById('endDate').value = '';
@@ -300,7 +310,6 @@
                 cargarDatosDesdeServidor();
             });
 
-            // Actualización del historial en la tabla
             function updateTable(data) {
                 const historicosTable = document.getElementById('historicos-data');
                 historicosTable.innerHTML = '';
@@ -310,7 +319,6 @@
                 });
             }
 
-            // Manejar el historial con botón de visualización
             document.getElementById('historicos-btn').addEventListener('click', function() {
                 const historicosTable = document.getElementById('historicos-table');
                 if (historicosTable.style.display === 'none') {
@@ -325,4 +333,5 @@
     </script>
 </body>
 </html>
+
 
