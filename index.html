@@ -183,6 +183,7 @@
 
             let ultimaLatitud = null;
             let ultimaLongitud = null;
+            let ultimoPunto = null; // Para mantener un control del último punto correctamente
 
             // Cargar datos automáticamente cada 10 segundos
             setInterval(cargarDatosDesdeServidor, 10000);
@@ -204,10 +205,9 @@
                 const fechaFormateada = data.Fecha.split('T')[0];
                 const horaFormateada = data.Hora;
 
-                // Evitar agregar puntos duplicados
-                if (ultimaLatitud !== null && ultimaLongitud !== null && 
-                    ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
-                    return;
+                // Verificar si el punto actual es diferente al último
+                if (ultimoPunto && ultimoPunto.lat === nuevaLatitud && ultimoPunto.lng === nuevaLongitud) {
+                    return; // Evitar duplicados
                 }
 
                 // Actualizamos el cuadro flotante con la última ubicación
@@ -220,6 +220,9 @@
                 if (!filtrando) {
                     recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
                 }
+
+                // Guardar el último punto actualizado
+                ultimoPunto = { lat: nuevaLatitud, lng: nuevaLongitud };
 
                 // Actualizar la última posición
                 ultimaLatitud = nuevaLatitud;
@@ -280,10 +283,9 @@
                                 const nuevaLongitud = parseFloat(registro.Longitud);
                                 const fechaFormateada = registro.Fecha.split('T')[0];
 
-                                // Evitar agregar puntos duplicados
-                                if (ultimaLatitud !== null && ultimaLongitud !== null && 
-                                    ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
-                                    return;
+                                // Verificar si el punto actual es diferente al último
+                                if (ultimoPunto && ultimoPunto.lat === nuevaLatitud && ultimoPunto.lng === nuevaLongitud) {
+                                    return; // Evitar duplicados
                                 }
 
                                 // Agregar el nuevo punto a la polilínea general solo si no está filtrado
@@ -294,6 +296,9 @@
                                 // Actualizar la última posición
                                 ultimaLatitud = nuevaLatitud;
                                 ultimaLongitud = nuevaLongitud;
+
+                                // Guardar el último punto actualizado
+                                ultimoPunto = { lat: nuevaLatitud, lng: nuevaLongitud };
 
                                 agregarDatosATabla(registro);
                             });
@@ -399,3 +404,4 @@
     </script>
 </body>
 </html>
+
