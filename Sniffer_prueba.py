@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 from scapy.all import sniff, UDP, IP
 import requests
 import mysql.connector
@@ -119,7 +118,7 @@ def enviar_a_nodejs(datos):
 
 def insertar_en_mysql(datos):
     """
-    Inserta los datos en la base de datos MySQL.
+    Inserta los datos en la base de datos MySQL si no existe un registro duplicado.
     """
     try:
         print(f"Insertando datos en MySQL: {datos}")  # Verificar que se están intentando insertar datos
@@ -129,16 +128,25 @@ def insertar_en_mysql(datos):
 
         # Concatenar Fecha y Hora para obtener FechaHora
         fecha_hora = f"{datos['Fecha']} {datos['Hora']}"
-        
-        add_dato = ("INSERT INTO datos_gps "
-                    "(Latitud, Longitud, Fecha, Hora, FechaHora) "
-                    "VALUES (%s, %s, %s, %s, %s)")
-        data_dato = (datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'], fecha_hora)
 
-        cursor.execute(add_dato, data_dato)
-        cnx.commit()
+        # Consulta para verificar si ya existe un registro con los mismos valores
+        check_query = ("SELECT COUNT(*) FROM datos_gps WHERE Latitud = %s AND Longitud = %s AND Fecha = %s AND Hora = %s")
+        check_data = (datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'])
+        cursor.execute(check_query, check_data)
+        result = cursor.fetchone()
 
-        print("Datos insertados correctamente en la base de datos MySQL.")
+        if result[0] == 0:  # Si no existen registros duplicados
+            add_dato = ("INSERT INTO datos_gps "
+                        "(Latitud, Longitud, Fecha, Hora, FechaHora) "
+                        "VALUES (%s, %s, %s, %s, %s)")
+            data_dato = (datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'], fecha_hora)
+
+            cursor.execute(add_dato, data_dato)
+            cnx.commit()
+
+            print("Datos insertados correctamente en la base de datos MySQL.")
+        else:
+            print("El registro ya existe. No se insertaron datos duplicados.")
 
         cursor.close()
         cnx.close()
@@ -159,3 +167,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
