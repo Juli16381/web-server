@@ -137,9 +137,9 @@ def insertar_en_mysql(datos):
 
         if result[0] == 0:  # Si no existen registros duplicados
             add_dato = ("INSERT INTO datos_gps "
-                        "(Latitud, Longitud, Fecha, Hora, FechaHora) "
+                        "(Latitud, Longitud, Fecha, Hora) "
                         "VALUES (%s, %s, %s, %s, %s)")
-            data_dato = (datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'], fecha_hora)
+            data_dato = (datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'])
 
             cursor.execute(add_dato, data_dato)
             cnx.commit()
