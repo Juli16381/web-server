@@ -275,6 +275,8 @@ function cargarDatosDesdeServidor() {
                                 <td>${registro.Hora}</td>
                             </tr>
                         `);
+			ultimaLatitud = nuevaLatitud;
+                        ultimaLongitud = nuevaLongitud;
                     });
 
                     // Insertar las filas en la tabla
