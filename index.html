@@ -210,6 +210,8 @@
                 }
 
                 recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
+
+                // Mover el marcador a la última ubicación (el último punto en la polilínea)
                 marcadorUltimaUbicacion.setLatLng([nuevaLatitud, nuevaLongitud]);
 
                 // Agregar los datos al historial
@@ -242,6 +244,9 @@
                 document.getElementById('ultima-longitud').innerText = nuevaLongitud;
                 document.getElementById('ultima-fecha').innerText = fechaFormateada;
                 document.getElementById('ultima-hora').innerText = horaFormateada;
+
+                // Mover el marcador a la última ubicación
+                marcadorUltimaUbicacion.setLatLng([parseFloat(data.Latitud), parseFloat(data.Longitud)]);
             }
 
             function cargarDatosDesdeServidor() {
