@@ -212,6 +212,7 @@
                 // Solo centrar el mapa si autoCenter es verdadero
                 if (autoCenter) {
                     map.setView([nuevaLatitud, nuevaLongitud], 15); 
+		    marcadorUltimaUbicacion.setLatLng([nuevaLatitud, nuevaLongitud]);
                 }
 
                 recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
