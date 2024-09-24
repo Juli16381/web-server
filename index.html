@@ -271,6 +271,8 @@
                                 map.setView([ultimaLatitud, ultimaLongitud], 15);
                                 document.getElementById('ultima-latitud').innerText = ultimaLatitud;
                                 document.getElementById('ultima-longitud').innerText = ultimaLongitud;
+                                document.getElementById('ultima-fecha').innerText = data.Fecha.split('T')[0];
+                                document.getElementById('ultima-hora').innerText = data.Hora;
                             }
                         }
                     })
