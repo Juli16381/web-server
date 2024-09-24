@@ -170,6 +170,7 @@
             };
             ultimaUbicacionControl.addTo(map);
 
+            // Polilínea que conectará los puntos en el recorrido
             let recorrido = L.polyline([], { color: '#800080' }).addTo(map);
             let marcadorUltimaUbicacion = L.circleMarker([0, 0], {
                 radius: 10,
@@ -178,8 +179,9 @@
                 fillOpacity: 1,
             }).addTo(map);
 
-            // Almacenaremos las coordenadas en este array para hacer un recorrido continuo
-            let coordenadasRecorrido = [];
+            // Almacenar la última posición para evitar errores al agregar puntos
+            let ultimaLatitud = null;
+            let ultimaLongitud = null;
 
             // Cargar datos automáticamente cada 10 segundos
             setInterval(cargarDatosDesdeServidor, 10000);
@@ -202,17 +204,25 @@
                 const fechaFormateada = data.Fecha.split('T')[0];
                 const horaFormateada = data.Hora;
 
+                // Evitar agregar puntos duplicados
+                if (ultimaLatitud !== null && ultimaLongitud !== null && 
+                    ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
+                    console.log("Punto duplicado, no se añade al recorrido.");
+                    return;
+                }
+
                 // Actualizamos el cuadro flotante con la última ubicación de la tabla
                 document.getElementById('ultima-latitud').innerText = nuevaLatitud.toFixed(3);
                 document.getElementById('ultima-longitud').innerText = nuevaLongitud.toFixed(3);
                 document.getElementById('ultima-fecha').innerText = fechaFormateada;
                 document.getElementById('ultima-hora').innerText = horaFormateada;
 
-                // Agregar la nueva coordenada al array de coordenadas
-                coordenadasRecorrido.push([nuevaLatitud, nuevaLongitud]);
+                // Agregar el nuevo punto a la polilínea
+                recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
 
-                // Actualizar la polilínea con las coordenadas actuales
-                recorrido.setLatLngs(coordenadasRecorrido);
+                // Actualizar la última posición
+                ultimaLatitud = nuevaLatitud;
+                ultimaLongitud = nuevaLongitud;
 
                 // Mover el marcador a la última ubicación
                 marcadorUltimaUbicacion.setLatLng([nuevaLatitud, nuevaLongitud]);
@@ -264,23 +274,28 @@
                     })
                     .then(data => {
                         if (!filtrando && data.length > 0) {
-                            let ultimaLatitud = null;
-                            let ultimaLongitud = null;
-
                             data.reverse().forEach((registro) => {
                                 const nuevaLatitud = parseFloat(registro.Latitud);
                                 const nuevaLongitud = parseFloat(registro.Longitud);
                                 const fechaFormateada = registro.Fecha.split('T')[0];
 
-                                coordenadasRecorrido.push([nuevaLatitud, nuevaLongitud]); // Añadir cada punto al recorrido
-                                recorrido.setLatLngs(coordenadasRecorrido); // Actualizar la polilínea
+                                // Evitar agregar puntos duplicados
+                                if (ultimaLatitud !== null && ultimaLongitud !== null && 
+                                    ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
+                                    return;
+                                }
 
+                                // Agregar el nuevo punto a la polilínea
+                                recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
+
+                                // Actualizar la última posición
                                 ultimaLatitud = nuevaLatitud;
                                 ultimaLongitud = nuevaLongitud;
 
                                 agregarDatosATabla(registro);
                             });
 
+                            // Centrar el mapa en la última ubicación
                             if (ultimaLatitud !== null && ultimaLongitud !== null) {
                                 map.setView([ultimaLatitud, ultimaLongitud], 15);
                                 marcadorUltimaUbicacion.setLatLng([ultimaLatitud, ultimaLongitud]);
@@ -353,5 +368,3 @@
     </script>
 </body>
 </html>
-
-
