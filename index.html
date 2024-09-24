@@ -163,7 +163,7 @@
             ultimaUbicacionControl.addTo(map);
 
             let recorrido = L.polyline([], { color: '#800080' }).addTo(map);
-            let recorridoFiltrado = L.polyline([], { color: '#50C878' });  // Línea filtrada
+            let recorridoFiltrado = L.polyline([], { color: '#50C878' });
 
             let marcadorUltimaUbicacion = L.circleMarker([0, 0], {
                 radius: 10,
@@ -174,7 +174,7 @@
 
             let ultimaLatitud = null;
             let ultimaLongitud = null;
-            let ultimoPunto = null; 
+            let ultimoPunto = null;
 
             setInterval(cargarDatosDesdeServidor, 10000);
 
@@ -195,25 +195,32 @@
                 const fechaFormateada = data.Fecha.split('T')[0];
                 const horaFormateada = data.Hora;
 
+                // Verificar si el nuevo punto es diferente del último para evitar duplicados
                 if (ultimoPunto && ultimoPunto.lat === nuevaLatitud && ultimoPunto.lng === nuevaLongitud) {
                     return;
                 }
 
+                // Actualizar la última ubicación en el cuadro
                 document.getElementById('ultima-latitud').innerText = nuevaLatitud.toFixed(3);
                 document.getElementById('ultima-longitud').innerText = nuevaLongitud.toFixed(3);
                 document.getElementById('ultima-fecha').innerText = fechaFormateada;
                 document.getElementById('ultima-hora').innerText = horaFormateada;
 
+                // Añadir el nuevo punto al recorrido
                 recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
 
+                // Guardar el nuevo punto como el último
                 ultimoPunto = { lat: nuevaLatitud, lng: nuevaLongitud };
 
+                // Mover el marcador a la nueva ubicación
                 marcadorUltimaUbicacion.setLatLng([nuevaLatitud, nuevaLongitud]);
 
+                // Centrar el mapa en la nueva ubicación si autoCenter está activo
                 if (autoCenter) {
                     map.setView([nuevaLatitud, nuevaLongitud], 15);
                 }
 
+                // Agregar los datos a la tabla histórica
                 agregarDatosATabla(data);
             }
 
