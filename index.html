@@ -170,6 +170,7 @@
             };
             ultimaUbicacionControl.addTo(map);
 
+            // Inicializar la polilínea vacía y el marcador
             let recorrido = L.polyline([], { color: '#800080' }).addTo(map);
             let marcadorUltimaUbicacion = L.circleMarker([0, 0], {
                 radius: 10,
@@ -199,16 +200,16 @@
                 const fechaFormateada = data.Fecha.split('T')[0];
                 const horaFormateada = data.Hora;
 
-                // Actualizamos el cuadro flotante con la última ubicación de la tabla (no la primera)
+                // Actualizamos el cuadro flotante con la última ubicación de la tabla
                 document.getElementById('ultima-latitud').innerText = nuevaLatitud.toFixed(3);
                 document.getElementById('ultima-longitud').innerText = nuevaLongitud.toFixed(3);
                 document.getElementById('ultima-fecha').innerText = fechaFormateada;
                 document.getElementById('ultima-hora').innerText = horaFormateada;
 
-                if (autoCenter) {
-                    map.setView([nuevaLatitud, nuevaLongitud], 15);
-                }
+                // Reiniciar la polilínea para evitar que se conecte a puntos viejos incorrectamente
+                recorrido.setLatLngs([]);  // Reseteamos la polilínea
 
+                // Aquí añadimos los puntos de recorrido al mapa en secuencia
                 recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
 
                 // Mover el marcador a la última ubicación (el último punto en la polilínea)
@@ -230,6 +231,20 @@
                 const horaFormateada = data.Hora;
 
                 const historicosTable = document.getElementById('historicos-data');
+                
+                // Verificar si el último dato en la tabla es igual al nuevo dato
+                const primeraFila = historicosTable.firstChild;
+                if (primeraFila) {
+                    const latitudUltimaFila = primeraFila.children[0].innerText;
+                    const longitudUltimaFila = primeraFila.children[1].innerText;
+                    const horaUltimaFila = primeraFila.children[3].innerText;
+
+                    // Si el último dato es el mismo que el nuevo, no añadirlo
+                    if (latitudUltimaFila === nuevaLatitud && longitudUltimaFila === nuevaLongitud && horaUltimaFila === horaFormateada) {
+                        return; // No se añaden datos duplicados
+                    }
+                }
+
                 const historicosRow = document.createElement('tr');
                 historicosRow.innerHTML = `
                     <td>${nuevaLatitud}</td>
@@ -346,3 +361,4 @@
     </script>
 </body>
 </html>
+
