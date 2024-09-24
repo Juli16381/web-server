@@ -211,7 +211,6 @@
                 document.getElementById('ultima-longitud').innerText = nuevaLongitud;
                 document.getElementById('ultima-fecha').innerText = fechaFormateada;
                 document.getElementById('ultima-hora').innerText = data.Hora;
-
                 marcadorUltimaUbicacion.setLatLng([nuevaLatitud, nuevaLongitud]);
                 // Solo centrar el mapa si autoCenter es verdadero
                 if (autoCenter) {
@@ -259,7 +258,6 @@
                                         <td>${registro.Hora}</td>
                                     </tr>
                                 `);
-
                                 ultimaLatitud = nuevaLatitud;
                                 ultimaLongitud = nuevaLongitud;
                             });
@@ -273,20 +271,13 @@
                                 map.setView([ultimaLatitud, ultimaLongitud], 15);
                                 document.getElementById('ultima-latitud').innerText = ultimaLatitud;
                                 document.getElementById('ultima-longitud').innerText = ultimaLongitud;
-                            }} else {
-                            // Manejo de caso cuando no hay datos
-                            document.getElementById('historicos-data').innerHTML = '';
-                            document.getElementById('ultima-latitud').innerText = '-';
-                            document.getElementById('ultima-longitud').innerText = '-';
-                            document.getElementById('ultima-fecha').innerText = '-';
-                            document.getElementById('ultima-hora').innerText = '-';
+                            }
                         }
                     })
                     .catch(error => console.error('Error al cargar los datos históricos:', error));
             }
 
             let intervaloActivo = setInterval(cargarDatosDesdeServidor, 10000);  // Sigue actualizando cada 10 segundos
-
             // Código para manejar el filtrado
             document.getElementById('filterForm').addEventListener('submit', function(event) {
                 event.preventDefault();
@@ -307,7 +298,6 @@
                 // Desactivar el temporizador durante el filtrado
                 clearInterval(intervaloActivo);
                 filtrando = true;
-
                 fetch(`/filterData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
                     .then(response => response.json())
                     .then(data => {
@@ -326,7 +316,6 @@
             document.getElementById('resetFilters').addEventListener('click', function() {
                 document.getElementById('startDate').value = '';
                 document.getElementById('endDate').value = '';
-
                 // Restaurar el temporizador después de quitar el filtro
                 intervaloActivo = setInterval(cargarDatosDesdeServidor, 10000);
                 filtrando = false;
@@ -378,7 +367,6 @@
                         marcadorUltimaUbicacion.setLatLng([ultimaLatitud, ultimaLongitud]);
                         map.setView([ultimaLatitud, ultimaLongitud], 15);
                     }
-
                     // Volver al color original después de quitar el filtro
                     if (!filtrando) {
                         recorrido.setStyle({ color: '#800080' });
