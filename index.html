@@ -216,10 +216,11 @@
                 document.getElementById('ultima-fecha').innerText = fechaFormateada;
                 document.getElementById('ultima-hora').innerText = horaFormateada;
 
-                // Agregar el nuevo punto a la polilínea general solo si no está filtrado
-                if (!filtrando) {
-                    recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
+                // **Conectar solo el último punto con el nuevo**
+                if (ultimoPunto) {
+                    recorrido.addLatLng([ultimoPunto.lat, ultimoPunto.lng]);
                 }
+                recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
 
                 // Guardar el último punto actualizado
                 ultimoPunto = { lat: nuevaLatitud, lng: nuevaLongitud };
@@ -288,14 +289,11 @@
                                     return; // Evitar duplicados
                                 }
 
-                                // Agregar el nuevo punto a la polilínea general solo si no está filtrado
-                                if (!filtrando) {
-                                    recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
+                                // Conectar solo el último punto con el nuevo
+                                if (ultimoPunto) {
+                                    recorrido.addLatLng([ultimoPunto.lat, ultimoPunto.lng]);
                                 }
-
-                                // Actualizar la última posición
-                                ultimaLatitud = nuevaLatitud;
-                                ultimaLongitud = nuevaLongitud;
+                                recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
 
                                 // Guardar el último punto actualizado
                                 ultimoPunto = { lat: nuevaLatitud, lng: nuevaLongitud };
