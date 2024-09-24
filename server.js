@@ -51,8 +51,8 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
         console.log('Datos recibidos:', req.body);
 
         // Inserta los datos en MySQL
-        const query = 'INSERT INTO datos_gps (Latitud, Longitud, Fecha, Hora, FechaHora) VALUES (?, ?, ?, ?, ?)';
-        const values = [Latitud, Longitud, Fecha, Hora, FechaHora];
+        const query = 'INSERT INTO datos_gps (Latitud, Longitud, Fecha, Hora) VALUES (?, ?, ?, ?)';
+        const values = [Latitud, Longitud, Fecha, Hora];
 
         db.query(query, values, (err, result) => {
             if (err) {
