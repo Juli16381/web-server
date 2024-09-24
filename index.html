@@ -137,7 +137,7 @@
             let autoCenterTimeout;
             let filtrando = false;
 
-            // Inicializar el mapa en una vista inicial predeterminada
+            // Inicializar el mapa
             const map = L.map('map').setView([0, 0], 2);
 
             map.on('movestart', function() {
@@ -158,13 +158,13 @@
             ultimaUbicacionControl.onAdd = function(map) {
                 const div = L.DomUtil.create('div', 'leaflet-control');
                 div.id = 'ultima-ubicacion-info';
-                div.innerHTML = `
+                div.innerHTML = 
                     <b>Última ubicación</b><br>
                     Latitud: <span id="ultima-latitud">-</span><br>
                     Longitud: <span id="ultima-longitud">-</span><br>
                     Fecha: <span id="ultima-fecha">-</span><br>
                     Hora: <span id="ultima-hora">-</span>
-                `;
+                ;
                 return div;
             };
             ultimaUbicacionControl.addTo(map);
@@ -172,7 +172,7 @@
             // Polilínea para el recorrido general
             let recorrido = L.polyline([], { color: '#800080' }).addTo(map);
             // Polilínea para el recorrido filtrado (verde esmeralda)
-            let recorridoFiltrado = L.polyline([], { color: '#50C878' });
+            let recorridoFiltrado = L.polyline([], { color: '#50C878' });  // No añadimos aún al mapa
 
             let marcadorUltimaUbicacion = L.circleMarker([0, 0], {
                 radius: 10,
@@ -183,7 +183,7 @@
 
             let ultimaLatitud = null;
             let ultimaLongitud = null;
-            let ultimoPunto = null;
+            let ultimoPunto = null; // Para mantener un control del último punto correctamente
 
             // Cargar datos automáticamente cada 10 segundos
             setInterval(cargarDatosDesdeServidor, 10000);
@@ -207,32 +207,36 @@
 
                 // Verificar si el punto actual es diferente al último
                 if (ultimoPunto && ultimoPunto.lat === nuevaLatitud && ultimoPunto.lng === nuevaLongitud) {
-                    return;
+                    return; // Evitar duplicados
                 }
 
+                // Actualizamos el cuadro flotante con la última ubicación
                 document.getElementById('ultima-latitud').innerText = nuevaLatitud.toFixed(3);
                 document.getElementById('ultima-longitud').innerText = nuevaLongitud.toFixed(3);
                 document.getElementById('ultima-fecha').innerText = fechaFormateada;
                 document.getElementById('ultima-hora').innerText = horaFormateada;
 
-                // Conectar solo el último punto con el nuevo
-                if (ultimoPunto) {
-                    recorrido.addLatLng([ultimoPunto.lat, ultimoPunto.lng]);
+                // Agregar el nuevo punto a la polilínea general solo si no está filtrado
+                if (!filtrando) {
+                    recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
                 }
-                recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
 
+                // Guardar el último punto actualizado
                 ultimoPunto = { lat: nuevaLatitud, lng: nuevaLongitud };
 
+                // Actualizar la última posición
                 ultimaLatitud = nuevaLatitud;
                 ultimaLongitud = nuevaLongitud;
 
+                // Mover el marcador a la última ubicación
                 marcadorUltimaUbicacion.setLatLng([nuevaLatitud, nuevaLongitud]);
 
-                // Aquí centramos correctamente el mapa en la nueva ubicación recibida
+                // Centrar el mapa en la nueva ubicación si es necesario
                 if (autoCenter) {
                     map.setView([nuevaLatitud, nuevaLongitud], 15);
                 }
 
+                // Agregar los datos al historial
                 agregarDatosATabla(data);
             }
 
@@ -249,22 +253,19 @@
 
                 const historicosTable = document.getElementById('historicos-data');
                 const historicosRow = document.createElement('tr');
-                historicosRow.innerHTML = `
+                historicosRow.innerHTML = 
                     <td>${nuevaLatitud}</td>
                     <td>${nuevaLongitud}</td>
                     <td>${fechaFormateada}</td>
                     <td>${horaFormateada}</td>
-                `;
+                ;
                 historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
 
+                // Actualizar la ventana de última ubicación
                 document.getElementById('ultima-latitud').innerText = nuevaLatitud;
                 document.getElementById('ultima-longitud').innerText = nuevaLongitud;
                 document.getElementById('ultima-fecha').innerText = fechaFormateada;
                 document.getElementById('ultima-hora').innerText = horaFormateada;
-            }
-            function limpiarTabla() {
-                const historicosTable = document.getElementById('historicos-data');
-                historicosTable.innerHTML = '';  // Limpiar tabla
             }
 
             function cargarDatosDesdeServidor() {
@@ -287,11 +288,14 @@
                                     return; // Evitar duplicados
                                 }
 
-                                // Conectar solo el último punto con el nuevo
-                                if (ultimoPunto) {
-                                    recorrido.addLatLng([ultimoPunto.lat, ultimoPunto.lng]);
+                                // Agregar el nuevo punto a la polilínea general solo si no está filtrado
+                                if (!filtrando) {
+                                    recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
                                 }
-                                recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
+
+                                // Actualizar la última posición
+                                ultimaLatitud = nuevaLatitud;
+                                ultimaLongitud = nuevaLongitud;
 
                                 // Guardar el último punto actualizado
                                 ultimoPunto = { lat: nuevaLatitud, lng: nuevaLongitud };
@@ -326,20 +330,17 @@
 
                 filtrando = true;
 
-                // Limpiar la tabla
-                limpiarTabla();
-
                 // Eliminar el recorrido general del mapa temporalmente
                 map.removeLayer(recorrido);
 
-                fetch(`/filterData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
+                fetch(/filterData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()})
                     .then(response => response.json())
                     .then(data => {
                         if (data.length === 0) {
                             alert('No se encontraron datos en el rango de tiempo especificado');
                             return;
                         }
-
+                        
                         // Limpiar la polilínea filtrada
                         recorridoFiltrado.setLatLngs([]);
 
@@ -347,9 +348,6 @@
                             const lat = parseFloat(registro.Latitud);
                             const lon = parseFloat(registro.Longitud);
                             recorridoFiltrado.addLatLng([lat, lon]);
-
-                            // Agregar datos filtrados a la tabla
-                            agregarDatosATabla(registro);
                         });
 
                         // Añadir la polilínea filtrada al mapa
@@ -369,9 +367,6 @@
                 document.getElementById('startDate').value = '';
                 document.getElementById('endDate').value = '';
                 filtrando = false;
-
-                // Limpiar la tabla cuando se quita el filtro
-                limpiarTabla();
 
                 // Limpiar la polilínea filtrada
                 recorridoFiltrado.setLatLngs([]);
