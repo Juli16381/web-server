@@ -170,8 +170,10 @@
             };
             ultimaUbicacionControl.addTo(map);
 
-            // Polilínea que conectará los puntos en el recorrido
+            // Polilínea para el recorrido general
             let recorrido = L.polyline([], { color: '#800080' }).addTo(map);
+            // Polilínea para el recorrido filtrado (verde esmeralda)
+            let recorridoFiltrado = L.polyline([], { color: '#50C878' }).addTo(map);  // Color verde esmeralda
             let marcadorUltimaUbicacion = L.circleMarker([0, 0], {
                 radius: 10,
                 color: '#800080',
@@ -179,7 +181,6 @@
                 fillOpacity: 1,
             }).addTo(map);
 
-            // Almacenar la última posición para evitar errores al agregar puntos
             let ultimaLatitud = null;
             let ultimaLongitud = null;
 
@@ -187,7 +188,6 @@
             setInterval(cargarDatosDesdeServidor, 10000);
 
             socket.on('new-data', (data) => {
-                console.log('Recibiendo datos del servidor:', data);  // Verificar que los datos llegan correctamente
                 if (!filtrando) {
                     actualizarMapa(data);
                 }
@@ -207,17 +207,16 @@
                 // Evitar agregar puntos duplicados
                 if (ultimaLatitud !== null && ultimaLongitud !== null && 
                     ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
-                    console.log("Punto duplicado, no se añade al recorrido.");
                     return;
                 }
 
-                // Actualizamos el cuadro flotante con la última ubicación de la tabla
+                // Actualizamos el cuadro flotante con la última ubicación
                 document.getElementById('ultima-latitud').innerText = nuevaLatitud.toFixed(3);
                 document.getElementById('ultima-longitud').innerText = nuevaLongitud.toFixed(3);
                 document.getElementById('ultima-fecha').innerText = fechaFormateada;
                 document.getElementById('ultima-hora').innerText = horaFormateada;
 
-                // Agregar el nuevo punto a la polilínea
+                // Agregar el nuevo punto a la polilínea general
                 recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
 
                 // Actualizar la última posición
@@ -257,7 +256,7 @@
                 `;
                 historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
 
-                // Actualizar la ventana de última ubicación con el último registro añadido
+                // Actualizar la ventana de última ubicación
                 document.getElementById('ultima-latitud').innerText = nuevaLatitud;
                 document.getElementById('ultima-longitud').innerText = nuevaLongitud;
                 document.getElementById('ultima-fecha').innerText = fechaFormateada;
@@ -285,7 +284,7 @@
                                     return;
                                 }
 
-                                // Agregar el nuevo punto a la polilínea
+                                // Agregar el nuevo punto a la polilínea general
                                 recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
 
                                 // Actualizar la última posición
@@ -325,11 +324,23 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.length === 0) {
-                            cargarDatosDesdeServidor();
                             alert('No se encontraron datos en el rango de tiempo especificado');
-                        } else {
-                            updateTable(data);
-                            updateMap(data, '#38113b');
+                            return;
+                        }
+                        
+                        // Limpiar la polilínea filtrada
+                        recorridoFiltrado.setLatLngs([]);
+
+                        data.forEach((registro) => {
+                            const lat = parseFloat(registro.Latitud);
+                            const lon = parseFloat(registro.Longitud);
+                            recorridoFiltrado.addLatLng([lat, lon]);
+                        });
+
+                        // Centrar el mapa en la primera ubicación filtrada
+                        if (data.length > 0) {
+                            const firstPoint = [parseFloat(data[0].Latitud), parseFloat(data[0].Longitud)];
+                            map.setView(firstPoint, 15);
                         }
                     })
                     .catch(error => console.error('Error:', error));
@@ -340,6 +351,11 @@
                 document.getElementById('startDate').value = '';
                 document.getElementById('endDate').value = '';
                 filtrando = false;
+
+                // Limpiar la polilínea filtrada
+                recorridoFiltrado.setLatLngs([]);
+
+                // Volver a mostrar el recorrido general
                 cargarDatosDesdeServidor();
             });
 
