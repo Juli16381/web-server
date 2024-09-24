@@ -72,7 +72,6 @@
             border-radius: 5px;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
         }
-        /* Media query para pantallas móviles */
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
@@ -171,8 +170,6 @@
 
             // Polilínea para el recorrido general
             let recorrido = L.polyline([], { color: '#800080' }).addTo(map);
-            // Polilínea para el recorrido filtrado (verde esmeralda)
-            let recorridoFiltrado = L.polyline([], { color: '#50C878' });  // No añadimos aún al mapa
 
             let marcadorUltimaUbicacion = L.circleMarker([0, 0], {
                 radius: 10,
@@ -183,7 +180,6 @@
 
             let ultimaLatitud = null;
             let ultimaLongitud = null;
-
 
             socket.on('new-data', (data) => {
                 if (!filtrando) {
@@ -214,9 +210,8 @@
                 document.getElementById('ultima-fecha').innerText = fechaFormateada;
                 document.getElementById('ultima-hora').innerText = horaFormateada;
 
-               
+                // Agregar el nuevo punto a la polilínea general
                 recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
-              
 
                 // Actualizar la última posición
                 ultimaLatitud = nuevaLatitud;
@@ -254,15 +249,8 @@
                     <td>${horaFormateada}</td>
                 `;
                 historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
-
-                // Actualizar la ventana de última ubicación
-                document.getElementById('ultima-latitud').innerText = nuevaLatitud;
-                document.getElementById('ultima-longitud').innerText = nuevaLongitud;
-                document.getElementById('ultima-fecha').innerText = fechaFormateada;
-                document.getElementById('ultima-hora').innerText = horaFormateada;
             }
 
-            
             // Código para manejo del filtrado
             document.getElementById('filterForm').addEventListener('submit', function(event) {
                 event.preventDefault();
@@ -283,14 +271,14 @@
                 // Eliminar el recorrido general del mapa temporalmente
                 map.removeLayer(recorrido);
 
-                fetch(/filterData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()})
+                fetch(`/filterData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.length === 0) {
                             alert('No se encontraron datos en el rango de tiempo especificado');
                             return;
                         }
-                        
+
                         // Limpiar la polilínea filtrada
                         recorridoFiltrado.setLatLngs([]);
 
@@ -324,18 +312,7 @@
 
                 // Añadir nuevamente el recorrido completo al mapa
                 map.addLayer(recorrido);
-
             });
-
-            // Actualización del historial en la tabla
-            function updateTable(data) {
-                const historicosTable = document.getElementById('historicos-data');
-                historicosTable.innerHTML = '';
-
-                data.forEach((registro) => {
-                    agregarDatosATabla(registro);
-                });
-            }
 
             // Manejar el historial con botón de visualización
             document.getElementById('historicos-btn').addEventListener('click', function() {
