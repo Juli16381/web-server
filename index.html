@@ -273,7 +273,13 @@
                                 map.setView([ultimaLatitud, ultimaLongitud], 15);
                                 document.getElementById('ultima-latitud').innerText = ultimaLatitud;
                                 document.getElementById('ultima-longitud').innerText = ultimaLongitud;
-                            }
+                            }} else {
+                            // Manejo de caso cuando no hay datos
+                            document.getElementById('historicos-data').innerHTML = '';
+                            document.getElementById('ultima-latitud').innerText = '-';
+                            document.getElementById('ultima-longitud').innerText = '-';
+                            document.getElementById('ultima-fecha').innerText = '-';
+                            document.getElementById('ultima-hora').innerText = '-';
                         }
                     })
                     .catch(error => console.error('Error al cargar los datos históricos:', error));
