@@ -48,7 +48,7 @@
             margin-top: 20px;
             text-align: center;
         }
-        #historicos-btn {
+        #historicos-btn, #clear-filter-btn {
             padding: 10px 20px;
             background-color: #130066;
             color: white;
@@ -114,7 +114,7 @@
         <label for="endDate">Fecha y hora de fin:</label>
         <input type="datetime-local" id="endDate" name="endDate">
         <button type="submit">Filtrar</button>
-        <button type="button" id="clearFilterBtn">Quitar filtro</button> <!-- Botón para quitar el filtro -->
+        <button id="clear-filter-btn" type="button" style="display:none;">Quitar Filtro</button> <!-- Botón para quitar filtro -->
     </form>
 
     <div class="container">
@@ -148,22 +148,19 @@
         document.addEventListener('DOMContentLoaded', function() {
             const socket = io();
 
-            let autoCenter = true;  // Controla si el mapa debe centrarse automáticamente
-            let autoCenterTimeout;  // Variable para almacenar el temporizador
+            let autoCenter = true;
+            let autoCenterTimeout;
 
-            // Inicializar el mapa de Leaflet 
             const map = L.map('map').setView([0, 0], 2); 
 
-            // Evento para desactivar el auto-centrado cuando el usuario mueve el mapa
             map.on('movestart', function() {
-                autoCenter = false;  // Desactivar el auto-centrado cuando el usuario mueva el mapa
-                clearTimeout(autoCenterTimeout);  // Reiniciar el temporizador
+                autoCenter = false;
+                clearTimeout(autoCenterTimeout);
                 autoCenterTimeout = setTimeout(function() {
-                    autoCenter = true;  // Reactivar el auto-centrado después de 10 segundos de inactividad
-                }, 10000);  // 10 segundos
+                    autoCenter = true;
+                }, 10000); 
             });
 
-            // Añadir un tile layer (capa de mosaicos) al mapa
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 18,
                 attribution: '© OpenStreetMap contributors'
@@ -192,10 +189,12 @@
                 fillOpacity: 1,
             }).addTo(map);
 
-            cargarDatosDesdeServidor();
+            let intervaloActivo = true;
 
             socket.on('new-data', (data) => {
-                actualizarMapa(data); 
+                if (intervaloActivo) {
+                    actualizarMapa(data); 
+                }
             });
 
             function actualizarMapa(data) {
@@ -215,18 +214,6 @@
 
                 recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
                 marcadorUltimaUbicacion.setLatLng([nuevaLatitud, nuevaLongitud]);
-
-                setTimeout(() => {
-                    const historicosTable = document.getElementById('historicos-data');
-                    const historicosRow = document.createElement('tr');
-                    historicosRow.innerHTML = `
-                        <td>${data.Latitud}</td>
-                        <td>${data.Longitud}</td>
-                        <td>${fechaFormateada}</td>
-                        <td>${data.Hora}</td>
-                    `;
-                    historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
-                }, 2000);
             }
 
             function cargarDatosDesdeServidor() {
@@ -234,53 +221,8 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.length > 0) {
-                            let ultimaLatitud = null;
-                            let ultimaLongitud = null;
-
-                            // Ordenar los datos por Fecha en orden descendente
-                            data.sort((a, b) => new Date(b.Fecha) - new Date(a.Fecha));
-
-                            const historicosRows = [];
-                            data.forEach((registro) => {
-                                const nuevaLatitud = parseFloat(registro.Latitud);
-                                const nuevaLongitud = parseFloat(registro.Longitud);
-                                const fechaFormateada = registro.Fecha.split('T')[0];
-
-                                recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
-
-                                ultimaLatitud = nuevaLatitud;
-                                ultimaLongitud = nuevaLongitud;
-
-                                // Preparar la fila para la tabla
-                                historicosRows.push(`
-                                    <tr>
-                                        <td>${registro.Latitud}</td>
-                                        <td>${registro.Longitud}</td>
-                                        <td>${fechaFormateada}</td>
-                                        <td>${registro.Hora}</td>
-                                    </tr>
-                                `);
-                            });
-
-                            const historicosTable = document.getElementById('historicos-data');
-                            historicosTable.innerHTML = historicosRows.join('');
-
-                            const ultimaEntrada = data[0]; 
-                            if (ultimaLatitud !== null && ultimaLongitud !== null) {
-                                document.getElementById('ultima-latitud').innerText = ultimaLatitud;
-                                document.getElementById('ultima-longitud').innerText = ultimaLongitud;
-                                document.getElementById('ultima-fecha').innerText = ultimaEntrada.Fecha.split('T')[0];
-                                document.getElementById('ultima-hora').innerText = ultimaEntrada.Hora;
-
-                                marcadorUltimaUbicacion.setLatLng([ultimaLatitud, ultimaLongitud]);
-                                map.setView([ultimaLatitud, ultimaLongitud], 15);
-                            }
-                        } else {
-                            document.getElementById('historicos-data').innerHTML = '';
-                            document.getElementById('ultima-latitud').innerText = '-';
-                            document.getElementById('ultima-longitud').innerText = '-';
-                            document.getElementById('ultima-fecha').innerText = '-';
-                            document.getElementById('ultima-hora').innerText = '-';
+                            updateTable(data);
+                            updateMap(data);
                         }
                     })
                     .catch(error => console.error('Error al cargar los datos históricos:', error));
@@ -288,7 +230,7 @@
 
             document.getElementById('filterForm').addEventListener('submit', function(event) {
                 event.preventDefault();
-            
+                
                 let startDate = new Date(document.getElementById('startDate').value);
                 let endDate = new Date(document.getElementById('endDate').value);
 
@@ -303,22 +245,20 @@
                 fetch(`/filterData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
                     .then(response => response.json())
                     .then(data => {
-                        if (data.length === 0) {
-                            cargarDatosDesdeServidor();
-                            alert('No se encontraron datos en el rango de tiempo especificado');
-                        } else {
-                            updateTable(data);
-                            updateMap(data);
-                        }
+                        updateTable(data);
+                        updateMap(data);
+                        intervaloActivo = false;
+                        document.getElementById('clear-filter-btn').style.display = 'inline-block'; // Mostrar botón de quitar filtro
                     })
                     .catch(error => console.error('Error:', error));
             });
 
-            // Función para quitar el filtro y cargar todos los datos nuevamente
-            document.getElementById('clearFilterBtn').addEventListener('click', function() {
-                cargarDatosDesdeServidor();
+            document.getElementById('clear-filter-btn').addEventListener('click', function() {
+                cargarDatosDesdeServidor(); 
+                intervaloActivo = true; // Reactivar el intervalo
                 document.getElementById('startDate').value = '';
                 document.getElementById('endDate').value = '';
+                document.getElementById('clear-filter-btn').style.display = 'none'; // Ocultar botón de quitar filtro
             });
 
             function updateTable(data) {
@@ -370,7 +310,14 @@
                     this.innerText = 'Ver historial';
                 }
             });
+
+            setInterval(function() {
+                if (intervaloActivo) {
+                    cargarDatosDesdeServidor();
+                }
+            }, 10000);
         });
     </script>
 </body>
 </html>
+
