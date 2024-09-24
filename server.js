@@ -3,13 +3,13 @@ const mysql = require('mysql2');
 const http = require('http');
 const socketIo = require('socket.io');
 const fs = require('fs');
-const bodyParser = require('body-parser'); // Import bodyParser to handle JSON payloads
+const bodyParser = require('body-parser'); // Para manejar los payloads JSON
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
-// Middleware to parse JSON requests
+// Middleware para parsear JSON en las solicitudes
 app.use(bodyParser.json());
 
 let db;
@@ -17,7 +17,7 @@ let lastProcessedId = null;
 
 console.log("El servidor está iniciando...");
 
-// Load credentials from credenciales.json
+// Cargar credenciales desde credenciales.json
 fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) => {
     if (err) {
         console.error('Error al leer el archivo credenciales.json:', err);
@@ -47,10 +47,10 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
 
     // Ruta para recibir datos desde el sniffer
     app.post('/api/data', (req, res) => {
-        const { Latitud, Longitud, Fecha, Hora, FechaHora } = req.body;
+        const { Latitud, Longitud, Fecha, Hora } = req.body;
         console.log('Datos recibidos:', req.body);
 
-        // Inserta los datos en MySQL
+        // Inserta los datos en MySQL, sin el campo 'FechaHora' ya que es generado automáticamente
         const query = 'INSERT INTO datos_gps (Latitud, Longitud, Fecha, Hora) VALUES (?, ?, ?, ?)';
         const values = [Latitud, Longitud, Fecha, Hora];
 
@@ -65,6 +65,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
         });
     });
 
+    // Función para verificar nuevos datos
     function checkForNewData() {
         if (!db) {
             console.error('La conexión a la base de datos aún no está lista.');
@@ -87,10 +88,8 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
                     console.log('Nuevos datos encontrados:', latestData);
 
                     try {
-                        const fechaHoraStr = `${latestData.Fecha} ${latestData.Hora}`;
-                        console.log('Fecha y Hora combinadas:', fechaHoraStr);
-
-                        const fechaHora = new Date(`${latestData.Fecha}T${latestData.Hora}`);
+                        // Ya tienes FechaHora directamente en el resultado
+                        const fechaHora = new Date(latestData.FechaHora);
 
                         if (isNaN(fechaHora)) {
                             throw new Error('Fecha inválida');
@@ -121,10 +120,12 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
 
     setInterval(checkForNewData, 5000);
 
+    // Ruta principal
     app.get('/', (req, res) => {
         res.sendFile(__dirname + '/index.html');
     });
 
+    // Ruta para obtener los datos históricos
     app.get('/historicos', (req, res) => {
         if (!db) {
             console.error('La conexión a la base de datos aún no está lista.');
@@ -143,6 +144,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
         });
     });
 
+    // Ruta para filtrar los datos entre fechas
     app.get('/filterData', (req, res) => {
         const startDate = new Date(req.query.startDate);
         const endDate = new Date(req.query.endDate);
@@ -166,9 +168,8 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
         });
     });
 
+    // Iniciar el servidor solo después de conectar a la base de datos
     server.listen(80, '0.0.0.0', () => {
         console.log('Servidor escuchando en el puerto 80');
     });
 });
-
-
