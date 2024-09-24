@@ -179,7 +179,7 @@
 
             socket.on('new-data', (data) => {
                 if (!filtrando) {
-                    actualizarMapa(data);
+                    actualizarMapa(data);  // Actualización en tiempo real de la ubicación
                 }
             });
 
@@ -187,10 +187,13 @@
                 const nuevaLatitud = parseFloat(data.Latitud);
                 const nuevaLongitud = parseFloat(data.Longitud);
                 const fechaFormateada = data.Fecha.split('T')[0];
-                document.getElementById('ultima-latitud').innerText = data.Latitud;
-                document.getElementById('ultima-longitud').innerText = data.Longitud;
+                const horaFormateada = data.Hora;
+
+                // Actualizamos el cuadro flotante en tiempo real
+                document.getElementById('ultima-latitud').innerText = nuevaLatitud.toFixed(3);
+                document.getElementById('ultima-longitud').innerText = nuevaLongitud.toFixed(3);
                 document.getElementById('ultima-fecha').innerText = fechaFormateada;
-                document.getElementById('ultima-hora').innerText = data.Hora;
+                document.getElementById('ultima-hora').innerText = horaFormateada;
 
                 if (autoCenter) {
                     map.setView([nuevaLatitud, nuevaLongitud], 15);
@@ -203,10 +206,10 @@
                     const historicosTable = document.getElementById('historicos-data');
                     const historicosRow = document.createElement('tr');
                     historicosRow.innerHTML = `
-                        <td>${data.Latitud}</td>
-                        <td>${data.Longitud}</td>
+                        <td>${nuevaLatitud.toFixed(3)}</td>
+                        <td>${nuevaLongitud.toFixed(3)}</td>
                         <td>${fechaFormateada}</td>
-                        <td>${data.Hora}</td>
+                        <td>${horaFormateada}</td>
                     `;
                     historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
                 }, 2000);
@@ -349,5 +352,3 @@
     </script>
 </body>
 </html>
-
-
