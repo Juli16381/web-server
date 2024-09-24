@@ -129,16 +129,15 @@ def insertar_en_mysql(datos):
         # Concatenar Fecha y Hora para obtener FechaHora
         fecha_hora = f"{datos['Fecha']} {datos['Hora']}"
 
-        # Consulta para verificar si ya existe un registro con los mismos valores
+        # Verificar si ya existe un registro con los mismos valores
         check_query = ("SELECT COUNT(*) FROM datos_gps WHERE Latitud = %s AND Longitud = %s AND Fecha = %s AND Hora = %s")
         check_data = (datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'])
         cursor.execute(check_query, check_data)
         result = cursor.fetchone()
 
         if result[0] == 0:  # Si no existen registros duplicados
-            add_dato = ("INSERT INTO datos_gps "
-                        "(Latitud, Longitud, Fecha, Hora) "
-                        "VALUES (%s, %s, %s, %s, %s)")
+            # Verifica si hay un valor calculado para la columna generada 'FechaHora'
+            add_dato = ("INSERT INTO datos_gps (Latitud, Longitud, Fecha, Hora) VALUES (%s, %s, %s, %s)")
             data_dato = (datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'])
 
             cursor.execute(add_dato, data_dato)
