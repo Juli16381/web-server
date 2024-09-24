@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Datos GPS</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
@@ -305,8 +305,6 @@
                     .catch(error => console.error('Error al cargar los datos históricos:', error));
             }
 
-            let intervaloActivo = null; // Controla si el intervalo está activo
-
             document.getElementById('filterForm').addEventListener('submit', function(event) {
                 event.preventDefault();
 
@@ -322,9 +320,6 @@
                 // Convertir a UTC antes de enviar
                 startDate = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000);
                 endDate = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000);
-
-                // Desactivar el temporizador cuando se está filtrando
-                clearInterval(intervaloActivo);
 
                 fetch(`/filterData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
                 .then(response => response.json())
@@ -347,19 +342,6 @@
                 cargarDatosDesdeServidor(); // Llama a la función para recargar los datos completos
             });
 
-            // Verificar el estado del formulario 
-            function verificarIntervalo() {
-                if (document.getElementById('startDate').value === "" && document.getElementById('endDate').value === "") {
-                    intervaloActivo = setInterval(cargarDatosDesdeServidor, 10000);
-                }
-            }
-
-            // Llama a verificarIntervalo cada vez que el formulario cambia
-            document.getElementById('startDate').addEventListener('input', verificarIntervalo);
-            document.getElementById('endDate').addEventListener('input', verificarIntervalo);
-
-            setInterval(verificarIntervalo, 5000);
-
             function updateTable(data) {
                 const historicosTable = document.getElementById('historicos-data');
                 historicosTable.innerHTML = '';
@@ -380,7 +362,7 @@
 
             function updateMap(data) {
                 recorrido.setLatLngs([]);
-                let polilineaFiltrada = L.polyline([], { color: '#000080' }).addTo(map); // Color durante el filtrado
+                let polilineaFiltrada = L.polyline([], { color: '#f5f5dc' }).addTo(map); // Color durante el filtrado
 
                 if (data.length > 0) {
                     let ultimaLatitud = null;
@@ -401,12 +383,6 @@
                         marcadorUltimaUbicacion.setLatLng([ultimaLatitud, ultimaLongitud]);
                         map.setView([ultimaLatitud, ultimaLongitud], 15);
                     }
-
-                    // Una vez que termina el filtrado, elimina la polilínea filtrada y regresa al color original
-                    setTimeout(() => {
-                        map.removeLayer(polilineaFiltrada); // Eliminar la polilínea filtrada
-                        recorrido = L.polyline([], { color: '#800080' }).addTo(map); // Vuelve a la polilínea original
-                    }, 5000); // Esperar 5 segundos para eliminar la línea filtrada y restaurar el color original
                 }
             }
 
