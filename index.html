@@ -92,16 +92,6 @@
 <body>
     <h1 class="title">Datos GPS</h1>
 
-    <!-- Formulario de filtrado -->
-    <form id="filterForm">
-        <label for="startDate">Fecha y hora de inicio:</label>
-        <input type="datetime-local" id="startDate" name="startDate">
-        <label for="endDate">Fecha y hora de fin:</label>
-        <input type="datetime-local" id="endDate" name="endDate">
-        <button type="submit">Filtrar</button>
-        <button type="button" id="resetFilters">Quitar Filtro</button>
-    </form>
-
     <div class="container">
         <!-- Contenedor para el Mapa -->
         <div id="map"></div>
@@ -135,7 +125,6 @@
 
             let autoCenter = true;
             let autoCenterTimeout;
-            let filtrando = false;
 
             // Inicializar el mapa
             const map = L.map('map').setView([0, 0], 2);
@@ -148,7 +137,7 @@
                 }, 10000);
             });
 
-            // Añadir el mapa base
+            // Añadir capa base al mapa
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 18,
                 attribution: '© OpenStreetMap contributors'
@@ -178,52 +167,35 @@
                 fillOpacity: 1,
             }).addTo(map);
 
-            // Almacenar la última posición para evitar errores al agregar puntos
+            // Almacenar la última posición
             let ultimaLatitud = null;
             let ultimaLongitud = null;
 
-            // Cargar datos automáticamente cada 10 segundos
-            setInterval(cargarDatosDesdeServidor, 10000);
-
+            // Función para recibir y actualizar los datos
             socket.on('new-data', (data) => {
-                console.log('Recibiendo datos del servidor:', data);  // Verificar que los datos llegan correctamente
-                if (!filtrando) {
-                    actualizarMapa(data);
-                }
+                actualizarMapa(data);
             });
 
             function actualizarMapa(data) {
-                if (!data || !data.Latitud || !data.Longitud || !data.Fecha || !data.Hora) {
-                    console.error('Datos inválidos recibidos:', data);
-                    return;
-                }
-
                 const nuevaLatitud = parseFloat(data.Latitud);
                 const nuevaLongitud = parseFloat(data.Longitud);
-                const fechaFormateada = data.Fecha.split('T')[0];
-                const horaFormateada = data.Hora;
 
                 // Evitar agregar puntos duplicados
-                if (ultimaLatitud !== null && ultimaLongitud !== null && 
-                    ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
-                    console.log("Punto duplicado, no se añade al recorrido.");
+                if (ultimaLatitud !== null && ultimaLongitud !== null &&
+                    nuevaLatitud === ultimaLatitud && nuevaLongitud === ultimaLongitud) {
                     return;
                 }
 
-                // Actualizamos el cuadro flotante con la última ubicación de la tabla
+                // Actualizamos el cuadro flotante con la última ubicación
                 document.getElementById('ultima-latitud').innerText = nuevaLatitud.toFixed(3);
                 document.getElementById('ultima-longitud').innerText = nuevaLongitud.toFixed(3);
-                document.getElementById('ultima-fecha').innerText = fechaFormateada;
-                document.getElementById('ultima-hora').innerText = horaFormateada;
+                document.getElementById('ultima-fecha').innerText = data.Fecha.split('T')[0];
+                document.getElementById('ultima-hora').innerText = data.Hora;
 
                 // Agregar el nuevo punto a la polilínea
                 recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
 
-                // Actualizar la última posición
-                ultimaLatitud = nuevaLatitud;
-                ultimaLongitud = nuevaLongitud;
-
-                // Mover el marcador a la última ubicación
+                // Actualizar el marcador de la última ubicación
                 marcadorUltimaUbicacion.setLatLng([nuevaLatitud, nuevaLongitud]);
 
                 // Centrar el mapa en la nueva ubicación si es necesario
@@ -231,139 +203,27 @@
                     map.setView([nuevaLatitud, nuevaLongitud], 15);
                 }
 
+                // Actualizar la última posición
+                ultimaLatitud = nuevaLatitud;
+                ultimaLongitud = nuevaLongitud;
+
                 // Agregar los datos al historial
                 agregarDatosATabla(data);
             }
 
             function agregarDatosATabla(data) {
-                if (!data || !data.Latitud || !data.Longitud || !data.Fecha || !data.Hora) {
-                    console.error('Datos inválidos para la tabla:', data);
-                    return;
-                }
-
-                const nuevaLatitud = parseFloat(data.Latitud).toFixed(3);
-                const nuevaLongitud = parseFloat(data.Longitud).toFixed(3);
-                const fechaFormateada = data.Fecha.split('T')[0];
-                const horaFormateada = data.Hora;
-
                 const historicosTable = document.getElementById('historicos-data');
                 const historicosRow = document.createElement('tr');
                 historicosRow.innerHTML = `
-                    <td>${nuevaLatitud}</td>
-                    <td>${nuevaLongitud}</td>
-                    <td>${fechaFormateada}</td>
-                    <td>${horaFormateada}</td>
+                    <td>${parseFloat(data.Latitud).toFixed(3)}</td>
+                    <td>${parseFloat(data.Longitud).toFixed(3)}</td>
+                    <td>${data.Fecha.split('T')[0]}</td>
+                    <td>${data.Hora}</td>
                 `;
                 historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
-
-                // Actualizar la ventana de última ubicación con el último registro añadido
-                document.getElementById('ultima-latitud').innerText = nuevaLatitud;
-                document.getElementById('ultima-longitud').innerText = nuevaLongitud;
-                document.getElementById('ultima-fecha').innerText = fechaFormateada;
-                document.getElementById('ultima-hora').innerText = horaFormateada;
             }
-
-            function cargarDatosDesdeServidor() {
-                fetch('/historicos')
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Error en la respuesta del servidor: ' + response.statusText);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (!filtrando && data.length > 0) {
-                            data.reverse().forEach((registro) => {
-                                const nuevaLatitud = parseFloat(registro.Latitud);
-                                const nuevaLongitud = parseFloat(registro.Longitud);
-                                const fechaFormateada = registro.Fecha.split('T')[0];
-
-                                // Evitar agregar puntos duplicados
-                                if (ultimaLatitud !== null && ultimaLongitud !== null && 
-                                    ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
-                                    return;
-                                }
-
-                                // Agregar el nuevo punto a la polilínea
-                                recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
-
-                                // Actualizar la última posición
-                                ultimaLatitud = nuevaLatitud;
-                                ultimaLongitud = nuevaLongitud;
-
-                                agregarDatosATabla(registro);
-                            });
-
-                            // Centrar el mapa en la última ubicación
-                            if (ultimaLatitud !== null && ultimaLongitud !== null) {
-                                map.setView([ultimaLatitud, ultimaLongitud], 15);
-                                marcadorUltimaUbicacion.setLatLng([ultimaLatitud, ultimaLongitud]);
-                            }
-                        }
-                    })
-                    .catch(error => console.error('Error al cargar los datos históricos:', error));
-            }
-
-            // Código para manejo del filtrado
-            document.getElementById('filterForm').addEventListener('submit', function(event) {
-                event.preventDefault();
-
-                let startDate = new Date(document.getElementById('startDate').value);
-                let endDate = new Date(document.getElementById('endDate').value);
-
-                if (endDate < startDate) {
-                    alert('La fecha de fin no puede ser menor que la fecha de inicio.');
-                    return;
-                }
-
-                startDate = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000);
-                endDate = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000);
-
-                filtrando = true;
-                fetch(`/filterData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.length === 0) {
-                            cargarDatosDesdeServidor();
-                            alert('No se encontraron datos en el rango de tiempo especificado');
-                        } else {
-                            updateTable(data);
-                            updateMap(data, '#38113b');
-                        }
-                    })
-                    .catch(error => console.error('Error:', error));
-            });
-
-            // Quitar filtro y volver a cargar los datos completos
-            document.getElementById('resetFilters').addEventListener('click', function() {
-                document.getElementById('startDate').value = '';
-                document.getElementById('endDate').value = '';
-                filtrando = false;
-                cargarDatosDesdeServidor();
-            });
-
-            // Actualización del historial en la tabla
-            function updateTable(data) {
-                const historicosTable = document.getElementById('historicos-data');
-                historicosTable.innerHTML = '';
-
-                data.forEach((registro) => {
-                    agregarDatosATabla(registro);
-                });
-            }
-
-            // Manejar el historial con botón de visualización
-            document.getElementById('historicos-btn').addEventListener('click', function() {
-                const historicosTable = document.getElementById('historicos-table');
-                if (historicosTable.style.display === 'none') {
-                    historicosTable.style.display = 'table';
-                    this.innerText = 'Ocultar historial';
-                } else {
-                    historicosTable.style.display = 'none';
-                    this.innerText = 'Ver historial';
-                }
-            });
         });
     </script>
 </body>
 </html>
+
