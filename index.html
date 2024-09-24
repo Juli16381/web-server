@@ -389,11 +389,12 @@ setInterval(verificarIntervalo, 5000);
                 if (data.length > 0) {
                     let ultimaLatitud = null;
                     let ultimaLongitud = null;
-
+		    let polilineaFiltrada = L.polyline([], { color: '#FF5733' }).addTo(map);
                     data.forEach((registro) => {
                         const nuevaLatitud = parseFloat(registro.Latitud);
                         const nuevaLongitud = parseFloat(registro.Longitud);
-
+			polilineaFiltrada.addLatLng([nuevaLatitud, nuevaLongitud]);
+			    
                         recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
 
                         ultimaLatitud = nuevaLatitud;
