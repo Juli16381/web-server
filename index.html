@@ -204,9 +204,9 @@
 
                 const fechaFormateada = data.Fecha.split('T')[0];
 
-                document.getElementById('ultima-latitud').innerText = data.Latitud;
-                document.getElementById('ultima-longitud').innerText = data.Longitud;
-                document.getElementById('ultima-fecha').innerText = fechaFormateada;
+                document.getElementById('ultima-latitud').innerText = nuevaLatitud;
+                document.getElementById('ultima-longitud').innerText = nuevaLongitud;
+                document.getElementById('ultima-fecha').innerText = data.Fecha.split('T')[0];
                 document.getElementById('ultima-hora').innerText = data.Hora;
 			
 		marcadorUltimaUbicacion.setLatLng([nuevaLatitud, nuevaLongitud]);
