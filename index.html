@@ -204,9 +204,9 @@
 
                 const fechaFormateada = data.Fecha.split('T')[0];
 
-                document.getElementById('ultima-latitud').innerText = nuevaLatitud;
-                document.getElementById('ultima-longitud').innerText = nuevaLongitud;
-                document.getElementById('ultima-fecha').innerText = data.Fecha.split('T')[0];
+                document.getElementById('ultima-latitud').innerText = data.Latitud;
+                document.getElementById('ultima-longitud').innerText = data.Longitud;
+                document.getElementById('ultima-fecha').innerText = fechaFormateada;
                 document.getElementById('ultima-hora').innerText = data.Hora;
 			
 		marcadorUltimaUbicacion.setLatLng([nuevaLatitud, nuevaLongitud]);
@@ -286,13 +286,13 @@ function cargarDatosDesdeServidor() {
                     // Actualizar la última ubicación
                     const ultimaEntrada = data[0]; // Primer elemento tras la ordenación
                     if (ultimaLatitud !== null && ultimaLongitud !== null) {
+			marcadorUltimaUbicacion.setLatLng([ultimaLatitud, ultimaLongitud]);
+			map.setView([ultimaLatitud, ultimaLongitud], 15);
                         document.getElementById('ultima-latitud').innerText = ultimaLatitud;
                         document.getElementById('ultima-longitud').innerText = ultimaLongitud;
                         document.getElementById('ultima-fecha').innerText = ultimaEntrada.Fecha.split('T')[0];
                         document.getElementById('ultima-hora').innerText = ultimaEntrada.Hora;
 
-                        marcadorUltimaUbicacion.setLatLng([ultimaLatitud, ultimaLongitud]);
-                        map.setView([ultimaLatitud, ultimaLongitud], 15);
                     }
                 } else {
                     // Manejo de caso cuando no hay datos
@@ -400,8 +400,6 @@ setInterval(verificarIntervalo, 5000);
                         ultimaLongitud = nuevaLongitud;
                     });
 
-                    marcadorUltimaUbicacion.setLatLng([ultimaLatitud, ultimaLongitud]);
-                    map.setView([ultimaLatitud, ultimaLongitud], 15); 
                 }
             }
 
