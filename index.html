@@ -158,13 +158,13 @@
             ultimaUbicacionControl.onAdd = function(map) {
                 const div = L.DomUtil.create('div', 'leaflet-control');
                 div.id = 'ultima-ubicacion-info';
-                div.innerHTML = 
+                div.innerHTML = `
                     <b>Última ubicación</b><br>
                     Latitud: <span id="ultima-latitud">-</span><br>
                     Longitud: <span id="ultima-longitud">-</span><br>
                     Fecha: <span id="ultima-fecha">-</span><br>
                     Hora: <span id="ultima-hora">-</span>
-                ;
+                `;
                 return div;
             };
             ultimaUbicacionControl.addTo(map);
@@ -250,12 +250,12 @@
 
                 const historicosTable = document.getElementById('historicos-data');
                 const historicosRow = document.createElement('tr');
-                historicosRow.innerHTML = 
+                historicosRow.innerHTML = `
                     <td>${nuevaLatitud}</td>
                     <td>${nuevaLongitud}</td>
                     <td>${fechaFormateada}</td>
                     <td>${horaFormateada}</td>
-                ;
+                `;
                 historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
 
                 // Actualizar la ventana de última ubicación
@@ -328,7 +328,7 @@
                 // Eliminar el recorrido general del mapa temporalmente
                 map.removeLayer(recorrido);
 
-                fetch(/filterData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()})
+                fetch(`/filterData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.length === 0) {
