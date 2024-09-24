@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Datos GPS</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
@@ -172,8 +173,7 @@
             // Polilínea para el recorrido general
             let recorrido = L.polyline([], { color: '#800080' }).addTo(map);
             // Polilínea para el recorrido filtrado (verde esmeralda)
-            let recorridoFiltrado = L.polyline([], { color: '#50C878' });  // No añadimos aún al mapa
-
+            let recorridoFiltrado = L.polyline([], { color: '#50C878' }).addTo(map);  // Color verde esmeralda
             let marcadorUltimaUbicacion = L.circleMarker([0, 0], {
                 radius: 10,
                 color: '#800080',
@@ -216,10 +216,8 @@
                 document.getElementById('ultima-fecha').innerText = fechaFormateada;
                 document.getElementById('ultima-hora').innerText = horaFormateada;
 
-                // Agregar el nuevo punto a la polilínea general solo si no está filtrado
-                if (!filtrando) {
-                    recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
-                }
+                // Agregar el nuevo punto a la polilínea general
+                recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
 
                 // Actualizar la última posición
                 ultimaLatitud = nuevaLatitud;
@@ -286,10 +284,8 @@
                                     return;
                                 }
 
-                                // Agregar el nuevo punto a la polilínea general solo si no está filtrado
-                                if (!filtrando) {
-                                    recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
-                                }
+                                // Agregar el nuevo punto a la polilínea general
+                                recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
 
                                 // Actualizar la última posición
                                 ultimaLatitud = nuevaLatitud;
@@ -324,10 +320,6 @@
                 endDate = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000);
 
                 filtrando = true;
-
-                // Eliminar el recorrido general del mapa temporalmente
-                map.removeLayer(recorrido);
-
                 fetch(`/filterData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
                     .then(response => response.json())
                     .then(data => {
@@ -344,9 +336,6 @@
                             const lon = parseFloat(registro.Longitud);
                             recorridoFiltrado.addLatLng([lat, lon]);
                         });
-
-                        // Añadir la polilínea filtrada al mapa
-                        recorridoFiltrado.addTo(map);
 
                         // Centrar el mapa en la primera ubicación filtrada
                         if (data.length > 0) {
@@ -365,10 +354,6 @@
 
                 // Limpiar la polilínea filtrada
                 recorridoFiltrado.setLatLngs([]);
-                map.removeLayer(recorridoFiltrado);
-
-                // Añadir nuevamente el recorrido completo al mapa
-                map.addLayer(recorrido);
 
                 // Volver a mostrar el recorrido general
                 cargarDatosDesdeServidor();
