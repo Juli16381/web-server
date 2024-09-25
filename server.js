@@ -70,18 +70,14 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
                             throw new Error('Fecha inválida');
                         }
 
-                        const fechaFormateada = fechaHora.toLocaleDateString('es-ES', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric'
-                        });
-                        const horaFormateada = fechaHora.toTimeString().split(' ')[0];
+                        const fechaFormateada = fechaHora.toISOString().split('T')[0]; // Formatear fecha como "YYYY-MM-DD"
+                        const horaFormateada = fechaHora.toTimeString().split(' ')[0];  // Obtener solo la hora
 
                         io.emit('new-data', {
                             Latitud: latestData.Latitud,
                             Longitud: latestData.Longitud,
-                            Fecha: fechaFormateada, // Formatear correctamente la fecha
-                            Hora: horaFormateada    // Formatear correctamente la hora
+                            Fecha: fechaFormateada, // Formato correcto de la fecha
+                            Hora: horaFormateada    // Formato correcto de la hora
                         });
                     } catch (error) {
                         console.error('Error al formatear la fecha y hora:', error);
@@ -114,7 +110,15 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
                 res.status(500).send('Error al consultar la base de datos');
                 return;
             }
-            res.json(results);
+
+            // Formatear la fecha para que siempre sea "YYYY-MM-DD"
+            const formattedResults = results.map(row => ({
+                ...row,
+                Fecha: new Date(row.FechaHora).toISOString().split('T')[0],  // Formatear fecha
+                Hora: new Date(row.FechaHora).toTimeString().split(' ')[0]   // Formatear hora
+            }));
+
+            res.json(formattedResults);
         });
     });
 
@@ -137,7 +141,14 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
                 console.error('Error al realizar la consulta:', error);
                 res.status(500).json({ error: 'Error al realizar la consulta.' });
             } else {
-                res.json(results);
+                // Formatear la fecha para que siempre sea "YYYY-MM-DD"
+                const formattedResults = results.map(row => ({
+                    ...row,
+                    Fecha: new Date(row.FechaHora).toISOString().split('T')[0],  // Formatear fecha
+                    Hora: new Date(row.FechaHora).toTimeString().split(' ')[0]   // Formatear hora
+                }));
+
+                res.json(formattedResults);
             }
         });
     });
@@ -153,7 +164,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
                 return;
             }
 
-            // Renderizar los datos en una tabla
+            // Renderizar los datos en una tabla HTML
             let html = `
             <!DOCTYPE html>
             <html lang="es">
@@ -198,8 +209,8 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
                     <td>${row.id}</td>
                     <td>${row.Latitud}</td>
                     <td>${row.Longitud}</td>
-                    <td>${row.Fecha}</td>
-                    <td>${row.Hora}</td>
+                    <td>${new Date(row.FechaHora).toISOString().split('T')[0]}</td>  <!-- Formatear fecha -->
+                    <td>${new Date(row.FechaHora).toTimeString().split(' ')[0]}</td>  <!-- Formatear hora -->
                 </tr>`;
             });
 
