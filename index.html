@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="viewport" content="width=device-width, initial-scale=1.0">
     <title>Datos GPS</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
@@ -23,12 +22,11 @@
             width: 90%;
         }
         #map {
-            height: 500px; 
+            height: 500px;
             width: 60%;
-            border: 2px solid #ce7272;
+            border: 2px solid #ce72c0;
             margin-right: 20px;
-            margin-top: 10px;
-            position: relative; 
+            position: relative;
         }
         table {
             border-collapse: collapse;
@@ -50,7 +48,11 @@
         }
         #historicos-btn {
             padding: 10px 20px;
+<<<<<<< HEAD
             background-color: #72ce9d;
+=======
+            background-color: #ce72c0;
+>>>>>>> 47ecc97eebf13cc855829277355bdf54fab0b45e
             color: white;
             border: none;
             cursor: pointer;
@@ -64,22 +66,9 @@
             width: 35%;
         }
         .title {
-            font-size: 28px;
+            font-size: 24px;
             color: #333;
-            margin-bottom: 20px;
-        }
-        #filterForm {
-            margin-top: 5px; 
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            gap: 20px; 
-        }
-        #filterForm label {
-            margin-right: 2px; 
-        }
-        #filterForm input {
-            margin-right: 20px; 
+            margin-bottom: 10px;
         }
         .leaflet-control {
             background-color: white;
@@ -114,6 +103,7 @@
         <label for="endDate">Fecha y hora de fin:</label>
         <input type="datetime-local" id="endDate" name="endDate">
         <button type="submit">Filtrar</button>
+        <button type="button" id="resetFilters">Quitar Filtro</button>
     </form>
 
     <div class="container">
@@ -147,22 +137,22 @@
         document.addEventListener('DOMContentLoaded', function() {
             const socket = io();
 
-            let autoCenter = true;  // Controla si el mapa debe centrarse automáticamente
-            let autoCenterTimeout;  // Variable para almacenar el temporizador
+            let autoCenter = true;
+            let autoCenterTimeout;
+            let filtrando = false;
 
-            // Inicializar el mapa de Leaflet 
-            const map = L.map('map').setView([0, 0], 2); 
+            // Inicializar el mapa
+            const map = L.map('map').setView([0, 0], 2);
 
-            // Evento para desactivar el auto-centrado cuando el usuario mueve el mapa
             map.on('movestart', function() {
-                autoCenter = false;  // Desactivar el auto-centrado cuando el usuario mueva el mapa
-                clearTimeout(autoCenterTimeout);  // Reiniciar el temporizador
+                autoCenter = false;
+                clearTimeout(autoCenterTimeout);
                 autoCenterTimeout = setTimeout(function() {
-                    autoCenter = true;  // Reactivar el auto-centrado después de 10 segundos de inactividad
-                }, 10000);  // 10 segundos
+                    autoCenter = true;
+                }, 10000);
             });
 
-            // Añadir un tile layer (capa de mosaicos) al mapa
+            // Añadir el mapa base
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 18,
                 attribution: '© OpenStreetMap contributors'
@@ -173,7 +163,7 @@
                 const div = L.DomUtil.create('div', 'leaflet-control');
                 div.id = 'ultima-ubicacion-info';
                 div.innerHTML = `
-                    <b>Ultima ubicacion</b><br>
+                    <b>Última ubicación</b><br>
                     Latitud: <span id="ultima-latitud">-</span><br>
                     Longitud: <span id="ultima-longitud">-</span><br>
                     Fecha: <span id="ultima-fecha">-</span><br>
@@ -183,7 +173,11 @@
             };
             ultimaUbicacionControl.addTo(map);
 
-            let recorrido = L.polyline([], { color: '#800080' }).addTo(map); 
+            // Polilínea para el recorrido general
+            let recorrido = L.polyline([], { color: '#800080' }).addTo(map);
+            // Polilínea para el recorrido filtrado (verde esmeralda)
+            let recorridoFiltrado = L.polyline([], { color: '#50C878' });  // No añadimos aún al mapa
+
             let marcadorUltimaUbicacion = L.circleMarker([0, 0], {
                 radius: 10,
                 color: '#800080',
@@ -191,211 +185,225 @@
                 fillOpacity: 1,
             }).addTo(map);
 
-            cargarDatosDesdeServidor();
+            let ultimaLatitud = null;
+            let ultimaLongitud = null;
+
+            // Cargar datos automáticamente cada 10 segundos
+            setInterval(cargarDatosDesdeServidor, 10000);
 
             socket.on('new-data', (data) => {
-                actualizarMapa(data); 
+                const existingRows = Array.from(document.getElementById('historicos-data').children)
+                const isDuplicate = existingRows.some(row => {
+                    const [latitud, longitud, fecha, hora] = row.children;
+                    return latitud.innerText == data.Latitud &&
+                           longitud.innerText == data.Longitud &&
+                           fecha.innerText == data.Fecha &&
+                           hora.innerText == data.Hora;
             });
-
-                function actualizarMapa(data) {
-                const nuevaLatitud = parseFloat(data.Latitud);
-                const nuevaLongitud = parseFloat(data.Longitud);
-
-                const fechaFormateada = data.Fecha.split('T')[0];
-
-                document.getElementById('ultima-latitud').innerText = data.Latitud;
-                document.getElementById('ultima-longitud').innerText = data.Longitud;
-                document.getElementById('ultima-fecha').innerText = fechaFormateada;
-                document.getElementById('ultima-hora').innerText = data.Hora;
-
-                // Solo centrar el mapa si autoCenter es verdadero
-                if (autoCenter) {
-                    map.setView([nuevaLatitud, nuevaLongitud], 15); 
-                }
-
-                recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
-                marcadorUltimaUbicacion.setLatLng([nuevaLatitud, nuevaLongitud]);
-
-                setTimeout(() => {
-                    const historicosTable = document.getElementById('historicos-data');
-                    const historicosRow = document.createElement('tr');
-                    historicosRow.innerHTML = `
+                if (!isDuplicate) {
+                    const newRow = document.createElement('tr');
+                    newRow.innerHTML = `
                         <td>${data.Latitud}</td>
                         <td>${data.Longitud}</td>
-                        <td>${fechaFormateada}</td>
+                        <td>${data.Fecha}</td>
                         <td>${data.Hora}</td>
                     `;
-                    historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
-                }, 2000);
-            }
-
-
-let ventanaTiempoAbierta = false; // Variable para controlar el estado de la ventana de tiempo
-
-function mostrarVentanaTiempo() {
-    ventanaTiempoAbierta = true; // La ventana de tiempo está abierta
-    document.getElementById('historicos-data').innerHTML = ''; // Limpia los históricos
-}
-
-function cerrarVentanaTiempo() {
-    ventanaTiempoAbierta = false; // Cerrar la ventana de tiempo
-    
-}
-
-function cargarDatosDesdeServidor() {
-    fetch('/historicos')
-        .then(response => response.json())
-        .then(data => {
-            if (!ventanaTiempoAbierta) { // Verifica si la ventana de tiempo está abierta
-                if (data.length > 0) {
-                    let ultimaLatitud = null;
-                    let ultimaLongitud = null;
-
-                    // Ordenar los datos por Fecha en orden descendente
-                    data.sort((a, b) => new Date(b.Fecha) - new Date(a.Fecha));
-
-                    const historicosRows = [];
-                    data.forEach((registro) => {
-                        const nuevaLatitud = parseFloat(registro.Latitud);
-                        const nuevaLongitud = parseFloat(registro.Longitud);
-                        const fechaFormateada = registro.Fecha.split('T')[0];
-
-                        recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
-
-                        ultimaLatitud = nuevaLatitud;
-                        ultimaLongitud = nuevaLongitud;
-
-                        // Preparar la fila para la tabla
-                        historicosRows.push(`
-                            <tr>
-                                <td>${registro.Latitud}</td>
-                                <td>${registro.Longitud}</td>
-                                <td>${fechaFormateada}</td>
-                                <td>${registro.Hora}</td>
-                            </tr>
-                        `);
-                    });
-
-                    // Insertar las filas en la tabla
-                    const historicosTable = document.getElementById('historicos-data');
-                    historicosTable.innerHTML = historicosRows.join('');
-
-                    // Actualizar la última ubicación
-                    const ultimaEntrada = data[0]; // Primer elemento tras la ordenación
-                    if (ultimaLatitud !== null && ultimaLongitud !== null) {
-                        document.getElementById('ultima-latitud').innerText = ultimaLatitud;
-                        document.getElementById('ultima-longitud').innerText = ultimaLongitud;
-                        document.getElementById('ultima-fecha').innerText = ultimaEntrada.Fecha.split('T')[0];
-                        document.getElementById('ultima-hora').innerText = ultimaEntrada.Hora;
-
-                        marcadorUltimaUbicacion.setLatLng([ultimaLatitud, ultimaLongitud]);
-                        map.setView([ultimaLatitud, ultimaLongitud], 15);
-                    }
-                } else {
-                    // Manejo de caso cuando no hay datos
-                    document.getElementById('historicos-data').innerHTML = '';
-                    document.getElementById('ultima-latitud').innerText = '-';
-                    document.getElementById('ultima-longitud').innerText = '-';
-                    document.getElementById('ultima-fecha').innerText = '-';
-                    document.getElementById('ultima-hora').innerText = '-';
+                    document.getElementById('historicos-data').appendChild(newRow);
                 }
-            } else {
-                // Si la ventana de tiempo está abierta, asegurarse de que los datos históricos estén vacíos
-                document.getElementById('historicos-data').innerHTML = '';
+            });
+
+            function actualizarMapa(data) {
+                if (!data || !data.Latitud || !data.Longitud || !data.Fecha || !data.Hora) {
+                    console.error('Datos inválidos recibidos:', data);
+                    return;
+                }
+
+                const nuevaLatitud = parseFloat(data.Latitud);
+                const nuevaLongitud = parseFloat(data.Longitud);
+                const fechaFormateada = data.Fecha.split('T')[0];
+                const horaFormateada = data.Hora;
+
+                // Evitar agregar puntos duplicados
+                if (ultimaLatitud !== null && ultimaLongitud !== null && 
+                    ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
+                    return;
+                }
+
+                // Actualizamos el cuadro flotante con la última ubicación
+                document.getElementById('ultima-latitud').innerText = nuevaLatitud.toFixed(3);
+                document.getElementById('ultima-longitud').innerText = nuevaLongitud.toFixed(3);
+                document.getElementById('ultima-fecha').innerText = fechaFormateada;
+                document.getElementById('ultima-hora').innerText = horaFormateada;
+
+                // Agregar el nuevo punto a la polilínea general solo si no está filtrado
+                if (!filtrando) {
+                    recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
+                }
+
+                // Actualizar la última posición
+                ultimaLatitud = nuevaLatitud;
+                ultimaLongitud = nuevaLongitud;
+
+                // Mover el marcador a la última ubicación
+                marcadorUltimaUbicacion.setLatLng([nuevaLatitud, nuevaLongitud]);
+
+                // Centrar el mapa en la nueva ubicación si es necesario
+                if (autoCenter) {
+                    map.setView([nuevaLatitud, nuevaLongitud], 15);
+                }
+
+                // Agregar los datos al historial
+                agregarDatosATabla(data);
             }
-        })
-        .catch(error => console.error('Error al cargar los datos históricos:', error));
-}
 
-	let intervaloActivo = true; // Controla si el intervalo está activo
+            function agregarDatosATabla(data) {
+                if (!data || !data.Latitud || !data.Longitud || !data.Fecha || !data.Hora) {
+                    console.error('Datos inválidos para la tabla:', data);
+                    return;
+                }
 
-	document.getElementById('filterForm').addEventListener('submit', function(event) {
-    	event.preventDefault();
-    
-    	let startDate = new Date(document.getElementById('startDate').value);
-   	let endDate = new Date(document.getElementById('endDate').value);
-    
-    	// Validar que la fecha de fin no sea menor que la fecha de inicio
-   	 if (endDate < startDate) {
-       	 alert('La fecha de fin no puede ser menor que la fecha de inicio.');
-       	 return;
-    }
+                const nuevaLatitud = parseFloat(data.Latitud).toFixed(3);
+                const nuevaLongitud = parseFloat(data.Longitud).toFixed(3);
+                const fechaFormateada = data.Fecha.split('T')[0];
+                const horaFormateada = data.Hora;
 
-   	 // Convertir a UTC antes de enviar
-   	 startDate = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000);
-    	 endDate = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000);
+                const historicosTable = document.getElementById('historicos-data');
+                const historicosRow = document.createElement('tr');
+                historicosRow.innerHTML = `
+                    <td>${nuevaLatitud}</td>
+                    <td>${nuevaLongitud}</td>
+                    <td>${fechaFormateada}</td>
+                    <td>${horaFormateada}</td>
+                `;
+                historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
 
-    	fetch(`/filterData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.length === 0) {
-                // Si no hay datos en el rango de tiempo, cargar todos los datos históricos
+                // Actualizar la ventana de última ubicación
+                document.getElementById('ultima-latitud').innerText = nuevaLatitud;
+                document.getElementById('ultima-longitud').innerText = nuevaLongitud;
+                document.getElementById('ultima-fecha').innerText = fechaFormateada;
+                document.getElementById('ultima-hora').innerText = horaFormateada;
+            }
+
+            function cargarDatosDesdeServidor() {
+                fetch('/historicos')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Error en la respuesta del servidor: ' + response.statusText);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (!filtrando && data.length > 0) {
+                            data.reverse().forEach((registro) => {
+                                const nuevaLatitud = parseFloat(registro.Latitud);
+                                const nuevaLongitud = parseFloat(registro.Longitud);
+                                const fechaFormateada = registro.Fecha.split('T')[0];
+
+                                // Evitar agregar puntos duplicados
+                                if (ultimaLatitud !== null && ultimaLongitud !== null && 
+                                    ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
+                                    return;
+                                }
+
+                                // Agregar el nuevo punto a la polilínea general solo si no está filtrado
+                                if (!filtrando) {
+                                    recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
+                                }
+
+                                // Actualizar la última posición
+                                ultimaLatitud = nuevaLatitud;
+                                ultimaLongitud = nuevaLongitud;
+
+                                agregarDatosATabla(registro);
+                            });
+
+                            // Centrar el mapa en la última ubicación
+                            if (ultimaLatitud !== null && ultimaLongitud !== null) {
+                                map.setView([ultimaLatitud, ultimaLongitud], 15);
+                                marcadorUltimaUbicacion.setLatLng([ultimaLatitud, ultimaLongitud]);
+                            }
+                        }
+                    })
+                    .catch(error => console.error('Error al cargar los datos históricos:', error));
+            }
+
+            // Código para manejo del filtrado
+            document.getElementById('filterForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                let startDate = new Date(document.getElementById('startDate').value);
+                let endDate = new Date(document.getElementById('endDate').value);
+
+                if (endDate < startDate) {
+                    alert('La fecha de fin no puede ser menor que la fecha de inicio.');
+                    return;
+                }
+
+                startDate = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000);
+                endDate = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000);
+
+                filtrando = true;
+
+                // Eliminar el recorrido general del mapa temporalmente
+                map.removeLayer(recorrido);
+
+                fetch(`/filterData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.length === 0) {
+                            alert('No se encontraron datos en el rango de tiempo especificado');
+                            return;
+                        }
+                        
+                        // Limpiar la polilínea filtrada
+                        recorridoFiltrado.setLatLngs([]);
+
+                        data.forEach((registro) => {
+                            const lat = parseFloat(registro.Latitud);
+                            const lon = parseFloat(registro.Longitud);
+                            recorridoFiltrado.addLatLng([lat, lon]);
+                        });
+
+                        // Añadir la polilínea filtrada al mapa
+                        recorridoFiltrado.addTo(map);
+
+                        // Centrar el mapa en la primera ubicación filtrada
+                        if (data.length > 0) {
+                            const firstPoint = [parseFloat(data[0].Latitud), parseFloat(data[0].Longitud)];
+                            map.setView(firstPoint, 15);
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            });
+
+            // Quitar filtro y volver a cargar los datos completos
+            document.getElementById('resetFilters').addEventListener('click', function() {
+                document.getElementById('startDate').value = '';
+                document.getElementById('endDate').value = '';
+                filtrando = false;
+
+                // Limpiar la polilínea filtrada
+                recorridoFiltrado.setLatLngs([]);
+                map.removeLayer(recorridoFiltrado);
+
+                // Añadir nuevamente el recorrido completo al mapa
+                map.addLayer(recorrido);
+
+                // Volver a mostrar el recorrido general
                 cargarDatosDesdeServidor();
-                alert('No se encontraron datos en el rango de tiempo especificado');
-            } else {
-                updateTable(data);
-                updateMap(data);
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    
-    // Desactivar el intervalo cuando se filtran datos
-    intervaloActivo = false;
-});
+            });
 
-// Verificar el estado del formulario 
-    function verificarIntervalo() {
-    if (document.getElementById('startDate').value === "" && document.getElementById('endDate').value === "") {
-    setInterval(cargarDatosDesdeServidor, 10000);
-            }
-}
-
-// Llama a verificarIntervalo cada vez que el formulario cambia
-document.getElementById('startDate').addEventListener('input', verificarIntervalo);
-document.getElementById('endDate').addEventListener('input', verificarIntervalo);
-
-setInterval(verificarIntervalo, 5000);
-
-
+            // Actualización del historial en la tabla
             function updateTable(data) {
                 const historicosTable = document.getElementById('historicos-data');
                 historicosTable.innerHTML = '';
 
                 data.forEach((registro) => {
-                    const fechaFormateada = registro.Fecha.split('T')[0];
-
-                    const historicosRow = document.createElement('tr');
-                    historicosRow.innerHTML = `
-                        <td>${registro.Latitud}</td>
-                        <td>${registro.Longitud}</td>
-                        <td>${fechaFormateada}</td>
-                        <td>${registro.Hora}</td>
-                    `;
-                    historicosTable.appendChild(historicosRow);
+                    agregarDatosATabla(registro);
                 });
             }
 
-            function updateMap(data) {
-                recorrido.setLatLngs([]);
-                if (data.length > 0) {
-                    let ultimaLatitud = null;
-                    let ultimaLongitud = null;
-
-                    data.forEach((registro) => {
-                        const nuevaLatitud = parseFloat(registro.Latitud);
-                        const nuevaLongitud = parseFloat(registro.Longitud);
-
-                        recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
-
-                        ultimaLatitud = nuevaLatitud;
-                        ultimaLongitud = nuevaLongitud;
-                    });
-
-                    marcadorUltimaUbicacion.setLatLng([ultimaLatitud, ultimaLongitud]);
-                    map.setView([ultimaLatitud, ultimaLongitud], 15); 
-                }
-            }
-
+            // Manejar el historial con botón de visualización
             document.getElementById('historicos-btn').addEventListener('click', function() {
                 const historicosTable = document.getElementById('historicos-table');
                 if (historicosTable.style.display === 'none') {
@@ -410,5 +418,3 @@ setInterval(verificarIntervalo, 5000);
     </script>
 </body>
 </html>
-
-
