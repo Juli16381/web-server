@@ -2,18 +2,20 @@
 <html lang="es">
 <head>
     <meta charset="viewport" content="width=device-width, initial-scale=1.0">
-<title></title> <!-- Título temporal mientras se carga el nombre -->
+    <title id="name-title">Datos GPS</title>
     <script>
-    // Función para obtener el nombre de usuario desde el servidor
-        document.addEventListener('DOMContentLoaded', function() {
-            fetch('/nombre-usuario')
+    // Función para obtener el nombre del servidor y actualizar el título
+        function fetchName() {
+            fetch('/name')
                 .then(response => response.json())
                 .then(data => {
-                    // Cambiar el título de la página con el nombre de usuario recibido
-                    document.title = data.nombreUsuario;
+                    document.getElementById('name-title').textContent = data.name;  // Solo el nombre
                 })
-                .catch(error => console.error('Error al cargar el nombre de usuario:', error));
-        });
+                .catch(err => console.error("Error al obtener el nombre:", err));
+        }
+
+        // Ejecutar la función cuando la página cargue
+        document.addEventListener('DOMContentLoaded', fetchName);
     </script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
