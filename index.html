@@ -56,22 +56,6 @@
             border-radius: 5px;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
         }
-        /* Botón sobrio */
-        #toggle-filter-btn {
-            padding: 8px 16px;
-            background-color: #ce72c0;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-        }
-        /* Ocultar inicialmente el formulario */
-        #filterForm {
-            display: none;
-            margin-bottom: 15px;
-        }
         /* Media query para pantallas móviles */
         @media (max-width: 768px) {
             .container {
@@ -91,9 +75,6 @@
 </head>
 <body>
     <h1 class="title">Datos GPS</h1>
-
-    <!-- Botón para mostrar/ocultar el formulario de filtrado -->
-    <button id="toggle-filter-btn">Filtrar información</button>
 
     <!-- Formulario de filtrado -->
     <form id="filterForm">
@@ -122,7 +103,7 @@
             // Formatear las fechas y horas para los campos de datetime-local
             const formatDateTimeLocal = (date) => {
                 const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0'); // Los meses en JS son 0-indexados
                 const day = String(date.getDate()).padStart(2, '0');
                 const hours = String(date.getHours()).padStart(2, '0');
                 const minutes = String(date.getMinutes()).padStart(2, '0');
@@ -132,17 +113,7 @@
             // Asignar la fecha y hora de inicio y fin a los inputs
             document.getElementById('startDate').value = formatDateTimeLocal(oneHourBefore);
             document.getElementById('endDate').value = formatDateTimeLocal(now);
-
-            // Mostrar/ocultar el formulario de filtrado al hacer clic en el botón
-            document.getElementById('toggle-filter-btn').addEventListener('click', function() {
-                const filterForm = document.getElementById('filterForm');
-                if (filterForm.style.display === 'none' || filterForm.style.display === '') {
-                    filterForm.style.display = 'block';
-                } else {
-                    filterForm.style.display = 'none';
-                }
-            });
-
+            
             cargarDatosDesdeServidor();
 
             const socket = io();
@@ -151,15 +122,15 @@
             let autoCenterTimeout;
             let filtrando = false;
 
-            // Inicializar el mapa
-            const map = L.map('map').setView([0, 0], 2);
+            // Inicializar el mapa con un zoom ajustado
+            const map = L.map('map').setView([0, 0], 13);
 
             map.on('movestart', function() {
-                autoCenter = false;
-                clearTimeout(autoCenterTimeout);
+                autoCenter = false;  // Desactivar auto-centro cuando el usuario interactúa
+                clearTimeout(autoCenterTimeout);  // Cancelar cualquier temporizador anterior
                 autoCenterTimeout = setTimeout(function() {
-                    autoCenter = true;
-                }, 10000);
+                    autoCenter = true;  // Reactivar el auto-centro después de 10 segundos de inactividad
+                }, 10000);  // Tiempo en milisegundos
             });
 
             // Añadir el mapa base
@@ -235,7 +206,7 @@
                 marcadorUltimaUbicacion.setLatLng([nuevaLatitud, nuevaLongitud]);
 
                 if (autoCenter) {
-                    map.setView([nuevaLatitud, nuevaLongitud], 15);
+                    map.setView([nuevaLatitud, nuevaLongitud], 13);  // Ajusta el nivel de zoom
                 }
             }
 
@@ -260,7 +231,7 @@
                             });
 
                             if (ultimaLatitud !== null && ultimaLongitud !== null) {
-                                map.setView([ultimaLatitud, ultimaLongitud], 15);
+                                map.setView([ultimaLatitud, ultimaLongitud], 13);
                                 marcadorUltimaUbicacion.setLatLng([ultimaLatitud, ultimaLongitud]);
                             }
                         }
@@ -306,7 +277,7 @@
 
                         if (data.length > 0) {
                             const firstPoint = [parseFloat(data[0].Latitud), parseFloat(data[0].Longitud)];
-                            map.setView(firstPoint, 15);
+                            map.setView(firstPoint, 13);  // Ajusta el nivel de zoom
                         }
                     })
                     .catch(error => console.error('Error:', error));
