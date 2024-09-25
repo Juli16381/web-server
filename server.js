@@ -230,7 +230,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
         const longitudSeleccionada = parseFloat(req.query.lng);
 
         // Parámetro de distancia máxima en grados (aprox. 0.01 ~ 1km)
-        const distanciaMaxima = 0.05;
+        const distanciaMaxima = 0.01;
 
         const query = `
             SELECT * FROM datos_gps
