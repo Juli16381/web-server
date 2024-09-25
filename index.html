@@ -130,6 +130,25 @@
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Obtener la fecha y hora actuales
+    const now = new Date();
+
+    // Calcular la fecha y hora de inicio (una hora antes)
+    const oneHourBefore = new Date(now.getTime() - 60 * 60 * 1000);
+
+    // Formatear las fechas y horas para los campos de datetime-local
+    const formatDateTimeLocal = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Los meses en JS son 0-indexados
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    };
+
+    // Asignar la fecha y hora de inicio y fin a los inputs
+    document.getElementById('startDate').value = formatDateTimeLocal(oneHourBefore);
+    document.getElementById('endDate').value = formatDateTimeLocal(now);
             cargarDatosDesdeServidor();
 
             const socket = io();
@@ -145,7 +164,7 @@
                 autoCenter = false;
                 clearTimeout(autoCenterTimeout);
                 autoCenterTimeout = setTimeout(function() {
-                    autoCenter = true;
+                    autoCenter = false;
                 }, 10000);
             });
 
