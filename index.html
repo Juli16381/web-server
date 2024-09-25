@@ -2,7 +2,19 @@
 <html lang="es">
 <head>
     <meta charset="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Datos GPS</title>
+<title></title> <!-- Título temporal mientras se carga el nombre -->
+    <script>
+    // Función para obtener el nombre de usuario desde el servidor
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/nombre-usuario')
+                .then(response => response.json())
+                .then(data => {
+                    // Cambiar el título de la página con el nombre de usuario recibido
+                    document.title = data.nombreUsuario;
+                })
+                .catch(error => console.error('Error al cargar el nombre de usuario:', error));
+        });
+    </script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
         body {
