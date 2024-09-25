@@ -395,7 +395,8 @@ document.getElementById('resetFilters').addEventListener('click', function() {
 
     // Limpiar la polilínea del recorrido antes de volver a cargar los datos
     recorrido.setLatLngs([]);  // Esto elimina todos los puntos previos de la polilínea
-
+    // Añadir nuevamente la polilínea al mapa
+    map.addLayer(recorrido);
     // Limpiar la tabla del historial
     const historicosTable = document.getElementById('historicos-data');
     historicosTable.innerHTML = '';  // Esto elimina todas las filas de la tabla
@@ -422,7 +423,7 @@ document.getElementById('resetFilters').addEventListener('click', function() {
                         <td>${fechaFormateada}</td>
                         <td>${horaFormateada}</td>
                     `;
-                    historicosTable.appendChild(historicosRow);
+                    historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
                 });
             }
 
