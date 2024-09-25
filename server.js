@@ -224,6 +224,31 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
         });
     });
 
+    // Ruta para obtener el historial por lugar
+    app.get('/historicoPorLugar', (req, res) => {
+        const latitudSeleccionada = parseFloat(req.query.lat);
+        const longitudSeleccionada = parseFloat(req.query.lng);
+
+        // Parámetro de distancia máxima en grados (aprox. 0.01 ~ 1km)
+        const distanciaMaxima = 0.01;
+
+        const query = `
+            SELECT * FROM datos_gps
+            WHERE ABS(Latitud - ?) <= ? AND ABS(Longitud - ?) <= ?
+            ORDER BY FechaHora DESC
+        `;
+
+        db.query(query, [latitudSeleccionada, distanciaMaxima, longitudSeleccionada, distanciaMaxima], (err, results) => {
+            if (err) {
+                console.error('Error al consultar la base de datos:', err);
+                res.status(500).send('Error al consultar la base de datos');
+                return;
+            }
+
+            res.json(results);
+        });
+    });
+
     // Iniciar el servidor en el puerto 80
     server.listen(80, '0.0.0.0', () => {
         console.log('Servidor escuchando en el puerto 80');
