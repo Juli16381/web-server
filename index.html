@@ -27,24 +27,35 @@
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
         }
+        h1.title {
+            font-size: 18px; /* Reducir el tamaño de la letra del título */
+            color: #333;
+            margin-bottom: 10px;
+        }
         .container {
             display: flex;
-            flex-direction: row;
             justify-content: center;
             align-items: flex-start;
             margin-top: 20px;
-            width: 100%; /* Mapa a nivel horizontal completo */
+            width: 100%; /* Ocupar todo el ancho disponible */
         }
         #map {
-            height: 500px;
-            width: 100%; /* Ancho completo */
+            height: 100vh; /* Ocupa toda la altura de la pantalla */
+            width: 100%; /* Ocupa todo el ancho disponible */
             border: 2px solid #ce72c0;
             position: relative;
         }
-        .title {
-            font-size: 20px; /* Reducir tamaño del título */
-            color: #333;
-            margin-bottom: 10px;
+        .filter-container {
+            display: none; /* Oculto inicialmente */
+            margin-top: 10px;
+        }
+        .filter-btn {
+            background-color: #ce72c0;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
         }
         .leaflet-control {
             background-color: white;
@@ -52,28 +63,16 @@
             border-radius: 5px;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
         }
-        /* Media query para pantallas móviles */
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-                align-items: center;
-            }
-            #map {
-                width: 90%;
-                margin-right: 0;
-                margin-bottom: 20px;
-            }
-        }
     </style>
 </head>
 <body>
     <h1 class="title">Datos GPS</h1>
 
-    <!-- Botón para mostrar el filtro -->
-    <button id="toggleFilterBtn" style="margin-bottom: 10px;">Filtrar información</button>
-    
-    <!-- Contenedor oculto del formulario de filtrado -->
-    <div id="filterContainer" style="display: none;">
+    <!-- Botón para desplegar el formulario de filtrado -->
+    <button class="filter-btn" id="toggleFilterBtn">Filtrar información</button>
+
+    <!-- Formulario de filtrado -->
+    <div class="filter-container" id="filterContainer">
         <form id="filterForm">
             <label for="startDate">Fecha y hora de inicio:</label>
             <input type="datetime-local" id="startDate" name="startDate">
@@ -92,9 +91,13 @@
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Obtener la fecha y hora actuales
             const now = new Date();
+
+            // Calcular la fecha y hora de inicio (una hora antes)
             const oneHourBefore = new Date(now.getTime() - 60 * 60 * 1000);
 
+            // Formatear las fechas y horas para los campos de datetime-local
             const formatDateTimeLocal = (date) => {
                 const year = date.getFullYear();
                 const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -106,16 +109,24 @@
 
             document.getElementById('startDate').value = formatDateTimeLocal(oneHourBefore);
             document.getElementById('endDate').value = formatDateTimeLocal(now);
-            
+
             const socket = io();
             let autoCenter = true;
+            let autoCenterTimeout;
             let filtrando = false;
 
+            // Inicializar el mapa
             const map = L.map('map').setView([0, 0], 2);
+
             map.on('movestart', function() {
                 autoCenter = false;
+                clearTimeout(autoCenterTimeout);
+                autoCenterTimeout = setTimeout(function() {
+                    autoCenter = true;
+                }, 10000);
             });
 
+            // Añadir el mapa base
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 18,
                 attribution: '© OpenStreetMap contributors'
@@ -136,7 +147,9 @@
             };
             ultimaUbicacionControl.addTo(map);
 
+            // Polilínea para el recorrido general (siempre visible)
             let recorrido = L.polyline([], { color: '#800080' }).addTo(map);
+            // Polilínea para el recorrido filtrado (visible solo con el filtro)
             let recorridoFiltrado = L.polyline([], { color: '#50C878' });
 
             let marcadorUltimaUbicacion = L.circleMarker([0, 0], {
@@ -176,9 +189,8 @@
                 document.getElementById('ultima-fecha').innerText = fechaFormateada;
                 document.getElementById('ultima-hora').innerText = horaFormateada;
 
-                if (!filtrando) {
-                    recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
-                }
+                // Mantener visible la polilínea general
+                recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
 
                 ultimaLatitud = nuevaLatitud;
                 ultimaLongitud = nuevaLongitud;
@@ -194,7 +206,7 @@
                 fetch('/historicos')
                     .then(response => response.json())
                     .then(data => {
-                        if (!filtrando && data.length > 0) {
+                        if (data.length > 0) {
                             data.forEach((registro) => {
                                 const nuevaLatitud = parseFloat(registro.Latitud);
                                 const nuevaLongitud = parseFloat(registro.Longitud);
@@ -204,6 +216,7 @@
                                     return;
                                 }
 
+                                // Agregar al recorrido general
                                 recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
 
                                 ultimaLatitud = nuevaLatitud;
@@ -235,8 +248,8 @@
 
                 filtrando = true;
 
-                // Remover la polilínea general (morada) al filtrar
-                map.removeLayer(recorrido);
+                // No eliminar el recorrido general
+                // El recorrido general debe seguir visible
 
                 fetch(`/filterData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
                     .then(response => response.json())
@@ -264,15 +277,14 @@
                     .catch(error => console.error('Error:', error));
             });
 
-            // Mostrar/ocultar el formulario de filtro
+            // Función para alternar la visibilidad del contenedor de filtrado
             document.getElementById('toggleFilterBtn').addEventListener('click', function() {
                 const filterContainer = document.getElementById('filterContainer');
-                if (filterContainer.style.display === 'none') {
-                    filterContainer.style.display = 'block';
-                } else {
-                    filterContainer.style.display = 'none';
-                }
+                filterContainer.style.display = filterContainer.style.display === 'none' ? 'block' : 'none';
             });
+
+            // Cargar los datos históricos en el recorrido general
+            cargarDatosDesdeServidor();
         });
     </script>
 </body>
