@@ -188,8 +188,23 @@
             setInterval(cargarDatosDesdeServidor, 10000);
 
             socket.on('new-data', (data) => {
-                if (!filtrando) {
-                    actualizarMapa(data);
+                const existingRows = Array.from(document.getElementById('historicos-data').children)
+                const isDuplicate = existingRows.some(row => {
+                    const [latitud, longitud, fecha, hora] = row.children;
+                    return latitud.innerText == data.Latitud &&
+                           longitud.innerText == data.Longitud &&
+                           fecha.innerText == data.Fecha &&
+                           hora.innerText == data.Hora;
+            });
+                if (!isDuplicate) {
+                    const newRow = document.createElement('tr');
+                    newRow.innerHTML = `
+                        <td>${data.Latitud}</td>
+                        <td>${data.Longitud}</td>
+                        <td>${data.Fecha}</td>
+                        <td>${data.Hora}</td>
+                    `;
+                    document.getElementById('historicos-data').appendChild(newRow);
                 }
             });
 
