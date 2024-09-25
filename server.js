@@ -96,7 +96,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
 
     // Ruta para servir la página principal
     app.get('/', (req, res) => {
-        res.sendFile(__dirname + '/pag.html');
+        res.sendFile(__dirname + '/index.html');
     });
 
     // Ruta para obtener los datos históricos
