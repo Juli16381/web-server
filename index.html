@@ -342,7 +342,8 @@
 
                 // Eliminar el recorrido general del mapa temporalmente
                 map.removeLayer(recorrido);
-
+                const historicosTable = document.getElementById('historicos-data');
+                historicosTable.innerHTML = '';
                 fetch(`/filterData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
                     .then(response => response.json())
                     .then(data => {
@@ -357,7 +358,17 @@
                         data.forEach((registro) => {
                             const lat = parseFloat(registro.Latitud);
                             const lon = parseFloat(registro.Longitud);
+                            const fechaFormateada = registro.Fecha.split('T')[0];
+                            const horaFormateada = registro.Hora;
                             recorridoFiltrado.addLatLng([lat, lon]);
+                            const historicosRow = document.createElement('tr');
+                            historicosRow.innerHTML = `
+                                <td>${lat.toFixed(3)}</td>
+                                <td>${lon.toFixed(3)}</td>
+                                <td>${fechaFormateada}</td>
+                                <td>${horaFormateada}</td>
+                            `;
+                            historicosTable.appendChild(historicosRow);
                         });
 
                         // Añadir la polilínea filtrada al mapa
