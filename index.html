@@ -202,6 +202,35 @@
                 }
             }
 
+            function cargarDatosDesdeServidor() {
+                fetch('/historicos')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!filtrando && data.length > 0) {
+                            data.forEach((registro) => {
+                                const nuevaLatitud = parseFloat(registro.Latitud);
+                                const nuevaLongitud = parseFloat(registro.Longitud);
+
+                                if (ultimaLatitud !== null && ultimaLongitud !== null && 
+                                    ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
+                                    return;
+                                }
+
+                                recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
+
+                                ultimaLatitud = nuevaLatitud;
+                                ultimaLongitud = nuevaLongitud;
+                            });
+
+                            if (ultimaLatitud !== null && ultimaLongitud !== null) {
+                                map.setView([ultimaLatitud, ultimaLongitud], 15);
+                                marcadorUltimaUbicacion.setLatLng([ultimaLatitud, ultimaLongitud]);
+                            }
+                        }
+                    })
+                    .catch(error => console.error('Error al cargar los datos históricos:', error));
+            }
+
             document.getElementById('filterForm').addEventListener('submit', function(event) {
                 event.preventDefault();
 
@@ -246,11 +275,9 @@
                     .catch(error => console.error('Error:', error));
             });
 
-            // Mostrar/ocultar el formulario de filtrado al hacer clic en el botón
-            const filterContainer = document.getElementById('filterContainer');
-            const toggleFilterBtn = document.getElementById('toggleFilterBtn');
-
-            toggleFilterBtn.addEventListener('click', function() {
+            // Función para alternar la visibilidad del contenedor de filtrado
+            document.getElementById('toggleFilterBtn').addEventListener('click', function() {
+                const filterContainer = document.getElementById('filterContainer');
                 filterContainer.style.display = filterContainer.style.display === 'none' ? 'block' : 'none';
             });
         });
