@@ -98,11 +98,13 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
     app.get('/', (req, res) => {
         res.sendFile(__dirname + '/index.html');
     });
+
     // Ruta para obtener el nombre de usuario desde las credenciales
     app.get('/name', (req, res) => {
         const nombreUsuario = credenciales.DB_NOMBRE;  // Usar el nombre del archivo de credenciales
         res.json({ name: nombreUsuario });
-    }); 
+    });
+
     // Ruta para obtener los datos históricos
     app.get('/historicos', (req, res) => {
         let query = 'SELECT * FROM datos_gps ORDER BY FechaHora DESC, id DESC';
@@ -137,6 +139,77 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
             } else {
                 res.json(results);
             }
+        });
+    });
+
+    // Ruta para mostrar los datos históricos en tabla (ruta escondida)
+    app.get('/datos', (req, res) => {
+        let query = 'SELECT * FROM datos_gps ORDER BY FechaHora DESC, id DESC';
+        
+        db.query(query, (err, results) => {
+            if (err) {
+                console.error('Error al consultar la base de datos:', err);
+                res.status(500).send('Error al consultar la base de datos');
+                return;
+            }
+
+            // Renderizar los datos en una tabla
+            let html = `
+            <!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Historial de Datos GPS</title>
+                <style>
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        text-align: center;
+                    }
+                    th, td {
+                        border: 1px solid black;
+                        padding: 8px;
+                    }
+                    th {
+                        background-color: #ce72c0;
+                        color: white;
+                    }
+                </style>
+            </head>
+            <body>
+                <h1>Historial de Datos GPS</h1>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Latitud</th>
+                            <th>Longitud</th>
+                            <th>Fecha</th>
+                            <th>Hora</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+            // Llenar la tabla con los datos
+            results.forEach((row) => {
+                html += `
+                <tr>
+                    <td>${row.id}</td>
+                    <td>${row.Latitud}</td>
+                    <td>${row.Longitud}</td>
+                    <td>${row.Fecha}</td>
+                    <td>${row.Hora}</td>
+                </tr>`;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            </body>
+            </html>`;
+
+            res.send(html);  // Enviar la tabla al navegador
         });
     });
 
