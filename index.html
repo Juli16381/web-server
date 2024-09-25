@@ -290,7 +290,7 @@
                     })
                     .then(data => {
                         if (!filtrando && data.length > 0) {
-                            data.reverse().forEach((registro) => {
+                            data.forEach((registro) => {
                                 const nuevaLatitud = parseFloat(registro.Latitud);
                                 const nuevaLongitud = parseFloat(registro.Longitud);
                                 const fechaFormateada = registro.Fecha.split('T')[0];
