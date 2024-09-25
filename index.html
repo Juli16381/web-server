@@ -311,7 +311,31 @@
                     })
                     .catch(error => console.error('Error:', error));
             });
+
+            // Escuchar clics en el mapa para verificar cuándo pasó el vehículo por un lugar
+            map.on('click', function(e) {
+                const latitudSeleccionada = e.latlng.lat;
+                const longitudSeleccionada = e.latlng.lng;
+
+                // Consultar el servidor para obtener las veces que el vehículo pasó cerca
+                fetch(`/historicoPorLugar?lat=${latitudSeleccionada}&lng=${longitudSeleccionada}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.length === 0) {
+                            alert('El vehículo no ha pasado cerca de este lugar.');
+                        } else {
+                            let resultados = 'El vehículo pasó cerca de este lugar en las siguientes fechas y horas:\n';
+                            data.forEach((registro) => {
+                                resultados += `Fecha: ${registro.Fecha}, Hora: ${registro.Hora}\n`;
+                            });
+                            alert(resultados);
+                        }
+                    })
+                    .catch(error => console.error('Error al consultar los datos:', error));
+            });
+
         });
     </script>
 </body>
 </html>
+
