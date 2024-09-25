@@ -135,6 +135,8 @@
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            cargarDatosDesdeServidor();
+
             const socket = io();
 
             let autoCenter = true;
@@ -188,27 +190,10 @@
             let ultimaLatitud = null;
             let ultimaLongitud = null;
 
-            // Cargar datos automáticamente cada 10 segundos
-            setInterval(cargarDatosDesdeServidor, 10000);
-
             socket.on('new-data', (data) => {
-                const existingRows = Array.from(document.getElementById('historicos-data').children)
-                const isDuplicate = existingRows.some(row => {
-                    const [latitud, longitud, fecha, hora] = row.children;
-                    return latitud.innerText == data.Latitud &&
-                           longitud.innerText == data.Longitud &&
-                           fecha.innerText == data.Fecha &&
-                           hora.innerText == data.Hora;
-            });
-                if (!isDuplicate) {
-                    const newRow = document.createElement('tr');
-                    newRow.innerHTML = `
-                        <td>${data.Latitud}</td>
-                        <td>${data.Longitud}</td>
-                        <td>${data.Fecha}</td>
-                        <td>${data.Hora}</td>
-                    `;
-                    document.getElementById('historicos-data').appendChild(newRow);
+                if (!filtrando) {
+                    actualizarMapa(data);
+                    agregarDatosATabla(data);
                 }
             });
 
@@ -266,17 +251,32 @@
                 const nuevaLongitud = parseFloat(data.Longitud).toFixed(3);
                 const fechaFormateada = data.Fecha.split('T')[0];
                 const horaFormateada = data.Hora;
-
+                
                 const historicosTable = document.getElementById('historicos-data');
-                const historicosRow = document.createElement('tr');
-                historicosRow.innerHTML = `
-                    <td>${nuevaLatitud}</td>
-                    <td>${nuevaLongitud}</td>
-                    <td>${fechaFormateada}</td>
-                    <td>${horaFormateada}</td>
-                `;
-                historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
-
+                
+                const filas = document.getElementById('historicos-data').getElementsByTagName('tr');
+                let duplicado = false;
+                for (let i = 0; i < filas.length; i++) {
+                    const celdas = filas[i].getElementsByTagName('td');
+                    if (celdas.length === 4 &&
+                        celdas[0].innerText === nuevaLatitud &&
+                        celdas[1].innerText === nuevaLongitud &&
+                        celdas[2].innerText === fechaFormateada &&
+                        celdas[3].innerText === horaFormateada) {
+                        duplicado = true;
+                        break;
+                    }
+                }
+                if (!duplicado) {
+                    const historicosRow = document.createElement('tr');
+                    historicosRow.innerHTML = `
+                        <td>${nuevaLatitud}</td>
+                        <td>${nuevaLongitud}</td>
+                        <td>${fechaFormateada}</td>
+                        <td>${horaFormateada}</td>
+                    `;
+                    historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
+                }
                 // Actualizar la ventana de última ubicación
                 document.getElementById('ultima-latitud').innerText = nuevaLatitud;
                 document.getElementById('ultima-longitud').innerText = nuevaLongitud;
@@ -294,7 +294,7 @@
                     })
                     .then(data => {
                         if (!filtrando && data.length > 0) {
-                            data.reverse().forEach((registro) => {
+                            data.forEach((registro) => {
                                 const nuevaLatitud = parseFloat(registro.Latitud);
                                 const nuevaLongitud = parseFloat(registro.Longitud);
                                 const fechaFormateada = registro.Fecha.split('T')[0];
@@ -346,7 +346,8 @@
 
                 // Eliminar el recorrido general del mapa temporalmente
                 map.removeLayer(recorrido);
-
+                const historicosTable = document.getElementById('historicos-data');
+                historicosTable.innerHTML = '';
                 fetch(`/filterData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
                     .then(response => response.json())
                     .then(data => {
@@ -361,7 +362,17 @@
                         data.forEach((registro) => {
                             const lat = parseFloat(registro.Latitud);
                             const lon = parseFloat(registro.Longitud);
+                            const fechaFormateada = registro.Fecha.split('T')[0];
+                            const horaFormateada = registro.Hora;
                             recorridoFiltrado.addLatLng([lat, lon]);
+                            const historicosRow = document.createElement('tr');
+                            historicosRow.innerHTML = `
+                                <td>${lat.toFixed(3)}</td>
+                                <td>${lon.toFixed(3)}</td>
+                                <td>${fechaFormateada}</td>
+                                <td>${horaFormateada}</td>
+                            `;
+                            historicosTable.appendChild(historicosRow);
                         });
 
                         // Añadir la polilínea filtrada al mapa
@@ -376,22 +387,59 @@
                     .catch(error => console.error('Error:', error));
             });
 
-            // Quitar filtro y volver a cargar los datos completos
-            document.getElementById('resetFilters').addEventListener('click', function() {
-                document.getElementById('startDate').value = '';
-                document.getElementById('endDate').value = '';
-                filtrando = false;
+// Quitar filtro y volver a cargar los datos completos
+document.getElementById('resetFilters').addEventListener('click', function() {
+    document.getElementById('startDate').value = '';
+    document.getElementById('endDate').value = '';
+    filtrando = false;
 
-                // Limpiar la polilínea filtrada
-                recorridoFiltrado.setLatLngs([]);
-                map.removeLayer(recorridoFiltrado);
+    // Limpiar la polilínea filtrada
+    recorridoFiltrado.setLatLngs([]);
+    map.removeLayer(recorridoFiltrado);
 
-                // Añadir nuevamente el recorrido completo al mapa
-                map.addLayer(recorrido);
+    // Limpiar la polilínea del recorrido antes de volver a cargar los datos
+    recorrido.setLatLngs([]);  // Esto elimina todos los puntos previos de la polilínea
+    // Añadir nuevamente la polilínea al mapa
+    map.addLayer(recorrido);
+    // Limpiar la tabla del historial
+    const historicosTable = document.getElementById('historicos-data');
+    historicosTable.innerHTML = '';  // Esto elimina todas las filas de la tabla
 
-                // Volver a mostrar el recorrido general
-                cargarDatosDesdeServidor();
-            });
+    // Volver a cargar los datos completos desde el servidor
+    fetch('/historicos')
+        .then(response => response.json())
+        .then(data => {
+            if (data.length > 0) {
+                data.reverse().forEach((registro) => {
+                    const lat = parseFloat(registro.Latitud).toFixed(3);
+                    const lon = parseFloat(registro.Longitud).toFixed(3);
+                    const fechaFormateada = registro.Fecha.split('T')[0];
+                    const horaFormateada = registro.Hora;
+
+                    // Agregar los nuevos puntos a la polilínea de recorrido
+                    recorrido.addLatLng([lat, lon]);
+
+                    // Actualizar la tabla con los datos históricos
+                    const historicosRow = document.createElement('tr');
+                    historicosRow.innerHTML = `
+                        <td>${lat}</td>
+                        <td>${lon}</td>
+                        <td>${fechaFormateada}</td>
+                        <td>${horaFormateada}</td>
+                    `;
+                    historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
+                });
+            }
+
+            // Centrar el mapa en la última ubicación después de quitar el filtro
+            if (data.length > 0) {
+                const ultimaUbicacion = [parseFloat(data[0].Latitud), parseFloat(data[0].Longitud)];
+                map.setView(ultimaUbicacion, 15);
+            }
+        })
+        .catch(error => console.error('Error al cargar los datos históricos:', error));
+});
+
 
             // Actualización del historial en la tabla
             function updateTable(data) {
