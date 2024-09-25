@@ -184,27 +184,10 @@
             let ultimaLatitud = null;
             let ultimaLongitud = null;
 
-            // Cargar datos automáticamente cada 10 segundos
-            setInterval(cargarDatosDesdeServidor, 10000);
-
             socket.on('new-data', (data) => {
-                const existingRows = Array.from(document.getElementById('historicos-data').children)
-                const isDuplicate = existingRows.some(row => {
-                    const [latitud, longitud, fecha, hora] = row.children;
-                    return latitud.innerText == data.Latitud &&
-                           longitud.innerText == data.Longitud &&
-                           fecha.innerText == data.Fecha &&
-                           hora.innerText == data.Hora;
-            });
-                if (!isDuplicate) {
-                    const newRow = document.createElement('tr');
-                    newRow.innerHTML = `
-                        <td>${data.Latitud}</td>
-                        <td>${data.Longitud}</td>
-                        <td>${data.Fecha}</td>
-                        <td>${data.Hora}</td>
-                    `;
-                    document.getElementById('historicos-data').appendChild(newRow);
+                if (!filtrando) {
+                    actualizarMapa(data);
+                    agregarDatosATabla(data);
                 }
             });
 
