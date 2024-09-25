@@ -4,7 +4,7 @@
     <meta charset="viewport" content="width=device-width, initial-scale=1.0">
     <title id="name-title">Datos GPS</title>
     <script>
-    // Función para obtener el nombre del servidor y actualizar el título
+        // Función para obtener el nombre del servidor y actualizar el título
         function fetchName() {
             fetch('/name')
                 .then(response => response.json())
@@ -14,7 +14,6 @@
                 .catch(err => console.error("Error al obtener el nombre:", err));
         }
 
-        // Ejecutar la función cuando la página cargue
         document.addEventListener('DOMContentLoaded', fetchName);
     </script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
@@ -27,111 +26,75 @@
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
         }
-        h1.title {
-            font-size: 18px; /* Reducir el tamaño de la letra del título */
-            color: #333;
-            margin-bottom: 10px;
-        }
-        .container {
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            margin-top: 20px;
-            width: 100%; /* Ocupar todo el ancho disponible */
-        }
+
+        /* Estilos de mapa y título */
         #map {
-            height: 100vh; /* Ocupa toda la altura de la pantalla */
-            width: 100%; /* Ocupa todo el ancho disponible */
+            height: 100vh;
+            width: 100%;
             border: 2px solid #ce72c0;
             position: relative;
         }
-        .filter-container {
-            display: none; /* Oculto inicialmente */
-            margin-top: 10px;
-        }
-        .filter-btn {
+
+        /* Botón de filtrado */
+        #filter-btn {
+            padding: 10px 20px;
             background-color: #ce72c0;
             color: white;
-            padding: 10px 15px;
             border: none;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 16px;
+            margin-bottom: 10px;
         }
+
+        /* Ocultar el formulario al inicio */
+        #filterForm {
+            display: none;
+            margin-bottom: 20px;
+        }
+
         .leaflet-control {
             background-color: white;
             padding: 10px;
             border-radius: 5px;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
         }
+
+        .title {
+            font-size: 18px;
+        }
     </style>
 </head>
 <body>
     <h1 class="title">Datos GPS</h1>
+    
+    <!-- Botón para mostrar/ocultar el formulario de filtrado -->
+    <button id="filter-btn">Filtrar información</button>
 
-    <!-- Botón para desplegar el formulario de filtrado -->
-    <button class="filter-btn" id="toggleFilterBtn">Filtrar información</button>
+    <!-- Formulario de filtrado de fechas -->
+    <form id="filterForm">
+        <label for="startDate">Fecha y hora de inicio:</label>
+        <input type="datetime-local" id="startDate" name="startDate">
+        <label for="endDate">Fecha y hora de fin:</label>
+        <input type="datetime-local" id="endDate" name="endDate">
+        <button type="submit">Filtrar</button>
+    </form>
 
-    <!-- Formulario de filtrado -->
-    <div class="filter-container" id="filterContainer">
-        <form id="filterForm">
-            <label for="startDate">Fecha y hora de inicio:</label>
-            <input type="datetime-local" id="startDate" name="startDate">
-            <label for="endDate">Fecha y hora de fin:</label>
-            <input type="datetime-local" id="endDate" name="endDate">
-            <button type="submit">Filtrar</button>
-        </form>
-    </div>
-
-    <div class="container">
-        <!-- Contenedor para el Mapa -->
-        <div id="map"></div>
-    </div>
+    <!-- Mapa -->
+    <div id="map"></div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Obtener la fecha y hora actuales
-            const now = new Date();
-
-            // Calcular la fecha y hora de inicio (una hora antes)
-            const oneHourBefore = new Date(now.getTime() - 60 * 60 * 1000);
-
-            // Formatear las fechas y horas para los campos de datetime-local
-            const formatDateTimeLocal = (date) => {
-                const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const day = String(date.getDate()).padStart(2, '0');
-                const hours = String(date.getHours()).padStart(2, '0');
-                const minutes = String(date.getMinutes()).padStart(2, '0');
-                return `${year}-${month}-${day}T${hours}:${minutes}`;
-            };
-
-            document.getElementById('startDate').value = formatDateTimeLocal(oneHourBefore);
-            document.getElementById('endDate').value = formatDateTimeLocal(now);
-
             const socket = io();
             let autoCenter = true;
             let autoCenterTimeout;
             let filtrando = false;
 
-            // Inicializar el mapa
+            // Inicialización del mapa
             const map = L.map('map').setView([0, 0], 2);
 
-            map.on('movestart', function() {
-                autoCenter = false;
-                clearTimeout(autoCenterTimeout);
-                autoCenterTimeout = setTimeout(function() {
-                    autoCenter = true;
-                }, 10000);
-            });
-
-            // Añadir el mapa base
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 18,
-                attribution: '© OpenStreetMap contributors'
-            }).addTo(map);
-
+            // Control para ver la última ubicación
             let ultimaUbicacionControl = L.control({position: 'bottomleft'});
             ultimaUbicacionControl.onAdd = function(map) {
                 const div = L.DomUtil.create('div', 'leaflet-control');
@@ -147,9 +110,9 @@
             };
             ultimaUbicacionControl.addTo(map);
 
-            // Polilínea para el recorrido general (siempre visible)
+            // Polilínea para el recorrido general
             let recorrido = L.polyline([], { color: '#800080' }).addTo(map);
-            // Polilínea para el recorrido filtrado (visible solo con el filtro)
+            // Polilínea para el recorrido filtrado (verde)
             let recorridoFiltrado = L.polyline([], { color: '#50C878' });
 
             let marcadorUltimaUbicacion = L.circleMarker([0, 0], {
@@ -162,65 +125,45 @@
             let ultimaLatitud = null;
             let ultimaLongitud = null;
 
+            // Escuchar datos en tiempo real y actualizar el mapa si no está filtrado
             socket.on('new-data', (data) => {
                 if (!filtrando) {
                     actualizarMapa(data);
                 }
             });
 
+            // Actualizar el mapa con nuevos datos
             function actualizarMapa(data) {
-                if (!data || !data.Latitud || !data.Longitud || !data.Fecha || !data.Hora) {
-                    console.error('Datos inválidos recibidos:', data);
-                    return;
-                }
-
                 const nuevaLatitud = parseFloat(data.Latitud);
                 const nuevaLongitud = parseFloat(data.Longitud);
                 const fechaFormateada = data.Fecha.split('T')[0];
                 const horaFormateada = data.Hora;
 
-                if (ultimaLatitud !== null && ultimaLongitud !== null && 
-                    ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
-                    return;
-                }
+                if (ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) return;
 
                 document.getElementById('ultima-latitud').innerText = nuevaLatitud.toFixed(3);
                 document.getElementById('ultima-longitud').innerText = nuevaLongitud.toFixed(3);
                 document.getElementById('ultima-fecha').innerText = fechaFormateada;
                 document.getElementById('ultima-hora').innerText = horaFormateada;
 
-                // Mantener visible la polilínea general
                 recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
-
+                marcadorUltimaUbicacion.setLatLng([nuevaLatitud, nuevaLongitud]);
                 ultimaLatitud = nuevaLatitud;
                 ultimaLongitud = nuevaLongitud;
 
-                marcadorUltimaUbicacion.setLatLng([nuevaLatitud, nuevaLongitud]);
-
-                if (autoCenter) {
-                    map.setView([nuevaLatitud, nuevaLongitud], 15);
-                }
+                if (autoCenter) map.setView([nuevaLatitud, nuevaLongitud], 15);
             }
 
+            // Obtener datos históricos desde el servidor
             function cargarDatosDesdeServidor() {
                 fetch('/historicos')
                     .then(response => response.json())
                     .then(data => {
-                        if (data.length > 0) {
+                        if (!filtrando && data.length > 0) {
                             data.forEach((registro) => {
                                 const nuevaLatitud = parseFloat(registro.Latitud);
                                 const nuevaLongitud = parseFloat(registro.Longitud);
-
-                                if (ultimaLatitud !== null && ultimaLongitud !== null && 
-                                    ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
-                                    return;
-                                }
-
-                                // Agregar al recorrido general
                                 recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
-
-                                ultimaLatitud = nuevaLatitud;
-                                ultimaLongitud = nuevaLongitud;
                             });
 
                             if (ultimaLatitud !== null && ultimaLongitud !== null) {
@@ -232,6 +175,15 @@
                     .catch(error => console.error('Error al cargar los datos históricos:', error));
             }
 
+            cargarDatosDesdeServidor();
+
+            // Mostrar/ocultar formulario de filtro
+            document.getElementById('filter-btn').addEventListener('click', function() {
+                const filterForm = document.getElementById('filterForm');
+                filterForm.style.display = filterForm.style.display === 'none' ? 'block' : 'none';
+            });
+
+            // Filtrar datos en el rango de tiempo especificado
             document.getElementById('filterForm').addEventListener('submit', function(event) {
                 event.preventDefault();
 
@@ -243,48 +195,21 @@
                     return;
                 }
 
-                startDate = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000);
-                endDate = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000);
-
                 filtrando = true;
-
-                // No eliminar el recorrido general
-                // El recorrido general debe seguir visible
-
+                map.removeLayer(recorrido);
                 fetch(`/filterData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
                     .then(response => response.json())
                     .then(data => {
-                        if (data.length === 0) {
-                            alert('No se encontraron datos en el rango de tiempo especificado');
-                            return;
-                        }
-
                         recorridoFiltrado.setLatLngs([]);
-
-                        data.forEach((registro) => {
+                        data.forEach(registro => {
                             const lat = parseFloat(registro.Latitud);
                             const lon = parseFloat(registro.Longitud);
                             recorridoFiltrado.addLatLng([lat, lon]);
                         });
-
                         recorridoFiltrado.addTo(map);
-
-                        if (data.length > 0) {
-                            const firstPoint = [parseFloat(data[0].Latitud), parseFloat(data[0].Longitud)];
-                            map.setView(firstPoint, 15);
-                        }
                     })
                     .catch(error => console.error('Error:', error));
             });
-
-            // Función para alternar la visibilidad del contenedor de filtrado
-            document.getElementById('toggleFilterBtn').addEventListener('click', function() {
-                const filterContainer = document.getElementById('filterContainer');
-                filterContainer.style.display = filterContainer.style.display === 'none' ? 'block' : 'none';
-            });
-
-            // Cargar los datos históricos en el recorrido general
-            cargarDatosDesdeServidor();
         });
     </script>
 </body>
