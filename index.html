@@ -99,7 +99,6 @@
         <label for="endDate">Fecha y hora de fin:</label>
         <input type="datetime-local" id="endDate" name="endDate">
         <button type="submit">Filtrar</button>
-        <button type="button" id="resetFilters">Quitar Filtro</button>
     </form>
 
     <div class="container">
@@ -383,60 +382,6 @@
                     .catch(error => console.error('Error:', error));
             });
 
-// Quitar filtro y volver a cargar los datos completos
-document.getElementById('resetFilters').addEventListener('click', function() {
-    document.getElementById('startDate').value = '';
-    document.getElementById('endDate').value = '';
-    filtrando = false;
-
-    // Limpiar la polilínea filtrada
-    recorridoFiltrado.setLatLngs([]);
-    map.removeLayer(recorridoFiltrado);
-
-    // Limpiar la polilínea del recorrido antes de volver a cargar los datos
-    recorrido.setLatLngs([]);  // Esto elimina todos los puntos previos de la polilínea
-    // Añadir nuevamente la polilínea al mapa
-    map.addLayer(recorrido);
-    // Limpiar la tabla del historial
-    const historicosTable = document.getElementById('historicos-data');
-    historicosTable.innerHTML = '';  // Esto elimina todas las filas de la tabla
-
-    // Volver a cargar los datos completos desde el servidor
-    fetch('/historicos')
-        .then(response => response.json())
-        .then(data => {
-            if (data.length > 0) {
-                data.reverse().forEach((registro) => {
-                    const lat = parseFloat(registro.Latitud).toFixed(3);
-                    const lon = parseFloat(registro.Longitud).toFixed(3);
-                    const fechaFormateada = registro.Fecha.split('T')[0];
-                    const horaFormateada = registro.Hora;
-
-                    // Agregar los nuevos puntos a la polilínea de recorrido
-                    recorrido.addLatLng([lat, lon]);
-
-                    // Actualizar la tabla con los datos históricos
-                    const historicosRow = document.createElement('tr');
-                    historicosRow.innerHTML = `
-                        <td>${lat}</td>
-                        <td>${lon}</td>
-                        <td>${fechaFormateada}</td>
-                        <td>${horaFormateada}</td>
-                    `;
-                    historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
-                });
-            }
-
-            // Centrar el mapa en la última ubicación después de quitar el filtro
-            if (data.length > 0) {
-                const ultimaUbicacion = [parseFloat(data[0].Latitud), parseFloat(data[0].Longitud)];
-                map.setView(ultimaUbicacion, 15);
-            }
-        })
-        .catch(error => console.error('Error al cargar los datos históricos:', error));
-});
-
-
             // Actualización del historial en la tabla
             function updateTable(data) {
                 const historicosTable = document.getElementById('historicos-data');
@@ -462,3 +407,4 @@ document.getElementById('resetFilters').addEventListener('click', function() {
     </script>
 </body>
 </html>
+
