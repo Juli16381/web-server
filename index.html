@@ -357,7 +357,17 @@
                         data.forEach((registro) => {
                             const lat = parseFloat(registro.Latitud);
                             const lon = parseFloat(registro.Longitud);
+                            const fecha = registro.Fecha.split('T')[0];
+                            const hora = registro.Hora;
                             recorridoFiltrado.addLatLng([lat, lon]);
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${lat}</td>
+                                <td>${lon}</td>
+                                <td>${fecha}</td>
+                                <td>${hora}</td>
+                            `;
+                            historicosTable.appendChild(row);
                         });
 
                         // Añadir la polilínea filtrada al mapa
