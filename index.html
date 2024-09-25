@@ -22,33 +22,37 @@
         body {
             display: flex;
             flex-direction: column;
-            align-items: center;
             margin: 0;
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
         }
-        .container {
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            align-items: flex-start;
-            margin-top: 20px;
-            width: 90%;
+        .title {
+            font-size: 20px; /* Reducir tamaño de la letra */
+            text-align: center;
+            margin: 10px 0;
+            color: #333;
+        }
+        #filter-btn {
+            padding: 8px 16px;
+            background-color: #ce72c0;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #filterForm {
+            display: none;
+            text-align: center;
+            margin-bottom: 10px;
         }
         #map {
-            height: 500px;
-            width: 60%;
+            height: 80vh; /* Ocupa el 80% de la pantalla en altura */
+            width: 100%; /* Ocupa toda la pantalla horizontalmente */
             border: 2px solid #ce72c0;
-            margin-right: 20px;
-            position: relative;
-        }
-        .data-container {
-            width: 35%;
-        }
-        .title {
-            font-size: 24px;
-            color: #333;
-            margin-bottom: 10px;
         }
         .leaflet-control {
             background-color: white;
@@ -56,25 +60,13 @@
             border-radius: 5px;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
         }
-        /* Media query para pantallas móviles */
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-                align-items: center;
-            }
-            #map {
-                width: 90%;
-                margin-right: 0;
-                margin-bottom: 20px;
-            }
-            .data-container {
-                width: 90%;
-            }
-        }
     </style>
 </head>
 <body>
     <h1 class="title">Datos GPS</h1>
+
+    <!-- Botón para mostrar/ocultar el formulario de filtrado -->
+    <button id="filter-btn" onclick="toggleFilter()">Filtrar información</button>
 
     <!-- Formulario de filtrado -->
     <form id="filterForm">
@@ -82,28 +74,29 @@
         <input type="datetime-local" id="startDate" name="startDate">
         <label for="endDate">Fecha y hora de fin:</label>
         <input type="datetime-local" id="endDate" name="endDate">
-        <button type="submit">Filtrar</button>
+        <button type="submit">Aplicar Filtro</button>
     </form>
 
-    <div class="container">
-        <!-- Contenedor para el Mapa -->
-        <div id="map"></div>
-    </div>
+    <!-- Contenedor para el Mapa -->
+    <div id="map"></div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
+        // Función para mostrar/ocultar el formulario de filtrado
+        function toggleFilter() {
+            const filterForm = document.getElementById('filterForm');
+            filterForm.style.display = filterForm.style.display === 'none' ? 'block' : 'none';
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             // Obtener la fecha y hora actuales
             const now = new Date();
-
-            // Calcular la fecha y hora de inicio (una hora antes)
             const oneHourBefore = new Date(now.getTime() - 60 * 60 * 1000);
-
-            // Formatear las fechas y horas para los campos de datetime-local
+            
             const formatDateTimeLocal = (date) => {
                 const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, '0'); // Los meses en JS son 0-indexados
+                const month = String(date.getMonth() + 1).padStart(2, '0');
                 const day = String(date.getDate()).padStart(2, '0');
                 const hours = String(date.getHours()).padStart(2, '0');
                 const minutes = String(date.getMinutes()).padStart(2, '0');
@@ -114,26 +107,12 @@
             document.getElementById('startDate').value = formatDateTimeLocal(oneHourBefore);
             document.getElementById('endDate').value = formatDateTimeLocal(now);
             
-            cargarDatosDesdeServidor();
-
             const socket = io();
-
-            let autoCenter = true;
-            let autoCenterTimeout;
             let filtrando = false;
 
             // Inicializar el mapa
             const map = L.map('map').setView([0, 0], 2);
 
-            map.on('movestart', function() {
-                autoCenter = false;
-                clearTimeout(autoCenterTimeout);
-                autoCenterTimeout = setTimeout(function() {
-                    autoCenter = true;
-                }, 10000);
-            });
-
-            // Añadir el mapa base
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 18,
                 attribution: '© OpenStreetMap contributors'
@@ -154,11 +133,7 @@
             };
             ultimaUbicacionControl.addTo(map);
 
-            // Polilínea para el recorrido general
             let recorrido = L.polyline([], { color: '#800080' }).addTo(map);
-            // Polilínea para el recorrido filtrado (verde)
-            let recorridoFiltrado = L.polyline([], { color: '#50C878' });
-
             let marcadorUltimaUbicacion = L.circleMarker([0, 0], {
                 radius: 10,
                 color: '#800080',
@@ -196,92 +171,13 @@
                 document.getElementById('ultima-fecha').innerText = fechaFormateada;
                 document.getElementById('ultima-hora').innerText = horaFormateada;
 
-                if (!filtrando) {
-                    recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
-                }
+                recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
 
                 ultimaLatitud = nuevaLatitud;
                 ultimaLongitud = nuevaLongitud;
-
                 marcadorUltimaUbicacion.setLatLng([nuevaLatitud, nuevaLongitud]);
-
-                if (autoCenter) {
-                    map.setView([nuevaLatitud, nuevaLongitud], 15);
-                }
+                map.setView([nuevaLatitud, nuevaLongitud], 15);
             }
-
-            function cargarDatosDesdeServidor() {
-                fetch('/historicos')
-                    .then(response => response.json())
-                    .then(data => {
-                        if (!filtrando && data.length > 0) {
-                            data.forEach((registro) => {
-                                const nuevaLatitud = parseFloat(registro.Latitud);
-                                const nuevaLongitud = parseFloat(registro.Longitud);
-
-                                if (ultimaLatitud !== null && ultimaLongitud !== null && 
-                                    ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
-                                    return;
-                                }
-
-                                recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
-
-                                ultimaLatitud = nuevaLatitud;
-                                ultimaLongitud = nuevaLongitud;
-                            });
-
-                            if (ultimaLatitud !== null && ultimaLongitud !== null) {
-                                map.setView([ultimaLatitud, ultimaLongitud], 15);
-                                marcadorUltimaUbicacion.setLatLng([ultimaLatitud, ultimaLongitud]);
-                            }
-                        }
-                    })
-                    .catch(error => console.error('Error al cargar los datos históricos:', error));
-            }
-
-            document.getElementById('filterForm').addEventListener('submit', function(event) {
-                event.preventDefault();
-
-                let startDate = new Date(document.getElementById('startDate').value);
-                let endDate = new Date(document.getElementById('endDate').value);
-
-                if (endDate < startDate) {
-                    alert('La fecha de fin no puede ser menor que la fecha de inicio.');
-                    return;
-                }
-
-                startDate = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000);
-                endDate = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000);
-
-                filtrando = true;
-
-                map.removeLayer(recorrido);
-
-                fetch(`/filterData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.length === 0) {
-                            alert('No se encontraron datos en el rango de tiempo especificado');
-                            return;
-                        }
-
-                        recorridoFiltrado.setLatLngs([]);
-
-                        data.forEach((registro) => {
-                            const lat = parseFloat(registro.Latitud);
-                            const lon = parseFloat(registro.Longitud);
-                            recorridoFiltrado.addLatLng([lat, lon]);
-                        });
-
-                        recorridoFiltrado.addTo(map);
-
-                        if (data.length > 0) {
-                            const firstPoint = [parseFloat(data[0].Latitud), parseFloat(data[0].Longitud)];
-                            map.setView(firstPoint, 15);
-                        }
-                    })
-                    .catch(error => console.error('Error:', error));
-            });
         });
     </script>
 </body>
