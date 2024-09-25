@@ -147,8 +147,9 @@
             };
             ultimaUbicacionControl.addTo(map);
 
-            // Polilínea para el recorrido general
+            // Polilínea para el recorrido general (siempre visible)
             let recorrido = L.polyline([], { color: '#800080' }).addTo(map);
+            // Polilínea para el recorrido filtrado (visible solo con el filtro)
             let recorridoFiltrado = L.polyline([], { color: '#50C878' });
 
             let marcadorUltimaUbicacion = L.circleMarker([0, 0], {
@@ -188,9 +189,8 @@
                 document.getElementById('ultima-fecha').innerText = fechaFormateada;
                 document.getElementById('ultima-hora').innerText = horaFormateada;
 
-                if (!filtrando) {
-                    recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
-                }
+                // Mantener visible la polilínea general
+                recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
 
                 ultimaLatitud = nuevaLatitud;
                 ultimaLongitud = nuevaLongitud;
@@ -206,7 +206,7 @@
                 fetch('/historicos')
                     .then(response => response.json())
                     .then(data => {
-                        if (!filtrando && data.length > 0) {
+                        if (data.length > 0) {
                             data.forEach((registro) => {
                                 const nuevaLatitud = parseFloat(registro.Latitud);
                                 const nuevaLongitud = parseFloat(registro.Longitud);
@@ -216,6 +216,7 @@
                                     return;
                                 }
 
+                                // Agregar al recorrido general
                                 recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
 
                                 ultimaLatitud = nuevaLatitud;
@@ -247,7 +248,8 @@
 
                 filtrando = true;
 
-                map.removeLayer(recorrido);
+                // No eliminar el recorrido general
+                // El recorrido general debe seguir visible
 
                 fetch(`/filterData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
                     .then(response => response.json())
@@ -280,6 +282,9 @@
                 const filterContainer = document.getElementById('filterContainer');
                 filterContainer.style.display = filterContainer.style.display === 'none' ? 'block' : 'none';
             });
+
+            // Cargar los datos históricos en el recorrido general
+            cargarDatosDesdeServidor();
         });
     </script>
 </body>
