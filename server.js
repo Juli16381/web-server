@@ -77,13 +77,11 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
                         });
                         const horaFormateada = fechaHora.toTimeString().split(' ')[0];
 
-                        const fechaHoraFormateada = `${fechaFormateada} ${horaFormateada}`;
-                        console.log('FechaHora formateada:', fechaHoraFormateada);
-
                         io.emit('new-data', {
                             Latitud: latestData.Latitud,
                             Longitud: latestData.Longitud,
-                            FechaHora: fechaHoraFormateada
+                            Fecha: fechaFormateada, // Formatear correctamente la fecha
+                            Hora: horaFormateada    // Formatear correctamente la hora
                         });
                     } catch (error) {
                         console.error('Error al formatear la fecha y hora:', error);
@@ -93,21 +91,16 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
         });
     }
 
+    // Verificar nuevos datos cada 5 segundos
     setInterval(checkForNewData, 5000);
 
-    // Ruta principal
+    // Ruta para servir la página principal
     app.get('/', (req, res) => {
-        res.sendFile(__dirname + '/index.html');
+        res.sendFile(__dirname + '/pag.html');
     });
 
     // Ruta para obtener los datos históricos
     app.get('/historicos', (req, res) => {
-        if (!db) {
-            console.error('La conexión a la base de datos aún no está lista.');
-            res.status(500).send('La conexión a la base de datos no está lista');
-            return;
-        }
-
         let query = 'SELECT * FROM datos_gps ORDER BY FechaHora DESC, id DESC';
         db.query(query, (err, results) => {
             if (err) {
@@ -143,7 +136,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
         });
     });
 
-    // Iniciar el servidor solo después de conectar a la base de datos
+    // Iniciar el servidor en el puerto 80
     server.listen(80, '0.0.0.0', () => {
         console.log('Servidor escuchando en el puerto 80');
     });
