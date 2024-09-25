@@ -203,7 +203,7 @@
 
             // Polilínea para el recorrido general
             let recorrido = L.polyline([], { color: '#800080' }).addTo(map);
-            // Polilínea para el recorrido filtrado (verde esmeralda)
+            // Polilínea para el recorrido filtrado (verde)
             let recorridoFiltrado = L.polyline([], { color: '#50C878' });  // No añadimos aún al mapa
 
             let marcadorUltimaUbicacion = L.circleMarker([0, 0], {
@@ -228,7 +228,7 @@
                     console.error('Datos inválidos recibidos:', data);
                     return;
                 }
-
+                //procesar
                 const nuevaLatitud = parseFloat(data.Latitud);
                 const nuevaLongitud = parseFloat(data.Longitud);
                 const fechaFormateada = data.Fecha.split('T')[0];

@@ -98,6 +98,12 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
     app.get('/', (req, res) => {
         res.sendFile(__dirname + '/index.html');
     });
+    // Ruta para obtener el nombre de usuario desde las credenciales
+    app.get('/nombre-usuario', (req, res) => {
+        const nombreUsuario = credenciales.DB_NOMBRE;  // Usamos el nombre de usuario de las credenciales
+        res.json({ nombreUsuario });  // Enviamos el nombre como JSON
+    });
+
 
     // Ruta para obtener los datos históricos
     app.get('/historicos', (req, res) => {
