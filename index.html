@@ -247,17 +247,32 @@
                 const nuevaLongitud = parseFloat(data.Longitud).toFixed(3);
                 const fechaFormateada = data.Fecha.split('T')[0];
                 const horaFormateada = data.Hora;
-
+                
                 const historicosTable = document.getElementById('historicos-data');
-                const historicosRow = document.createElement('tr');
-                historicosRow.innerHTML = `
-                    <td>${nuevaLatitud}</td>
-                    <td>${nuevaLongitud}</td>
-                    <td>${fechaFormateada}</td>
-                    <td>${horaFormateada}</td>
-                `;
-                historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
-
+                
+                const filas = document.getElementById('historicos-data').getElementsByTagName('tr');
+                let duplicado = false;
+                for (let i = 0; i < filas.length; i++) {
+                    const celdas = filas[i].getElementsByTagName('td');
+                    if (celdas.length === 4 &&
+                        celdas[0].innerText === nuevaLatitud &&
+                        celdas[1].innerText === nuevaLongitud &&
+                        celdas[2].innerText === fechaFormateada &&
+                        celdas[3].innerText === horaFormateada) {
+                        duplicado = true;
+                        break;
+                    }
+                }
+                if (!duplicado) {
+                    const historicosRow = document.createElement('tr');
+                    historicosRow.innerHTML = `
+                        <td>${nuevaLatitud}</td>
+                        <td>${nuevaLongitud}</td>
+                        <td>${fechaFormateada}</td>
+                        <td>${horaFormateada}</td>
+                    `;
+                    historicosTable.insertBefore(historicosRow, historicosTable.firstChild);
+                }
                 // Actualizar la ventana de última ubicación
                 document.getElementById('ultima-latitud').innerText = nuevaLatitud;
                 document.getElementById('ultima-longitud').innerText = nuevaLongitud;
