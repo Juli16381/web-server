@@ -99,12 +99,10 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
         res.sendFile(__dirname + '/index.html');
     });
     // Ruta para obtener el nombre de usuario desde las credenciales
-    app.get('/nombre-usuario', (req, res) => {
-        const nombreUsuario = credenciales.DB_NOMBRE;  // Usamos el nombre de usuario de las credenciales
-        res.json({ nombreUsuario });  // Enviamos el nombre como JSON
-    });
-
-
+    app.get('/name', (req, res) => {
+        const nombreUsuario = credenciales.DB_NOMBRE;  // Usar el nombre del archivo de credenciales
+        res.json({ name: nombreUsuario });
+    }); 
     // Ruta para obtener los datos históricos
     app.get('/historicos', (req, res) => {
         let query = 'SELECT * FROM datos_gps ORDER BY FechaHora DESC, id DESC';
