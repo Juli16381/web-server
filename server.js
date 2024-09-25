@@ -204,7 +204,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
 
             // Llenar la tabla con los datos
             results.forEach((row) => {
-                const fechaFormateada = new Date(row.FechaHora).toISOString().split('T')[0];
+                const fechaFormateada = new Date(row.FechaHora).toLocaleDateString('es-ES');
                 const horaFormateada = new Date(row.FechaHora).toTimeString().split(' ')[0];
                 html += `
                 <tr>
