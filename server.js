@@ -70,18 +70,14 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
                             throw new Error('Fecha inválida');
                         }
 
-                        const fechaFormateada = fechaHora.toLocaleDateString('es-ES', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric'
-                        });
-                        const horaFormateada = fechaHora.toTimeString().split(' ')[0];
+                        const fechaFormateada = fechaHora.toISOString().split('T')[0]; // Formatear fecha como "YYYY-MM-DD"
+                        const horaFormateada = fechaHora.toTimeString().split(' ')[0];  // Obtener solo la hora
 
                         io.emit('new-data', {
                             Latitud: latestData.Latitud,
                             Longitud: latestData.Longitud,
-                            Fecha: fechaFormateada, // Formatear correctamente la fecha
-                            Hora: horaFormateada    // Formatear correctamente la hora
+                            Fecha: fechaFormateada, // Formato correcto de la fecha
+                            Hora: horaFormateada    // Formato correcto de la hora
                         });
                     } catch (error) {
                         console.error('Error al formatear la fecha y hora:', error);
@@ -99,6 +95,12 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
         res.sendFile(__dirname + '/index.html');
     });
 
+    // Ruta para obtener el nombre de usuario desde las credenciales
+    app.get('/name', (req, res) => {
+        const nombreUsuario = credenciales.DB_NOMBRE;  // Usar el nombre del archivo de credenciales
+        res.json({ name: nombreUsuario });
+    });
+
     // Ruta para obtener los datos históricos
     app.get('/historicos', (req, res) => {
         let query = 'SELECT * FROM datos_gps ORDER BY FechaHora DESC, id DESC';
@@ -108,7 +110,15 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
                 res.status(500).send('Error al consultar la base de datos');
                 return;
             }
-            res.json(results);
+
+            // Formatear la fecha para que siempre sea "YYYY-MM-DD"
+            const formattedResults = results.map(row => ({
+                ...row,
+                Fecha: new Date(row.FechaHora).toISOString().split('T')[0],  // Formatear fecha
+                Hora: new Date(row.FechaHora).toTimeString().split(' ')[0]   // Formatear hora
+            }));
+
+            res.json(formattedResults);
         });
     });
 
@@ -131,8 +141,86 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
                 console.error('Error al realizar la consulta:', error);
                 res.status(500).json({ error: 'Error al realizar la consulta.' });
             } else {
-                res.json(results);
+                // Formatear la fecha para que siempre sea "YYYY-MM-DD"
+                const formattedResults = results.map(row => ({
+                    ...row,
+                    Fecha: new Date(row.FechaHora).toISOString().split('T')[0],  // Formatear fecha
+                    Hora: new Date(row.FechaHora).toTimeString().split(' ')[0]   // Formatear hora
+                }));
+
+                res.json(formattedResults);
             }
+        });
+    });
+
+    // Ruta para mostrar los datos históricos en tabla (ruta escondida)
+    app.get('/datos', (req, res) => {
+        let query = 'SELECT * FROM datos_gps ORDER BY FechaHora DESC, id DESC';
+        
+        db.query(query, (err, results) => {
+            if (err) {
+                console.error('Error al consultar la base de datos:', err);
+                res.status(500).send('Error al consultar la base de datos');
+                return;
+            }
+
+            // Renderizar los datos en una tabla HTML
+            let html = `
+            <!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Historial de Datos GPS</title>
+                <style>
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        text-align: center;
+                    }
+                    th, td {
+                        border: 1px solid black;
+                        padding: 8px;
+                    }
+                    th {
+                        background-color: #ce72c0;
+                        color: white;
+                    }
+                </style>
+            </head>
+            <body>
+                <h1>Historial de Datos GPS</h1>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Latitud</th>
+                            <th>Longitud</th>
+                            <th>Fecha</th>
+                            <th>Hora</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+            // Llenar la tabla con los datos
+            results.forEach((row) => {
+                html += `
+                <tr>
+                    <td>${row.id}</td>
+                    <td>${row.Latitud}</td>
+                    <td>${row.Longitud}</td>
+                    <td>${new Date(row.FechaHora).toISOString().split('T')[0]}</td>  <!-- Formatear fecha -->
+                    <td>${new Date(row.FechaHora).toTimeString().split(' ')[0]}</td>  <!-- Formatear hora -->
+                </tr>`;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            </body>
+            </html>`;
+
+            res.send(html);  // Enviar la tabla al navegador
         });
     });
 
