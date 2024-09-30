@@ -317,6 +317,9 @@
                 const latitudSeleccionada = e.latlng.lat;
                 const longitudSeleccionada = e.latlng.lng;
 
+                // Añadir marcador en el lugar donde se hizo clic
+                const marker = L.marker([latitudSeleccionada, longitudSeleccionada]).addTo(map);
+
                 // Consultar el servidor para obtener las veces que el vehículo pasó cerca
                 fetch(`/historicoPorLugar?lat=${latitudSeleccionada}&lng=${longitudSeleccionada}`)
                     .then(response => response.json())
