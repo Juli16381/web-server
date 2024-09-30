@@ -204,13 +204,15 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
 
             // Llenar la tabla con los datos
             results.forEach((row) => {
+                const fechaFormateada = new Date(row.FechaHora).toLocaleDateString('es-ES');
+                const horaFormateada = new Date(row.FechaHora).toTimeString().split(' ')[0];
                 html += `
                 <tr>
                     <td>${row.id}</td>
                     <td>${row.Latitud}</td>
                     <td>${row.Longitud}</td>
-                    <td>${new Date(row.FechaHora).toISOString().split('T')[0]}</td>  <!-- Formatear fecha -->
-                    <td>${new Date(row.FechaHora).toTimeString().split(' ')[0]}</td>  <!-- Formatear hora -->
+                    <td>${fechaFormateada}</td>  
+                    <td>${horaFormateada}</td>  
                 </tr>`;
             });
 
@@ -221,6 +223,31 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
             </html>`;
 
             res.send(html);  // Enviar la tabla al navegador
+        });
+    });
+
+    // Ruta para obtener el historial por lugar
+    app.get('/historicoPorLugar', (req, res) => {
+        const latitudSeleccionada = parseFloat(req.query.lat);
+        const longitudSeleccionada = parseFloat(req.query.lng);
+
+        // Parámetro de distancia máxima en grados (aprox. 0.01 ~ 1km)
+        const distanciaMaxima = 0.001;
+
+        const query = `
+            SELECT * FROM datos_gps
+            WHERE ABS(Latitud - ?) <= ? AND ABS(Longitud - ?) <= ?
+            ORDER BY FechaHora DESC
+        `;
+
+        db.query(query, [latitudSeleccionada, distanciaMaxima, longitudSeleccionada, distanciaMaxima], (err, results) => {
+            if (err) {
+                console.error('Error al consultar la base de datos:', err);
+                res.status(500).send('Error al consultar la base de datos');
+                return;
+            }
+
+            res.json(results);
         });
     });
 
