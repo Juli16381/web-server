@@ -312,13 +312,22 @@
                     .catch(error => console.error('Error:', error));
             });
 
-            // Escuchar clics en el mapa para verificar cuándo pasó el vehículo por un lugar
+            // Agregar marcador único en el mapa al hacer clic
+            let marcadorSeleccionado;  // Variable para el marcador único
+
             map.on('click', function(e) {
                 const latitudSeleccionada = e.latlng.lat;
                 const longitudSeleccionada = e.latlng.lng;
 
-                // Añadir marcador en el lugar donde se hizo clic
-                const marker = L.marker([latitudSeleccionada, longitudSeleccionada]).addTo(map);
+                // Si ya existe un marcador, eliminarlo antes de agregar el nuevo
+                if (marcadorSeleccionado) {
+                    map.removeLayer(marcadorSeleccionado);
+                }
+
+                // Agregar marcador en la ubicación seleccionada
+                marcadorSeleccionado = L.marker([latitudSeleccionada, longitudSeleccionada]).addTo(map)
+                    .bindPopup(`Marcador en: <br>Latitud: ${latitudSeleccionada.toFixed(5)}<br>Longitud: ${longitudSeleccionada.toFixed(5)}`)
+                    .openPopup();
 
                 // Consultar el servidor para obtener las veces que el vehículo pasó cerca
                 fetch(`/historicoPorLugar?lat=${latitudSeleccionada}&lng=${longitudSeleccionada}`)
