@@ -7,11 +7,6 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Instalar dependencias SSH
-          command: |
-            sudo apt-get update
-            sudo apt-get install -y openssh-client
-      - run:
           name: Configurar acceso SSH
           command: |
             mkdir -p ~/.ssh
