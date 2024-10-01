@@ -14,11 +14,17 @@ jobs:
             chmod 600 ~/.ssh/id_rsa
             ssh-keyscan -H "52.201.28.44" >> ~/.ssh/known_hosts
       - run:
-          name: Hacer pull de la rama main
-          command: ssh ubuntu@52.201.28.44 'cd /home/ubuntu/web-server && git pull origin main'
+          name: Conectar al servidor vía SSH sin verificar fingerprint
+          command: ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@52.201.28.44 "echo Conexión establecida"
+
+      - run:
+          name: Conectar y hacer git pull en el servidor
+          command: ssh -i ~/.ssh/id_rsa ubuntu@52.201.28.44 "cd /home/ubuntu/web-server && git pull origin main"
+
+
       - run:
           name: Actualizar procesos de PM2
-          command: ssh ubuntu@52.201.28.44 'pm2 reload all'
+          command: ssh ubuntu@52.201.28.44 'sudo pm2 restart all'
 
 workflows:
   version: 2.1  # Corregir versión del workflow

@@ -15,13 +15,13 @@ jobs:
         clean: true
         submodules: false  # Desactivar la actualización de submódulos
     
-    - name: Deploy and Restart Python Sniffer
+    - name: Restart Python Sniffer
       run: |
-        sudo pm2 restart python-sniffer || pm2 start Sniffer_prueba.py --name python-sniffer --interpreter python3 --watch
+        sudo pm2 restart python-sniffer
       
-    - name: Deploy and Restart Node.js server
+    - name: Restart Node.js server
       run: |
-        sudo pm2 restart node-app || pm2 start server.js --name node-app --watch
+        sudo pm2 restart node-app
 
   deploy-on-mlcuentas:
     runs-on: mlcuentas 
