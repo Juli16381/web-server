@@ -205,7 +205,7 @@
             // Polilínea para el recorrido general
             let recorrido = L.polyline([], { color: '#800080' }).addTo(map);
             // Polilínea para el recorrido filtrado (verde)
-            let recorridoFiltrado = L.polyline([], { color: '#50C878' });
+            let recorridoFiltrado = L.polyline([], { color: '#EEA6B0' });
 
             let marcadorUltimaUbicacion = L.circleMarker([0, 0], {
                 radius: 10,
@@ -345,8 +345,8 @@
                             if (!marcadorSlider) {
                                 marcadorSlider = L.circleMarker(puntoActual, {
                                     radius: 8,
-                                    color: '#FF4500',  // Color personalizado para el marcador del slider
-                                    fillColor: '#FF4500',
+                                    color: '#BF7896',  // Color personalizado para el marcador del slider
+                                    fillColor: '#BF7896',
                                     fillOpacity: 1,
                                 }).addTo(map);
                             } else {
