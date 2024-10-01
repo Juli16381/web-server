@@ -72,6 +72,20 @@
             display: none;
             margin-bottom: 15px;
         }
+
+        /* Estilo del slider */
+        #slider {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        /* Información del marcador del slider */
+        .slider-info {
+            margin-top: 5px;
+            font-size: 14px;
+            color: #333;
+        }
+
         /* Media query para pantallas móviles */
         @media (max-width: 768px) {
             .container {
@@ -109,17 +123,22 @@
         <div id="map"></div>
     </div>
 
+    <!-- Slider para el marcador -->
+    <div id="sliderContainer" style="display: none;">
+        <input type="range" id="slider" min="0" max="100" step="1" value="0">
+        <div class="slider-info">
+            <p id="latitud-info">Latitud: -</p>
+            <p id="longitud-info">Longitud: -</p>
+            <p id="timestamp-info">Timestamp: -</p>
+        </div>
+    </div>
+
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Obtener la fecha y hora actuales
             const now = new Date();
-
-            // Calcular la fecha y hora de inicio (una hora antes)
             const oneHourBefore = new Date(now.getTime() - 60 * 60 * 1000);
-
-            // Formatear las fechas y horas para los campos de datetime-local
             const formatDateTimeLocal = (date) => {
                 const year = date.getFullYear();
                 const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -129,40 +148,28 @@
                 return `${year}-${month}-${day}T${hours}:${minutes}`;
             };
 
-            // Asignar la fecha y hora de inicio y fin a los inputs
             document.getElementById('startDate').value = formatDateTimeLocal(oneHourBefore);
             document.getElementById('endDate').value = formatDateTimeLocal(now);
 
-            // Mostrar/ocultar el formulario de filtrado al hacer clic en el botón
             document.getElementById('toggle-filter-btn').addEventListener('click', function() {
                 const filterForm = document.getElementById('filterForm');
-                if (filterForm.style.display === 'none' || filterForm.style.display === '') {
-                    filterForm.style.display = 'block';
-                } else {
-                    filterForm.style.display = 'none';
-                }
+                filterForm.style.display = filterForm.style.display === 'none' || filterForm.style.display === '' ? 'block' : 'none';
             });
 
-            cargarDatosDesdeServidor();
-
             const socket = io();
-
             let autoCenter = true;
-            let autoCenterTimeout;
             let filtrando = false;
+            let recorridoFiltradoPuntos = [];
+            let marcadorSlider = null;
 
-            // Inicializar el mapa
             const map = L.map('map').setView([0, 0], 13);
-
             map.on('movestart', function() {
                 autoCenter = false;
-                clearTimeout(autoCenterTimeout);
-                autoCenterTimeout = setTimeout(function() {
+                setTimeout(function() {
                     autoCenter = true;
                 }, 10000);
             });
 
-            // Añadir el mapa base
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 18,
                 attribution: '© OpenStreetMap contributors'
@@ -183,9 +190,7 @@
             };
             ultimaUbicacionControl.addTo(map);
 
-            // Polilínea para el recorrido general
             let recorrido = L.polyline([], { color: '#800080' }).addTo(map);
-            // Polilínea para el recorrido filtrado (verde)
             let recorridoFiltrado = L.polyline([], { color: '#50C878' });
 
             let marcadorUltimaUbicacion = L.circleMarker([0, 0], {
@@ -195,9 +200,6 @@
                 fillOpacity: 1,
             }).addTo(map);
 
-            let ultimaLatitud = null;
-            let ultimaLongitud = null;
-
             socket.on('new-data', (data) => {
                 if (!filtrando) {
                     actualizarMapa(data);
@@ -205,147 +207,64 @@
             });
 
             function actualizarMapa(data) {
-                if (!data || !data.Latitud || !data.Longitud || !data.Fecha || !data.Hora) {
-                    console.error('Datos inválidos recibidos:', data);
-                    return;
-                }
-
                 const nuevaLatitud = parseFloat(data.Latitud);
                 const nuevaLongitud = parseFloat(data.Longitud);
-                const fechaFormateada = data.Fecha.split('T')[0];
-                const horaFormateada = data.Hora;
-
-                if (ultimaLatitud !== null && ultimaLongitud !== null && 
-                    ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
-                    return;
+                if (nuevaLatitud && nuevaLongitud) {
+                    marcadorUltimaUbicacion.setLatLng([nuevaLatitud, nuevaLongitud]);
+                    if (autoCenter) {
+                        map.setView([nuevaLatitud, nuevaLongitud], 13);
+                    }
                 }
-
-                document.getElementById('ultima-latitud').innerText = nuevaLatitud.toFixed(3);
-                document.getElementById('ultima-longitud').innerText = nuevaLongitud.toFixed(3);
-                document.getElementById('ultima-fecha').innerText = fechaFormateada;
-                document.getElementById('ultima-hora').innerText = horaFormateada;
-
-                if (!filtrando) {
-                    recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
-                }
-
-                ultimaLatitud = nuevaLatitud;
-                ultimaLongitud = nuevaLongitud;
-
-                marcadorUltimaUbicacion.setLatLng([nuevaLatitud, nuevaLongitud]);
-
-                if (autoCenter) {
-                    map.setView([nuevaLatitud, nuevaLongitud], 13); // Ajustar el nivel de zoom
-                }
-            }
-
-            function cargarDatosDesdeServidor() {
-                fetch('/historicos')
-                    .then(response => response.json())
-                    .then(data => {
-                        if (!filtrando && data.length > 0) {
-                            data.forEach((registro) => {
-                                const nuevaLatitud = parseFloat(registro.Latitud);
-                                const nuevaLongitud = parseFloat(registro.Longitud);
-
-                                if (ultimaLatitud !== null && ultimaLongitud !== null && 
-                                    ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
-                                    return;
-                                }
-
-                                recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
-
-                                ultimaLatitud = nuevaLatitud;
-                                ultimaLongitud = nuevaLongitud;
-                            });
-
-                            if (ultimaLatitud !== null && ultimaLongitud !== null) {
-                                map.setView([ultimaLatitud, ultimaLongitud], 13);
-                                marcadorUltimaUbicacion.setLatLng([ultimaLatitud, ultimaLongitud]);
-                            }
-                        }
-                    })
-                    .catch(error => console.error('Error al cargar los datos históricos:', error));
             }
 
             document.getElementById('filterForm').addEventListener('submit', function(event) {
                 event.preventDefault();
-
-                let startDate = new Date(document.getElementById('startDate').value);
-                let endDate = new Date(document.getElementById('endDate').value);
-
-                if (endDate < startDate) {
-                    alert('La fecha de fin no puede ser menor que la fecha de inicio.');
-                    return;
-                }
-
-                startDate = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000);
-                endDate = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000);
+                const startDate = new Date(document.getElementById('startDate').value);
+                const endDate = new Date(document.getElementById('endDate').value);
 
                 filtrando = true;
-
                 map.removeLayer(recorrido);
-
                 fetch(`/filterData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
                     .then(response => response.json())
                     .then(data => {
-                        if (data.length === 0) {
-                            alert('No se encontraron datos en el rango de tiempo especificado');
-                            return;
-                        }
-
                         recorridoFiltrado.setLatLngs([]);
-
+                        recorridoFiltradoPuntos = [];
                         data.forEach((registro) => {
                             const lat = parseFloat(registro.Latitud);
                             const lon = parseFloat(registro.Longitud);
                             recorridoFiltrado.addLatLng([lat, lon]);
-                        });
-
-                        recorridoFiltrado.addTo(map);
-
-                        if (data.length > 0) {
-                            const firstPoint = [parseFloat(data[0].Latitud), parseFloat(data[0].Longitud)];
-                            map.setView(firstPoint, 13);  // Ajusta el nivel de zoom
-                        }
-                    })
-                    .catch(error => console.error('Error:', error));
-            });
-
-            // Agregar marcador único en el mapa al hacer clic
-            let marcadorSeleccionado;  // Variable para el marcador único
-
-            map.on('click', function(e) {
-                const latitudSeleccionada = e.latlng.lat;
-                const longitudSeleccionada = e.latlng.lng;
-
-                // Si ya existe un marcador, eliminarlo antes de agregar el nuevo
-                if (marcadorSeleccionado) {
-                    map.removeLayer(marcadorSeleccionado);
-                }
-
-                // Agregar marcador en la ubicación seleccionada
-                marcadorSeleccionado = L.marker([latitudSeleccionada, longitudSeleccionada]).addTo(map)
-                    .bindPopup(`Marcador en: <br>Latitud: ${latitudSeleccionada.toFixed(5)}<br>Longitud: ${longitudSeleccionada.toFixed(5)}`)
-                    .openPopup();
-
-                // Consultar el servidor para obtener las veces que el vehículo pasó cerca
-                fetch(`/historicoPorLugar?lat=${latitudSeleccionada}&lng=${longitudSeleccionada}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.length === 0) {
-                            alert('El vehículo no ha pasado cerca de este lugar.');
-                        } else {
-                            let resultados = 'El vehículo pasó cerca de este lugar en las siguientes fechas y horas:\n';
-                            data.forEach((registro) => {
-                                resultados += `Fecha: ${registro.Fecha}, Hora: ${registro.Hora}\n`;
+                            recorridoFiltradoPuntos.push({
+                                Latitud: lat,
+                                Longitud: lon,
+                                FechaHora: `${registro.Fecha} ${registro.Hora}`
                             });
-                            alert(resultados);
+                        });
+                        recorridoFiltrado.addTo(map);
+                        if (recorridoFiltradoPuntos.length > 0) {
+                            const firstPoint = [recorridoFiltradoPuntos[0].Latitud, recorridoFiltradoPuntos[0].Longitud];
+                            map.setView(firstPoint, 13);
+                            document.getElementById('slider').max = recorridoFiltradoPuntos.length - 1;
+                            document.getElementById('sliderContainer').style.display = 'block';
                         }
-                    })
-                    .catch(error => console.error('Error al consultar los datos:', error));
+                    });
             });
 
+            // Slider logic for moving marker
+            document.getElementById('slider').addEventListener('input', function() {
+                const index = parseInt(this.value);
+                const punto = recorridoFiltradoPuntos[index];
+                if (punto) {
+                    if (!marcadorSlider) {
+                        marcadorSlider = L.marker([punto.Latitud, punto.Longitud]).addTo(map);
+                    } else {
+                        marcadorSlider.setLatLng([punto.Latitud, punto.Longitud]);
+                    }
+                    document.getElementById('latitud-info').textContent = `Latitud: ${punto.Latitud}`;
+                    document.getElementById('longitud-info').textContent = `Longitud: ${punto.Longitud}`;
+                    document.getElementById('timestamp-info').textContent = `Timestamp: ${punto.FechaHora}`;
+                    map.setView([punto.Latitud, punto.Longitud], 13);
+                }
+            });
         });
     </script>
 </body>
