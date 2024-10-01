@@ -1,0 +1,34 @@
+version: 2.1
+
+jobs:
+  deploy:
+    docker:
+      - image: circleci/node:14.17 # Cambia la versión de Node.js según sea necesario
+    steps:
+      - checkout
+      - run:
+          name: Configurar acceso SSH
+          command: |
+            mkdir -p ~/.ssh
+            echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+            ssh-keyscan -H "52.201.28.44" >> ~/.ssh/known_hosts
+      - run:
+          name: Conectar al servidor vía SSH sin verificar fingerprint
+          command: ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@52.201.28.44 "echo Conexión establecida"
+
+      - run:
+          name: Conectar y hacer git pull en el servidor
+          command: ssh -i ~/.ssh/id_rsa ubuntu@52.201.28.44 "cd /home/ubuntu/web-server && git pull origin main"
+
+
+      - run:
+          name: Actualizar procesos de PM2
+          command: ssh ubuntu@52.201.28.44 'sudo pm2 restart all'
+
+workflows:
+  version: 2.1  # Corregir versión del workflow
+  deploy_on_push:
+    jobs:
+      - deploy  # Corregido
+
