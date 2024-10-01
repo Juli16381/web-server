@@ -72,6 +72,15 @@
             display: none;
             margin-bottom: 15px;
         }
+        /* Slider de filtrado */
+        #slider-container {
+            display: none;
+            width: 90%;
+            margin-top: 20px;
+        }
+        #filter-slider {
+            width: 100%;
+        }
         /* Media query para pantallas móviles */
         @media (max-width: 768px) {
             .container {
@@ -109,6 +118,11 @@
         <div id="map"></div>
     </div>
 
+    <!-- Slider para controlar el avance -->
+    <div id="slider-container">
+        <input type="range" id="filter-slider" min="0" value="0" step="1">
+    </div>
+
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
@@ -136,10 +150,13 @@
             // Mostrar/ocultar el formulario de filtrado al hacer clic en el botón
             document.getElementById('toggle-filter-btn').addEventListener('click', function() {
                 const filterForm = document.getElementById('filterForm');
+                const sliderContainer = document.getElementById('slider-container');
                 if (filterForm.style.display === 'none' || filterForm.style.display === '') {
                     filterForm.style.display = 'block';
+                    sliderContainer.style.display = 'block'; // Mostrar slider cuando se muestra el formulario
                 } else {
                     filterForm.style.display = 'none';
+                    sliderContainer.style.display = 'none'; // Ocultar slider cuando se oculta el formulario
                 }
             });
 
@@ -296,18 +313,31 @@
 
                         recorridoFiltrado.setLatLngs([]);
 
-                        data.forEach((registro) => {
+                        const puntosFiltrados = data.map((registro) => {
                             const lat = parseFloat(registro.Latitud);
                             const lon = parseFloat(registro.Longitud);
                             recorridoFiltrado.addLatLng([lat, lon]);
+                            return [lat, lon];
                         });
 
+                        // Agregar la línea filtrada al mapa
                         recorridoFiltrado.addTo(map);
 
-                        if (data.length > 0) {
-                            const firstPoint = [parseFloat(data[0].Latitud), parseFloat(data[0].Longitud)];
+                        if (puntosFiltrados.length > 0) {
+                            const firstPoint = puntosFiltrados[0];
                             map.setView(firstPoint, 13);  // Ajusta el nivel de zoom
                         }
+
+                        // Configurar el slider con los puntos filtrados
+                        const slider = document.getElementById('filter-slider');
+                        slider.max = puntosFiltrados.length - 1;
+                        slider.value = 0;
+
+                        slider.addEventListener('input', function() {
+                            const index = parseInt(slider.value);
+                            map.setView(puntosFiltrados[index], 13);  // Centramos el mapa en el punto del slider
+                        });
+
                     })
                     .catch(error => console.error('Error:', error));
             });
