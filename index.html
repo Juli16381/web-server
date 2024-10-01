@@ -341,7 +341,11 @@
                         slider.addEventListener('input', function() {
                             const index = parseInt(slider.value);
                             const puntoActual = puntosFiltrados[index];
-
+                            // Extraer las fechas y horas para este punto
+                            const fecha = data[index].Fecha;
+                            const hora = data[index].Hora;
+                            // Crear el contenido del popup con la fecha y la hora
+                            const popupContent = `<b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}`;
                             if (!marcadorSlider) {
                                 marcadorSlider = L.circleMarker(puntoActual, {
                                     radius: 8,
@@ -352,7 +356,8 @@
                             } else {
                                 marcadorSlider.setLatLng(puntoActual);  // Actualizar posición del marcador
                             }
-
+                            // Agregar el popup con la fecha y la hora en el marcador
+                            marcadorSlider.bindPopup(popupContent).openPopup();
                             map.setView(puntoActual, 13);  // Centramos el mapa en el punto del slider
                         });
 
