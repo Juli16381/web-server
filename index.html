@@ -116,11 +116,6 @@
         <button type="submit">Filtrar</button>
     </form>
 
-    <div class="container">
-        <!-- Contenedor para el Mapa -->
-        <div id="map"></div>
-    </div>
-
     <!-- Contenedor del slider -->
     <div id="slider-container">
         <input type="range" id="slider" min="0" max="100" value="0">
@@ -129,6 +124,10 @@
             <div id="longitud-info">Longitud:</div>
             <div id="timestamp-info">Timestamp:</div>
         </div>
+    </div>
+    <div class="container">
+        <!-- Contenedor para el Mapa -->
+        <div id="map"></div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -380,7 +379,7 @@
                     } else {
                         marcadorSlider.setLatLng([punto.Latitud, punto.Longitud]);
                     }
-
+                    map.setView([punto.Latitud, punto.Longitud], 13);
                     // Actualizar la información del slider
                     document.getElementById('latitud-info').textContent = `Latitud: ${punto.Latitud}`;
                     document.getElementById('longitud-info').textContent = `Longitud: ${punto.Longitud}`;
