@@ -4,7 +4,7 @@
     <meta charset="viewport" content="width=device-width, initial-scale=1.0">
     <title id="name-title">Datos GPS</title>
     <script>
-        // Función para obtener el nombre del servidor y actualizar el título
+    // Función para obtener el nombre del servidor y actualizar el título
         function fetchName() {
             fetch('/name')
                 .then(response => response.json())
@@ -42,18 +42,6 @@
             margin-right: 20px;
             position: relative;
         }
-        #slider-container {
-            width: 98%;
-            margin-top: 20px;
-        }
-        #slider {
-            width: 100%;
-        }
-        #slider-info {
-            display: flex;
-            justify-content: space-between;
-            padding-top: 10px;
-        }
         .data-container {
             width: 35%;
         }
@@ -83,6 +71,19 @@
         #filterForm {
             display: none;
             margin-bottom: 15px;
+        }
+        #sliderContainer {
+            display: none;
+            margin-top: 20px;
+            width: 80%;
+        }
+        #slider {
+            width: 100%;
+        }
+        #info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
         }
         /* Media query para pantallas móviles */
         @media (max-width: 768px) {
@@ -116,15 +117,16 @@
         <button type="submit">Filtrar</button>
     </form>
 
-    <!-- Contenedor del slider -->
-    <div id="slider-container">
-        <input type="range" id="slider" min="0" max="100" value="0">
-        <div id="slider-info">
-            <div id="latitud-info">Latitud:</div>
-            <div id="longitud-info">Longitud:</div>
-            <div id="timestamp-info">Timestamp:</div>
+    <!-- Slider para el recorrido filtrado -->
+    <div id="sliderContainer">
+        <input type="range" id="slider" min="0" max="0" value="0">
+        <div id="info">
+            <span id="latitud-info">Latitud: -</span>
+            <span id="longitud-info">Longitud: -</span>
+            <span id="timestamp-info">Timestamp: -</span>
         </div>
     </div>
+
     <div class="container">
         <!-- Contenedor para el Mapa -->
         <div id="map"></div>
@@ -171,6 +173,8 @@
             let autoCenter = true;
             let autoCenterTimeout;
             let filtrando = false;
+            let recorridoFiltradoPuntos = [];  // Almacenará los puntos filtrados
+            let marcadorSlider = null;  // Marcador para el slider
 
             // Inicializar el mapa
             const map = L.map('map').setView([0, 0], 13);
@@ -316,9 +320,8 @@
                         }
 
                         recorridoFiltrado.setLatLngs([]);
-                        recorridoFiltradoPuntos = data;  // Guardar los puntos filtrados para el slider
+                        recorridoFiltradoPuntos = data;  // Almacenar los puntos filtrados
 
-                        // Recorrer los puntos filtrados y agregarlos al mapa
                         data.forEach((registro) => {
                             const lat = parseFloat(registro.Latitud);
                             const lon = parseFloat(registro.Longitud);
@@ -327,59 +330,38 @@
 
                         recorridoFiltrado.addTo(map);
 
-                        // Configurar el slider según los puntos filtrados
-                        document.getElementById('slider').max = recorridoFiltradoPuntos.length - 1;
-                        document.getElementById('slider').value = 0;
+                        // Mostrar el slider después de filtrar los datos
+                        const slider = document.getElementById('slider');
+                        const sliderContainer = document.getElementById('sliderContainer');
+                        slider.max = data.length - 1;
+                        slider.value = 0;
+                        sliderContainer.style.display = 'block';
 
-                        // Actualizar la posición inicial del marcador en el slider
-                        actualizarMarcadorSlider(0);
-
+                        // Centrar el primer punto en el mapa
                         if (data.length > 0) {
                             const firstPoint = [parseFloat(data[0].Latitud), parseFloat(data[0].Longitud)];
                             map.setView(firstPoint, 13);  // Ajusta el nivel de zoom
+                            actualizarMarcadorSlider(0);  // Mover el marcador al primer punto
                         }
                     })
                     .catch(error => console.error('Error:', error));
             });
 
-            // Escuchar clics en el mapa para verificar cuándo pasó el vehículo por un lugar
-            map.on('click', function(e) {
-                const latitudSeleccionada = e.latlng.lat;
-                const longitudSeleccionada = e.latlng.lng;
-
-                // Consultar el servidor para obtener las veces que el vehículo pasó cerca
-                fetch(`/historicoPorLugar?lat=${latitudSeleccionada}&lng=${longitudSeleccionada}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.length === 0) {
-                            alert('El vehículo no ha pasado cerca de este lugar.');
-                        } else {
-                            let resultados = 'El vehículo pasó cerca de este lugar en las siguientes fechas y horas:\n';
-                            data.forEach((registro) => {
-                                resultados += `Fecha: ${registro.Fecha}, Hora: ${registro.Hora}\n`;
-                            });
-                            alert(resultados);
-                        }
-                    })
-                    .catch(error => console.error('Error al consultar los datos:', error));
-            });
-
             // Slider logic for moving marker
-            let recorridoFiltradoPuntos = [];  // Almacenará los puntos filtrados
-            let marcadorSlider = null;  // Marcador para el slider
-
-            // Función para actualizar el marcador basado en la posición del slider
             function actualizarMarcadorSlider(index) {
                 if (recorridoFiltradoPuntos.length > 0 && index >= 0 && index < recorridoFiltradoPuntos.length) {
                     const punto = recorridoFiltradoPuntos[index];
-                    
+
                     // Si el marcador no existe, crearlo
                     if (!marcadorSlider) {
                         marcadorSlider = L.marker([punto.Latitud, punto.Longitud]).addTo(map);
                     } else {
                         marcadorSlider.setLatLng([punto.Latitud, punto.Longitud]);
                     }
+
+                    // Centrar el mapa en el marcador
                     map.setView([punto.Latitud, punto.Longitud], 13);
+
                     // Actualizar la información del slider
                     document.getElementById('latitud-info').textContent = `Latitud: ${punto.Latitud}`;
                     document.getElementById('longitud-info').textContent = `Longitud: ${punto.Longitud}`;
