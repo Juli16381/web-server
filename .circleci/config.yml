@@ -1,0 +1,32 @@
+ version: 2.1
+
+jobs:
+  deploy:
+    docker:
+      - image: circleci/node:14.17 # Cambia la versión de Node.js según sea necesario
+    steps:
+      - checkout
+      - run:
+          name: Instalar dependencias SSH
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y openssh-client
+      - run:
+          name: Configurar acceso SSH
+          command: |
+            mkdir -p ~/.ssh
+            echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+            ssh-keyscan -H "your_server_ip_or_domain" >> ~/.ssh/known_hosts
+      - run:
+          name: Hacer pull de la rama main
+          command: ssh user@your_server_ip_or_domain 'cd /ruta/a/tu/app && git pull origin main'
+      - run:
+          name: Actualizar procesos de PM2
+          command: ssh user@your_server_ip_or_domain 'pm2 reload all'
+
+workflows:
+  version: 2
+  deploy_on_push:
+    jobs:
+      - deploy
