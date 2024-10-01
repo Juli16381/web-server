@@ -72,19 +72,6 @@
             display: none;
             margin-bottom: 15px;
         }
-        #sliderContainer {
-            display: none;
-            margin-top: 20px;
-            width: 80%;
-        }
-        #slider {
-            width: 100%;
-        }
-        #info {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
-        }
         /* Media query para pantallas móviles */
         @media (max-width: 768px) {
             .container {
@@ -116,16 +103,6 @@
         <input type="datetime-local" id="endDate" name="endDate">
         <button type="submit">Filtrar</button>
     </form>
-
-    <!-- Slider para el recorrido filtrado -->
-    <div id="sliderContainer">
-        <input type="range" id="slider" min="0" max="0" value="0">
-        <div id="info">
-            <span id="latitud-info">Latitud: -</span>
-            <span id="longitud-info">Longitud: -</span>
-            <span id="timestamp-info">Timestamp: -</span>
-        </div>
-    </div>
 
     <div class="container">
         <!-- Contenedor para el Mapa -->
@@ -173,8 +150,6 @@
             let autoCenter = true;
             let autoCenterTimeout;
             let filtrando = false;
-            let recorridoFiltradoPuntos = [];  // Almacenará los puntos filtrados
-            let marcadorSlider = null;  // Marcador para el slider
 
             // Inicializar el mapa
             const map = L.map('map').setView([0, 0], 13);
@@ -320,7 +295,6 @@
                         }
 
                         recorridoFiltrado.setLatLngs([]);
-                        recorridoFiltradoPuntos = data;  // Almacenar los puntos filtrados
 
                         data.forEach((registro) => {
                             const lat = parseFloat(registro.Latitud);
@@ -330,49 +304,46 @@
 
                         recorridoFiltrado.addTo(map);
 
-                        // Mostrar el slider después de filtrar los datos
-                        const slider = document.getElementById('slider');
-                        const sliderContainer = document.getElementById('sliderContainer');
-                        slider.max = data.length - 1;
-                        slider.value = 0;
-                        sliderContainer.style.display = 'block';
-
-                        // Centrar el primer punto en el mapa
                         if (data.length > 0) {
                             const firstPoint = [parseFloat(data[0].Latitud), parseFloat(data[0].Longitud)];
                             map.setView(firstPoint, 13);  // Ajusta el nivel de zoom
-                            actualizarMarcadorSlider(0);  // Mover el marcador al primer punto
                         }
                     })
                     .catch(error => console.error('Error:', error));
             });
 
-            // Slider logic for moving marker
-            function actualizarMarcadorSlider(index) {
-                if (recorridoFiltradoPuntos.length > 0 && index >= 0 && index < recorridoFiltradoPuntos.length) {
-                    const punto = recorridoFiltradoPuntos[index];
+            // Agregar marcador único en el mapa al hacer clic
+            let marcadorSeleccionado;  // Variable para el marcador único
 
-                    // Si el marcador no existe, crearlo
-                    if (!marcadorSlider) {
-                        marcadorSlider = L.marker([punto.Latitud, punto.Longitud]).addTo(map);
-                    } else {
-                        marcadorSlider.setLatLng([punto.Latitud, punto.Longitud]);
-                    }
+            map.on('click', function(e) {
+                const latitudSeleccionada = e.latlng.lat;
+                const longitudSeleccionada = e.latlng.lng;
 
-                    // Centrar el mapa en el marcador
-                    map.setView([punto.Latitud, punto.Longitud], 13);
-
-                    // Actualizar la información del slider
-                    document.getElementById('latitud-info').textContent = `Latitud: ${punto.Latitud}`;
-                    document.getElementById('longitud-info').textContent = `Longitud: ${punto.Longitud}`;
-                    document.getElementById('timestamp-info').textContent = `Timestamp: ${punto.FechaHora}`;
+                // Si ya existe un marcador, eliminarlo antes de agregar el nuevo
+                if (marcadorSeleccionado) {
+                    map.removeLayer(marcadorSeleccionado);
                 }
-            }
 
-            // Detectar cambios en el slider
-            document.getElementById('slider').addEventListener('input', function() {
-                const index = parseInt(this.value);
-                actualizarMarcadorSlider(index);
+                // Agregar marcador en la ubicación seleccionada
+                marcadorSeleccionado = L.marker([latitudSeleccionada, longitudSeleccionada]).addTo(map)
+                    .bindPopup(`Marcador en: <br>Latitud: ${latitudSeleccionada.toFixed(5)}<br>Longitud: ${longitudSeleccionada.toFixed(5)}`)
+                    .openPopup();
+
+                // Consultar el servidor para obtener las veces que el vehículo pasó cerca
+                fetch(`/historicoPorLugar?lat=${latitudSeleccionada}&lng=${longitudSeleccionada}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.length === 0) {
+                            alert('El vehículo no ha pasado cerca de este lugar.');
+                        } else {
+                            let resultados = 'El vehículo pasó cerca de este lugar en las siguientes fechas y horas:\n';
+                            data.forEach((registro) => {
+                                resultados += `Fecha: ${registro.Fecha}, Hora: ${registro.Hora}\n`;
+                            });
+                            alert(resultados);
+                        }
+                    })
+                    .catch(error => console.error('Error al consultar los datos:', error));
             });
 
         });
