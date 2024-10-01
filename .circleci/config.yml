@@ -17,13 +17,13 @@ jobs:
             mkdir -p ~/.ssh
             echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
             chmod 600 ~/.ssh/id_rsa
-            ssh-keyscan -H "your_server_ip_or_domain" >> ~/.ssh/known_hosts
+            ssh-keyscan -H "52.201.28.44" >> ~/.ssh/known_hosts
       - run:
           name: Hacer pull de la rama main
-          command: ssh user@your_server_ip_or_domain 'cd /ruta/a/tu/app && git pull origin main'
+          command: ssh ubuntu@52.201.28.44 'cd /home/ubuntu/web-server && git pull origin main'
       - run:
           name: Actualizar procesos de PM2
-          command: ssh user@your_server_ip_or_domain 'pm2 reload all'
+          command: ssh ubuntu@52.201.28.44 'pm2 reload all'
 
 workflows:
   version: 2
