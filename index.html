@@ -75,11 +75,13 @@
         /* Slider de filtrado */
         #slider-container {
             display: none;
-            width: 90%;
-            margin-top: 20px;
+            width: 100%;
+            margin-top: 15px;
+            text-align: center;
         }
         #filter-slider {
-            width: 100%;
+            width: 90%;
+            margin-top: 10px;
         }
         /* Media query para pantallas móviles */
         @media (max-width: 768px) {
@@ -113,14 +115,14 @@
         <button type="submit">Filtrar</button>
     </form>
 
+    <!-- Slider para controlar el avance debajo del formulario de filtrado -->
+    <div id="slider-container">
+        <input type="range" id="filter-slider" min="0" value="0" step="1">
+    </div>
+
     <div class="container">
         <!-- Contenedor para el Mapa -->
         <div id="map"></div>
-    </div>
-
-    <!-- Slider para controlar el avance -->
-    <div id="slider-container">
-        <input type="range" id="filter-slider" min="0" value="0" step="1">
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -211,6 +213,8 @@
                 fillColor: '#800080',
                 fillOpacity: 1,
             }).addTo(map);
+
+            let marcadorSlider = null; // Marcador que se actualizará con el slider
 
             let ultimaLatitud = null;
             let ultimaLongitud = null;
@@ -333,9 +337,23 @@
                         slider.max = puntosFiltrados.length - 1;
                         slider.value = 0;
 
+                        // Crear o mover el marcador dinámico en el mapa con el slider
                         slider.addEventListener('input', function() {
                             const index = parseInt(slider.value);
-                            map.setView(puntosFiltrados[index], 13);  // Centramos el mapa en el punto del slider
+                            const puntoActual = puntosFiltrados[index];
+
+                            if (!marcadorSlider) {
+                                marcadorSlider = L.circleMarker(puntoActual, {
+                                    radius: 8,
+                                    color: '#FF4500',  // Color personalizado para el marcador del slider
+                                    fillColor: '#FF4500',
+                                    fillOpacity: 1,
+                                }).addTo(map);
+                            } else {
+                                marcadorSlider.setLatLng(puntoActual);  // Actualizar posición del marcador
+                            }
+
+                            map.setView(puntoActual, 13);  // Centramos el mapa en el punto del slider
                         });
 
                     })
