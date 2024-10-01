@@ -1,4 +1,4 @@
- version: 2.1
+version: 2.1
 
 jobs:
   deploy:
@@ -26,7 +26,8 @@ jobs:
           command: ssh ubuntu@52.201.28.44 'pm2 reload all'
 
 workflows:
-  version: 2
+  version: 2.1  # Corregir versión del workflow
   deploy_on_push:
     jobs:
-      - deploy
+      - deploy  # Corregido
+
