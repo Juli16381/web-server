@@ -14,3 +14,33 @@ jobs:
         run: sudo pm2 restart sniffer
       - name: PM2 Restart server
         run: sudo pm2 restart web-server
+
+jobs:
+  deploy_mlcuentas:
+    runs-on: mlcuentas
+    steps:
+      - uses: actions/checkout@v2
+      - name: PM2 Restart sniffer
+        run: sudo pm2 restart sniffer
+      - name: PM2 Restart server
+        run: sudo pm2 restart web-server
+
+jobs:
+  deploy_spantoja23:
+    runs-on: spantoja23
+    steps:
+      - uses: actions/checkout@v2
+      - name: PM2 Restart sniffer
+        run: sudo pm2 restart sniffer
+      - name: PM2 Restart server
+        run: sudo pm2 restart web-server
+
+jobs:
+  deploy_Sebastian:
+    runs-on: Sebastian
+    steps:
+      - uses: actions/checkout@v2
+      - name: PM2 Restart sniffer
+        run: sudo pm2 restart sniffer
+      - name: PM2 Restart server
+        run: sudo pm2 restart web-server
