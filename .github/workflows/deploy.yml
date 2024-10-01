@@ -13,4 +13,4 @@ jobs:
       - name: PM2 Restart sniffer
         run: sudo pm2 restart sniffer
       - name: PM2 Restart server
-        run: sudo pm2 restart web-server
+        run: sudo pm2 restart web-server
