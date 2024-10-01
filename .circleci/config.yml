@@ -15,15 +15,12 @@ jobs:
             ssh-keyscan -H "52.201.28.44" >> ~/.ssh/known_hosts
       - run:
           name: Conectar al servidor vía SSH
-          command: ssh ubuntu@52.201.28.44 "echo Conexión establecida"
+          command: ssh -i ~/.ssh/id_rsa ubuntu@52.201.28.44 "echo Conexión establecida"
 
       - run:
-          name: Cambiar al directorio del servidor
-          command: ssh ubuntu@52.201.28.44 "cd /home/ubuntu/web-server && pwd"
+          name: Conectar y hacer git pull en el servidor
+          command: ssh -i ~/.ssh/id_rsa ubuntu@52.201.28.44 "cd /home/ubuntu/web-server && git pull origin main"
 
-      - run:
-          name: Hacer git pull
-          command: ssh ubuntu@52.201.28.44 "cd /home/ubuntu/web-server && git pull origin main"
 
       - run:
           name: Actualizar procesos de PM2
