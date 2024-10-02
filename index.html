@@ -180,14 +180,6 @@
             // Inicializar el mapa
             const map = L.map('map').setView([10.96854, -74.78132], 13);
 
-            map.on('movestart', function() {
-                autoCenter = false;
-                clearTimeout(autoCenterTimeout);
-                autoCenterTimeout = setTimeout(function() {
-                    autoCenter = true;
-                }, 10000);
-            });
-
             // Añadir el mapa base
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 18,
