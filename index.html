@@ -358,7 +358,7 @@
                             }
                             // Agregar el popup con la fecha y la hora en el marcador
                             marcadorSlider.bindPopup(popupContent).openPopup();
-                            map.setView(puntoActual, 13);  // Centramos el mapa en el punto del slider
+                            map.panTo(puntoActual);  // Centramos el mapa en el punto del slider
                         });
 
                     })
