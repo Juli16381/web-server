@@ -176,6 +176,7 @@
             let autoCenter = true;
             let autoCenterTimeout;
             let filtrando = false;
+            let primerCentrado = true;
 
             // Inicializar el mapa
             const map = L.map('map').setView([10.96854, -74.78132], 13);
@@ -253,7 +254,10 @@
                 ultimaLongitud = nuevaLongitud;
 
                 marcadorUltimaUbicacion.setLatLng([nuevaLatitud, nuevaLongitud]);
-
+                if (primerCentrado) {
+                    map.setView([nuevaLatitud, nuevaLongitud], 13);  // Ajustar el nivel de zoom
+                    primerCentrado = false;  // Evitar más centrados automáticos
+                }
             }
 
             function cargarDatosDesdeServidor() {
