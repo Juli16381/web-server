@@ -30,14 +30,24 @@
 
             document.getElementById('toggle-filter-btn').addEventListener('click', function() {
                 toggleView('filterView'); // Cambiar a la vista de filtrado
+                initMap('map-filter');  // Inicializar mapa en la vista de filtrado
             });
 
             document.getElementById('back-btn').addEventListener('click', function() {
                 toggleView('mainView'); // Volver a la vista principal
             });
 
-            cargarDatosDesdeServidor();
+            // Inicializar el mapa en la vista principal
+            initMap('map-main');
         });
+
+        function initMap(mapId) {
+            const map = L.map(mapId).setView([0, 0], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 18,
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+        }
     </script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
@@ -58,10 +68,9 @@
             margin-top: 10px;
             width: 100%;
         }
-        #map {
+        #map-main, #map-filter {
             height: 450px;
             width: 100%;
-            margin-right: 20px;
             position: relative;
         }
         .data-container {
@@ -105,7 +114,7 @@
                 align-items: center;
                 width: 100%;
             }
-            #map {
+            #map-main, #map-filter {
                 width: 100%;
                 margin-right: 0;
                 margin-bottom: 20px;
@@ -122,7 +131,7 @@
         <h1 class="title">TrackMe</h1>
         <button id="toggle-filter-btn">Filtrar información</button>
         <div class="container">
-            <div id="map"></div>
+            <div id="map-main"></div>
         </div>
     </div>
 
@@ -138,7 +147,7 @@
             <button type="submit">Filtrar</button>
         </form>
         <div class="container">
-            <div id="map"></div>
+            <div id="map-filter"></div>
         </div>
     </div>
 
