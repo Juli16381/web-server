@@ -35,7 +35,7 @@
             margin-top: 10px;
             width: 100%;
         }
-        #map, #filtered-map {
+        #map {
             height: 450px;
             width: 100%;
             position: relative;
@@ -88,7 +88,7 @@
                 align-items: center;
                 width: 100%;
             }
-            #map, #filtered-map {
+            #map {
                 width: 100%;
                 margin-right: 0;
                 margin-bottom: 20px;
@@ -105,21 +105,27 @@
     <!-- Botón para mostrar/ocultar el formulario de filtrado -->
     <button id="toggle-filter-btn">Filtrar información</button>
 
-    <!-- Sección principal con el mapa -->
-    <div id="main-section" class="container">
+    <!-- Formulario de filtrado -->
+    <form id="filterForm">
+        <label for="startDate">Fecha y hora de inicio:</label>
+        <input type="datetime-local" id="startDate" name="startDate">
+        <label for="endDate">Fecha y hora de fin:</label>
+        <input type="datetime-local" id="endDate" name="endDate">
+        <button type="submit">Filtrar</button>
+    </form>
+
+    <!-- Slider para controlar el avance debajo del formulario de filtrado -->
+    <div id="slider-container">
+        <input type="range" id="filter-slider" min="0" value="0" step="1">
+    </div>
+
+    <div class="container">
+        <!-- Contenedor para el Mapa -->
         <div id="map"></div>
     </div>
 
-    <!-- Nueva pestaña de información filtrada -->
-    <div id="filtered-section" class="container" style="display: none;">
-        <h1>Información filtrada</h1>
-        <div id="filtered-map"></div>
-        <!-- El botón para volver a la vista principal -->
-        <button id="back-btn">Volver</button>
-    </div>
-
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Obtener la fecha y hora actuales
@@ -144,27 +150,15 @@
 
             // Mostrar/ocultar el formulario de filtrado al hacer clic en el botón
             document.getElementById('toggle-filter-btn').addEventListener('click', function() {
-                // Oculta la sección principal
-                document.getElementById('main-section').style.display = 'none';
-
-                // Muestra la sección filtrada
-                document.getElementById('filtered-section').style.display = 'block';
-
-                // Iniciar o refrescar el mapa filtrado
-                const filteredMap = L.map('filtered-map').setView([10.995, -74.807], 13);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 18,
-                    attribution: '© OpenStreetMap contributors'
-                }).addTo(filteredMap);
-            });
-
-            // Botón para regresar a la vista principal
-            document.getElementById('back-btn').addEventListener('click', function() {
-                // Mostrar la sección principal
-                document.getElementById('main-section').style.display = 'block';
-
-                // Ocultar la sección filtrada
-                document.getElementById('filtered-section').style.display = 'none';
+                const filterForm = document.getElementById('filterForm');
+                const sliderContainer = document.getElementById('slider-container');
+                if (filterForm.style.display === 'none' || filterForm.style.display === '') {
+                    filterForm.style.display = 'block';
+                    sliderContainer.style.display = 'block'; // Mostrar slider cuando se muestra el formulario
+                } else {
+                    filterForm.style.display = 'none';
+                    sliderContainer.style.display = 'none'; // Ocultar slider cuando se oculta el formulario
+                }
             });
 
             cargarDatosDesdeServidor();
