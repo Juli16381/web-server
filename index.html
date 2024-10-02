@@ -100,7 +100,7 @@
     </style>
 </head>
 <body>
-    <h1 class="title">Track Me</h1>
+    <h1 class="title">TrackMe</h1>
 
     <!-- Botón para mostrar/ocultar el formulario de filtrado -->
     <button id="toggle-filter-btn">Filtrar información</button>
@@ -147,6 +147,15 @@
             // Asignar la fecha y hora de inicio y fin a los inputs
             document.getElementById('startDate').value = formatDateTimeLocal(oneHourBefore);
             document.getElementById('endDate').value = formatDateTimeLocal(now);
+            function limpiarMapa() {
+                map.eachLayer(function(layer) {
+                    // Mantener la capa base del mapa (OpenStreetMap)
+                    if (!(layer instanceof L.TileLayer)) {
+                        map.removeLayer(layer);
+                    }
+                });
+            }
+
 
             // Mostrar/ocultar el formulario de filtrado al hacer clic en el botón
             document.getElementById('toggle-filter-btn').addEventListener('click', function() {
@@ -155,6 +164,7 @@
                 if (filterForm.style.display === 'none' || filterForm.style.display === '') {
                     filterForm.style.display = 'block';
                     sliderContainer.style.display = 'block'; // Mostrar slider cuando se muestra el formulario
+                    limpiarMapa();
                 } else {
                     filterForm.style.display = 'none';
                     sliderContainer.style.display = 'none'; // Ocultar slider cuando se oculta el formulario
