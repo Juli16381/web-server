@@ -4,18 +4,40 @@
     <meta charset="viewport" content="width=device-width, initial-scale=1.0">
     <title id="name-title">Datos GPS</title>
     <script>
-    // Función para obtener el nombre del servidor y actualizar el título
         function fetchName() {
             fetch('/name')
                 .then(response => response.json())
                 .then(data => {
-                    document.getElementById('name-title').textContent = data.name;  // Solo el nombre
+                    document.getElementById('name-title').textContent = data.name;
                 })
                 .catch(err => console.error("Error al obtener el nombre:", err));
         }
 
         // Ejecutar la función cuando la página cargue
         document.addEventListener('DOMContentLoaded', fetchName);
+
+        function toggleView(viewId) {
+            const views = document.querySelectorAll('.view');
+            views.forEach(view => {
+                view.style.display = 'none'; // Oculta todas las vistas
+            });
+            document.getElementById(viewId).style.display = 'block'; // Muestra la vista seleccionada
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Muestra la vista inicial al cargar la página
+            toggleView('mainView');
+
+            document.getElementById('toggle-filter-btn').addEventListener('click', function() {
+                toggleView('filterView'); // Cambiar a la vista de filtrado
+            });
+
+            document.getElementById('back-btn').addEventListener('click', function() {
+                toggleView('mainView'); // Volver a la vista principal
+            });
+
+            cargarDatosDesdeServidor();
+        });
     </script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
@@ -45,8 +67,8 @@
             width: 35%;
         }
         .title {
-            font-size: 22px;
-            color: #333;
+            font-size: 36px;
+            color: #000;
             margin-bottom: 7px;
         }
         .leaflet-control {
@@ -55,7 +77,6 @@
             border-radius: 5px;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
         }
-        /* Botón sobrio */
         #toggle-filter-btn {
             padding: 8px 16px;
             background-color: #ce72c0;
@@ -66,21 +87,15 @@
             margin-bottom: 7px;
             border-radius: 5px;
         }
-        /* Ocultar inicialmente el formulario */
+        .view {
+            display: none;
+        }
+        .view.active {
+            display: block;
+        }
+        /* Ocultar el formulario en la vista principal */
         #filterForm {
-            display: none;
             margin-bottom: 15px;
-        }
-        /* Slider de filtrado */
-        #slider-container {
-            display: none;
-            width: 100%;
-            margin-top: 15px;
-            text-align: center;
-        }
-        #filter-slider {
-            width: 30%;
-            margin-top: 1px;
         }
         /* Media query para pantallas móviles */
         @media (max-width: 768px) {
@@ -101,28 +116,29 @@
     </style>
 </head>
 <body>
-    <h1 class="title">Datos GPS</h1>
-
-    <!-- Botón para mostrar/ocultar el formulario de filtrado -->
-    <button id="toggle-filter-btn">Filtrar información</button>
-
-    <!-- Formulario de filtrado -->
-    <form id="filterForm">
-        <label for="startDate">Fecha y hora de inicio:</label>
-        <input type="datetime-local" id="startDate" name="startDate">
-        <label for="endDate">Fecha y hora de fin:</label>
-        <input type="datetime-local" id="endDate" name="endDate">
-        <button type="submit">Filtrar</button>
-    </form>
-
-    <!-- Slider para controlar el avance debajo del formulario de filtrado -->
-    <div id="slider-container">
-        <input type="range" id="filter-slider" min="0" value="0" step="1">
+    <!-- Vista principal -->
+    <div id="mainView" class="view">
+        <h1 class="title">TrackMe</h1>
+        <button id="toggle-filter-btn">Filtrar información</button>
+        <div class="container">
+            <div id="map"></div>
+        </div>
     </div>
 
-    <div class="container">
-        <!-- Contenedor para el Mapa -->
-        <div id="map"></div>
+    <!-- Vista de filtrado -->
+    <div id="filterView" class="view">
+        <h1 class="title">Información filtrada</h1>
+        <button id="back-btn">⬅️</button>
+        <form id="filterForm">
+            <label for="startDate">Fecha y hora de inicio:</label>
+            <input type="datetime-local" id="startDate" name="startDate">
+            <label for="endDate">Fecha y hora de fin:</label>
+            <input type="datetime-local" id="endDate" name="endDate">
+            <button type="submit">Filtrar</button>
+        </form>
+        <div class="container">
+            <div id="map"></div>
+        </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
