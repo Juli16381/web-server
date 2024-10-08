@@ -83,34 +83,7 @@
             width: 30%;
             margin-top: 1px;
         }
-        /* Media query para pantallas móviles */
-        /* Estilos generales */
-#filterForm {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    gap: 20px; /* Espacio entre las secciones en pantallas grandes */
-}
-
-/* Estilos para dispositivos móviles */
-@media (max-width: 768px) {
-    #filterForm {
-        flex-direction: column; /* Coloca los elementos uno encima del otro */
-    }
-
-    .date-time-container {
-        display: flex;
-        flex-direction: column; /* Asegura que el label y el input estén en columna */
-        margin-bottom: 10px; /* Espacio entre cada campo */
-    }
-
-    button {
-        align-self: center; /* Centra el botón en la pantalla móvil */
-        margin-top: 10px; /* Espacio arriba del botón */
-    }
-}
-
-
+       
             #map {
                 width: 100%;
                 margin-bottom: 20px;
@@ -137,20 +110,13 @@
     <button id="toggle-filter-btn">Filtrar información</button>
 
     <!-- Formulario de filtrado -->
-    <!-- Formulario de filtrado -->
-<form id="filterForm">
-    <div class="date-time-container">
+    <form id="filterForm">
         <label for="startDate">Fecha y hora de inicio:</label>
         <input type="datetime-local" id="startDate" name="startDate">
-    </div>
-
-    <div class="date-time-container">
         <label for="endDate">Fecha y hora de fin:</label>
         <input type="datetime-local" id="endDate" name="endDate">
-    </div>
-
-    <button type="submit">Filtrar</button>
-</form>
+        <button type="submit">Filtrar</button>
+    </form>
 
     <!-- Slider para controlar el avance debajo del formulario de filtrado -->
     <div id="slider-container">
