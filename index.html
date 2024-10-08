@@ -137,13 +137,20 @@
     <button id="toggle-filter-btn">Filtrar información</button>
 
     <!-- Formulario de filtrado -->
-    <form id="filterForm">
+    <!-- Formulario de filtrado -->
+<form id="filterForm">
+    <div class="date-time-container">
         <label for="startDate">Fecha y hora de inicio:</label>
         <input type="datetime-local" id="startDate" name="startDate">
+    </div>
+
+    <div class="date-time-container">
         <label for="endDate">Fecha y hora de fin:</label>
         <input type="datetime-local" id="endDate" name="endDate">
-        <button type="submit">Filtrar</button>
-    </form>
+    </div>
+
+    <button type="submit">Filtrar</button>
+</form>
 
     <!-- Slider para controlar el avance debajo del formulario de filtrado -->
     <div id="slider-container">
