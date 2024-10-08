@@ -83,7 +83,38 @@
             width: 30%;
             margin-top: 1px;
         }
-       
+
+        /* Estilos para pantallas grandes - Mantiene los campos en fila */
+#filterForm {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 20px; /* Espacio entre las secciones */
+}
+
+.date-time-container {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Solo para dispositivos móviles */
+@media (max-width: 768px) {
+    #filterForm {
+        flex-direction: column; /* Apila los elementos uno encima del otro en pantallas móviles */
+        align-items: center; /* Centra el formulario */
+    }
+
+    .date-time-container {
+        margin-bottom: 10px; /* Espacio entre los campos */
+        width: 100%; /* Asegura que los campos ocupen todo el ancho disponible en móvil */
+    }
+
+    button {
+        align-self: center; /* Centra el botón */
+        margin-top: 10px; /* Espacio adicional en la parte superior del botón */
+    }
+}
+
             #map {
                 width: 100%;
                 margin-bottom: 20px;
