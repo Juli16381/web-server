@@ -85,10 +85,15 @@
         }
         /* Media query para pantallas móviles */
         @media (max-width: 768px) and (orientation: portrait) {
-            body {
-                flex-direction: column;
-                height: 100vh; /* Asegura que el body ocupe toda la pantalla en vertical */
-            }
+    body {
+        display: flex;
+        flex-direction: column;
+        height: 100vh; /* Asegura que el cuerpo ocupe toda la altura del dispositivo */
+        margin: 0; /* Elimina cualquier margen */
+        padding: 0; /* Elimina cualquier padding */
+        box-sizing: border-box; /* Asegura que el padding y borde no afecten el tamaño total */
+    }
+}
             #map {
                 width: 100%;
                 margin-bottom: 20px;
