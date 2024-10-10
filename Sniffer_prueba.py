@@ -115,9 +115,6 @@ def enviar_a_nodejs(datos):
     except requests.exceptions.RequestException as e:
         print(f"Excepcion al enviar datos al servidor Node.js: {e}")
 
-import mysql.connector
-from datetime import datetime
-
 def insertar_en_mysql(datos):
     """
     Inserta los datos en la base de datos MySQL.
@@ -140,6 +137,13 @@ def insertar_en_mysql(datos):
 
         cursor.close()
         cnx.close()
+
+    except mysql.connector.Error as err:
+        print(f"Error al insertar en MySQL: {err}")  # Capturar y mostrar cualquier error durante la inserciÃƒÂ³n
+
+    except Exception as e:
+        print(f"Otro error ocurriÃƒÂ³ al insertar en MySQL: {e}")  # Capturar cualquier otro tipo de error
+
 
 
 def main():
