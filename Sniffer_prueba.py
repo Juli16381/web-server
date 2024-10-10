@@ -123,19 +123,15 @@ def insertar_en_mysql(datos):
     Inserta los datos en la base de datos MySQL.
     """
     try:
-        print(f"Insertando datos en MySQL: {datos}")  # Verificar que se están intentando insertar datos
+        print(f"Insertando datos en MySQL: {datos}")  # Verificar que se estÃƒÂ¡n intentando insertar datos
 
         cnx = mysql.connector.connect(**DB_CONFIG)
         cursor = cnx.cursor()
 
-        # Concatenar Fecha y Hora en un solo string en formato 'YYYY-MM-DD HH:MM:SS'
-        fecha_hora = f"{datos['Fecha']} {datos['Hora']}"  # Formato: '2024-10-09 23:15:43'
-
-        # Asegúrate de que la tabla 'datos_gps' tiene la columna 'FechaHora'
         add_dato = ("INSERT INTO datos_gps "
-                    "(Latitud, Longitud, FechaHora) "  # Cambiar de 'Fecha' y 'Hora' a 'FechaHora'
-                    "VALUES (%s, %s, %s)")
-        data_dato = (datos['Latitud'], datos['Longitud'], fecha_hora)  # Agregar 'fecha_hora'
+                    "(Latitud, Longitud, Fecha, Hora) "
+                    "VALUES (%s, %s, %s, %s)")
+        data_dato = (datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'])
 
         cursor.execute(add_dato, data_dato)
         cnx.commit()
@@ -144,11 +140,6 @@ def insertar_en_mysql(datos):
 
         cursor.close()
         cnx.close()
-    except mysql.connector.Error as err:
-        print(f"Error: {err}")
-    except Exception as e:
-        print(f"Ocurrió un error: {e}")
-
 
 
 def main():
