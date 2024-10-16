@@ -203,18 +203,19 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
                     <tbody>`;
 
             // Llenar la tabla con los datos
-            results.forEach((row) => {
-                const fechaFormateada = new Date(row.FechaHora).toLocaleDateString('es-ES');
-                const horaFormateada = new Date(row.FechaHora).toTimeString().split(' ')[0];
-                html += `
-                <tr>
-                    <td>${row.id}</td>
-                    <td>${row.Latitud}</td>
-                    <td>${row.Longitud}</td>
-                    <td>${fechaFormateada}</td>  
-                    <td>${horaFormateada}</td>  
-                </tr>`;
-            });
+            // Llenar la tabla con los datos
+        results.forEach((row) => {
+        const [fecha, hora] = row.FechaHora.split(' ');
+        html += `
+        <tr>
+        <td>${row.id}</td>
+        <td>${row.Latitud}</td>
+        <td>${row.Longitud}</td>
+        <td>${fecha}</td>
+        <td>${hora}</td>
+        </tr>`;
+    });
+
 
             html += `
                     </tbody>
