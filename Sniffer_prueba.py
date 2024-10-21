@@ -80,16 +80,35 @@ def parsear_payload(payload):
         longitud = datos.get('Longitud')
         timestamp = datos.get('Timestamp')
 
+        # Verificar si se envían datos adicionales (por ejemplo, RPM)
+        rpm = datos.get('RPM')
+
         if latitud and longitud and timestamp:
             # Dividir el timestamp en fecha y hora
             fecha, hora = timestamp.split(' ')
-            print(f"Datos validos extraiÂ­dos: Latitud={latitud}, Longitud={longitud}, Fecha={fecha}, Hora={hora}")
-            return {
-                'Latitud': float(latitud),
-                'Longitud': float(longitud),
-                'Fecha': fecha,
-                'Hora': hora
-            }
+            print(f"Datos válidos extraídos: Latitud={latitud}, Longitud={longitud}, Fecha={fecha}, Hora={hora}")
+            
+            # Si RPM está presente, es de la aplicación 2
+            if rpm:
+                print(f"RPM={rpm} detectado, datos provienen de App2")
+                return {
+                    'Aplicacion': 'App2',
+                    'Latitud': float(latitud),
+                    'Longitud': float(longitud),
+                    'Fecha': fecha,
+                    'Hora': hora,
+                    'RPM': float(rpm)
+                }
+            else:
+                # Si RPM no está presente, es de la aplicación 1
+                print("Datos provienen de App1")
+                return {
+                    'Aplicacion': 'App1',
+                    'Latitud': float(latitud),
+                    'Longitud': float(longitud),
+                    'Fecha': fecha,
+                    'Hora': hora
+                }
         else:
             print("Datos incompletos en el payload.")
             return None
@@ -125,10 +144,17 @@ def insertar_en_mysql(datos):
         cnx = mysql.connector.connect(**DB_CONFIG)
         cursor = cnx.cursor()
 
-        add_dato = ("INSERT INTO datos_gps "
+        if datos['Aplicacion'] == "App1":
+            add_dato = ("INSERT INTO datos_gps "
                     "(Latitud, Longitud, Fecha, Hora) "
                     "VALUES (%s, %s, %s, %s)")
-        data_dato = (datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'])
+            data_dato = (datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'])
+
+        elif datos['Aplicacion'] == "App2":
+            add_dato = ("INSERT INTO datos_obd "
+                        "(Latitud, Longitud, Fecha, Hora, RPM) "
+                        "VALUES (%s, %s, %s, %s, %s)")
+            data_dato = (datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'], datos['RPM'])
 
         cursor.execute(add_dato, data_dato)
         cnx.commit()
