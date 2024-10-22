@@ -29,9 +29,9 @@ def leer_datos_obd():
         # connection = obd.OBD("COM3")  # Para Windows
 
         if connection.is_connected():
-            # Ejemplo: Leer RPM (o cualquier otro dato relevante)
-            cmd_rpm = obd.commands.RPM
-            response_rpm = connection.query(cmd_rpm)
+            # Ejemplo: Leer RPM 
+            obd_rpm = obd.commands.RPM
+            response_rpm = connection.query(obd_rpm)
 
             if response_rpm.value:
                 # Preparar datos para insertar en la base de datos
