@@ -78,7 +78,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> discoverDevices() async {
     FlutterBluetoothSerial.instance.startDiscovery().listen((r) {
-      if (r.device.name != null && (r.device.name == 'OBDII' || r.device.name == 'OBD')) {
+      if (r.device.name != null &&
+          (r.device.name == 'OBDII' || r.device.name == 'OBD')) {
         devices.add(r.device);
         print('Dispositivo encontrado: ${r.device.name}');
       }
@@ -93,11 +94,14 @@ class _MyHomePageState extends State<MyHomePage> {
       return;
     }
 
-    deviceToConnect = devices.first; // Intenta conectar con el primer dispositivo encontrado
+    deviceToConnect =
+        devices.first; // Intenta conectar con el primer dispositivo encontrado
     try {
-      connection = await BluetoothConnection.toAddress(deviceToConnect!.address);
+      connection =
+          await BluetoothConnection.toAddress(deviceToConnect!.address);
       print('Conectado al dispositivo: ${deviceToConnect!.name}');
-      print('Comunicación serial establecida, listo para enviar y recibir datos.');
+      print(
+          'Comunicación serial establecida, listo para enviar y recibir datos.');
 
       // Escuchar datos de entrada
       connection!.input!.listen((Uint8List data) {
@@ -122,14 +126,18 @@ class _MyHomePageState extends State<MyHomePage> {
     print('Datos recibidos: $result');
 
     // Procesar la respuesta para extraer el valor de RPM
-    List<String> parts = result.trim().split(' '); // Separar la respuesta por espacios
+    List<String> parts =
+        result.trim().split(' '); // Separar la respuesta por espacios
     if (parts.length >= 3 && parts[0] == '41' && parts[1] == '0C') {
       // Extraer los dos bytes que contienen el valor de RPM
-      int highByte = int.parse(parts[2], radix: 16); // Convertir de hexadecimal a decimal
-      int lowByte = int.parse(parts[3], radix: 16); // Convertir de hexadecimal a decimal
+      int highByte =
+          int.parse(parts[2], radix: 16); // Convertir de hexadecimal a decimal
+      int lowByte =
+          int.parse(parts[3], radix: 16); // Convertir de hexadecimal a decimal
 
       // Calcular RPM
-      int rpm = ((highByte * 256) + lowByte) ~/ 4; // Dividir por 4, fórmula para calcular el valor del rpm
+      int rpm = ((highByte * 256) + lowByte) ~/
+          4; // Dividir por 4, fórmula para calcular el valor del rpm
       setState(() {
         rpmData = rpm.toString(); // Actualiza la variable RPM
       });
@@ -149,16 +157,20 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> _getCurrentLocation() async {
     if (!await Permission.location.isGranted) {
       setState(() {
-        locationMessage = 'Los permisos de ubicación son necesarios para esta función.';
+        locationMessage =
+            'Los permisos de ubicación son necesarios para esta función.';
       });
       return;
     }
 
-    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    String formattedTimestamp = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+    String formattedTimestamp =
+        DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
 
     setState(() {
-      locationMessage = 'Latitud: ${position.latitude}\nLongitud: ${position.longitude}\nTimestamp: $formattedTimestamp\nRPM: $rpmData';
+      locationMessage =
+          'Latitud: ${position.latitude}\nLongitud: ${position.longitude}\nTimestamp: $formattedTimestamp\nRPM: $rpmData';
     });
 
     _sendToIP1(); // Enviar la ubicación a la primera IP
@@ -173,7 +185,8 @@ class _MyHomePageState extends State<MyHomePage> {
     String message = locationMessage;
 
     try {
-      RawDatagramSocket.bind(InternetAddress.anyIPv4, 0).then((RawDatagramSocket socket) {
+      RawDatagramSocket.bind(InternetAddress.anyIPv4, 0)
+          .then((RawDatagramSocket socket) {
         socket.send(message.codeUnits, InternetAddress(ip1), port1);
         socket.close();
       });
@@ -188,7 +201,8 @@ class _MyHomePageState extends State<MyHomePage> {
     String message = locationMessage;
 
     try {
-      RawDatagramSocket.bind(InternetAddress.anyIPv4, 0).then((RawDatagramSocket socket) {
+      RawDatagramSocket.bind(InternetAddress.anyIPv4, 0)
+          .then((RawDatagramSocket socket) {
         socket.send(message.codeUnits, InternetAddress(ip2), port2);
         socket.close();
       });
@@ -203,7 +217,8 @@ class _MyHomePageState extends State<MyHomePage> {
     String message = locationMessage;
 
     try {
-      RawDatagramSocket.bind(InternetAddress.anyIPv4, 0).then((RawDatagramSocket socket) {
+      RawDatagramSocket.bind(InternetAddress.anyIPv4, 0)
+          .then((RawDatagramSocket socket) {
         socket.send(message.codeUnits, InternetAddress(ip3), port3);
         socket.close();
       });
@@ -218,7 +233,8 @@ class _MyHomePageState extends State<MyHomePage> {
     String message = locationMessage;
 
     try {
-      RawDatagramSocket.bind(InternetAddress.anyIPv4, 0).then((RawDatagramSocket socket) {
+      RawDatagramSocket.bind(InternetAddress.anyIPv4, 0)
+          .then((RawDatagramSocket socket) {
         socket.send(message.codeUnits, InternetAddress(ip4), port4);
         socket.close();
       });
@@ -228,7 +244,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -242,7 +259,12 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(locationMessage.isNotEmpty ? locationMessage : 'Esperando la primera actualización...', textAlign: TextAlign.center, style: TextStyle(fontSize: 18)),
+            Text(
+                locationMessage.isNotEmpty
+                    ? locationMessage
+                    : 'Esperando la primera actualización...',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 18)),
           ],
         ),
       ),
