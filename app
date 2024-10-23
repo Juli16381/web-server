@@ -3,7 +3,10 @@ import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:async';
-import 'dart:io';
+import 'dart:typed_data';
+import 'dart:io'; // Asegúrate de importar esta biblioteca
+import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
+import 'dart:convert';
 
 void main() {
   runApp(const MyApp());
@@ -15,12 +18,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'GPS APP',
+      title: 'GPS & OBDII App',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'GPS APP'),
+      home: const MyHomePage(title: 'GPS & OBDII App'),
     );
   }
 }
@@ -36,23 +39,111 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   String locationMessage = '';
+  String rpmData = 'Esperando datos OBDII...';
   Timer? _timer;
+  BluetoothConnection? connection;
+  List<BluetoothDevice> devices = [];
+  BluetoothDevice? deviceToConnect;
 
   @override
   void initState() {
     super.initState();
-    requestPermissions(); // Solicitar permisos al iniciar
-    startSendingLocationAutomatically(); // Iniciar el envío automático
+    requestBluetoothPermissions(); // Solicitar permisos al iniciar
+    startOBDConnection(); // Iniciar conexión OBDII
+    startSendingLocationAutomatically(); // Iniciar el envío automático de ubicación
   }
 
   @override
   void dispose() {
-    _timer?.cancel(); // Cancelar el timer cuando el widget se destruye
+    _timer?.cancel();
+    connection?.dispose();
     super.dispose();
   }
 
-  Future<void> requestPermissions() async {
-    await [Permission.location].request();
+  Future<void> requestBluetoothPermissions() async {
+    var statusScan = await Permission.bluetoothScan.status;
+    if (!statusScan.isGranted) {
+      await Permission.bluetoothScan.request();
+    }
+
+    var statusConnect = await Permission.bluetoothConnect.status;
+    if (!statusConnect.isGranted) {
+      await Permission.bluetoothConnect.request();
+    }
+  }
+
+  void startOBDConnection() async {
+    await discoverDevices(); // Iniciar el descubrimiento de dispositivos
+  }
+
+  Future<void> discoverDevices() async {
+    FlutterBluetoothSerial.instance.startDiscovery().listen((r) {
+      if (r.device.name != null && (r.device.name == 'OBDII' || r.device.name == 'OBD')) {
+        devices.add(r.device);
+        print('Dispositivo encontrado: ${r.device.name}');
+      }
+    }).onDone(() {
+      connectToDevice(); // Conectar después de que termine
+    });
+  }
+
+  void connectToDevice() async {
+    if (devices.isEmpty) {
+      print('No se encontraron dispositivos OBDII.');
+      return;
+    }
+
+    deviceToConnect = devices.first; // Intenta conectar con el primer dispositivo encontrado
+    try {
+      connection = await BluetoothConnection.toAddress(deviceToConnect!.address);
+      print('Conectado al dispositivo: ${deviceToConnect!.name}');
+      print('Comunicación serial establecida, listo para enviar y recibir datos.');
+
+      // Escuchar datos de entrada
+      connection!.input!.listen((Uint8List data) {
+        handleData(data);
+      });
+
+      // Enviar el comando para obtener RPM
+      sendRPMCommand();
+    } catch (e) {
+      print('Error al conectar: $e');
+    }
+  }
+
+  void sendRPMCommand() {
+    String command = '010C\r'; // Comando OBDII para obtener RPM
+    connection!.output.add(utf8.encode(command));
+    print('Comando enviado: $command');
+  }
+
+  void handleData(Uint8List data) {
+    String result = String.fromCharCodes(data);
+    print('Datos recibidos: $result');
+
+    // Procesar la respuesta para extraer el valor de RPM
+    List<String> parts = result.trim().split(' '); // Separar la respuesta por espacios
+    if (parts.length >= 3 && parts[0] == '41' && parts[1] == '0C') {
+      // Extraer los dos bytes que contienen el valor de RPM
+      int highByte = int.parse(parts[2], radix: 16); // Convertir de hexadecimal a decimal
+      int lowByte = int.parse(parts[3], radix: 16); // Convertir de hexadecimal a decimal
+
+      // Calcular RPM
+      int rpm = ((highByte * 256) + lowByte) ~/ 4; // Dividir por 4, fórmula para calcular el valor del rpm
+      setState(() {
+        rpmData = rpm.toString(); // Actualiza la variable RPM
+      });
+    } else {
+      setState(() {
+        rpmData = 'Datos OBDII no válidos'; // Mensaje de error
+      });
+    }
+  }
+
+  void startSendingLocationAutomatically() {
+    _timer = Timer.periodic(Duration(seconds: 10), (timer) {
+      _getCurrentLocation(); // Obtener y enviar la ubicación automáticamente cada 10 segundos
+    });
   }
 
   Future<void> _getCurrentLocation() async {
@@ -64,10 +155,10 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    String formattedTimestamp = DateFormat('yyyy-MM-dd HH:mm:ss').format(position.timestamp!.toLocal());
+    String formattedTimestamp = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
 
     setState(() {
-      locationMessage = 'Latitud: ${position.latitude}\nLongitud: ${position.longitude}\nTimestamp: $formattedTimestamp';
+      locationMessage = 'Latitud: ${position.latitude}\nLongitud: ${position.longitude}\nTimestamp: $formattedTimestamp\nRPM: $rpmData';
     });
 
     _sendToIP1(); // Enviar la ubicación a la primera IP
@@ -136,16 +227,8 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void startSendingLocationAutomatically() {
-    _timer = Timer.periodic(Duration(seconds: 10), (timer) {
-      _getCurrentLocation(); // Obtener y enviar la ubicación automáticamente cada 10 segundos
-    });
-  }
-
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message))
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
