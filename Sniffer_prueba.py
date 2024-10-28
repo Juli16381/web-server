@@ -134,41 +134,53 @@ def enviar_a_nodejs(datos):
     except requests.exceptions.RequestException as e:
         print(f"Excepcion al enviar datos al servidor Node.js: {e}")
 
+import mysql.connector
+
 def insertar_en_mysql(datos):
     """
     Inserta los datos en la base de datos MySQL.
     """
     try:
-        print(f"Insertando datos en MySQL: {datos}")  # Verificar que se estÃƒÂ¡n intentando insertar datos
+        print(f"Insertando datos en MySQL: {datos}")  # Verificar que se están intentando insertar datos
 
         cnx = mysql.connector.connect(**DB_CONFIG)
         cursor = cnx.cursor()
 
-        if datos['Aplicacion'] == "App1":
+        # Insertar en la tabla adecuada según la aplicación
+        if datos.get('Aplicacion') == "App1" and 'RPM' not in datos:
+            # Insertar en la tabla de datos_gps
             add_dato = ("INSERT INTO datos_gps "
-                    "(Latitud, Longitud, Fecha, Hora) "
-                    "VALUES (%s, %s, %s, %s)")
+                        "(Latitud, Longitud, Fecha, Hora) "
+                        "VALUES (%s, %s, %s, %s)")
             data_dato = (datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'])
 
-        elif datos['Aplicacion'] == "App2":
+            cursor.execute(add_dato, data_dato)
+
+        elif datos.get('Aplicacion') == "App2" and 'RPM' in datos:
+            # Insertar en la tabla de datos_obd
             add_dato = ("INSERT INTO datos_obd "
                         "(Latitud, Longitud, Fecha, Hora, RPM) "
                         "VALUES (%s, %s, %s, %s, %s)")
             data_dato = (datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'], datos['RPM'])
 
-        cursor.execute(add_dato, data_dato)
-        cnx.commit()
+            cursor.execute(add_dato, data_dato)
+        else:
+            print("Error: Datos incompletos o incorrectos para la aplicación especificada.")
+            return
 
-        print("Datos insertados correctamente en la base de datos MySQL.")  # Verificar que se han insertado datos
+        # Confirmar los cambios en la base de datos
+        cnx.commit()
+        print("Datos insertados correctamente en la base de datos MySQL.")
 
         cursor.close()
         cnx.close()
 
     except mysql.connector.Error as err:
-        print(f"Error al insertar en MySQL: {err}")  # Capturar y mostrar cualquier error durante la inserciÃƒÂ³n
+        print(f"Error al insertar en MySQL: {err}")  # Capturar y mostrar cualquier error durante la inserción
 
     except Exception as e:
-        print(f"Otro error ocurriÃƒÂ³ al insertar en MySQL: {e}")  # Capturar cualquier otro tipo de error
+        print(f"Otro error ocurrió al insertar en MySQL: {e}")  # Capturar cualquier otro tipo de error
+
 
 
 
