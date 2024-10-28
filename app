@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:async';
 import 'dart:typed_data';
-import 'dart:io'; // Asegúrate de importar esta biblioteca
+import 'dart:io'; 
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'dart:convert';
 
@@ -39,110 +39,166 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   String locationMessage = '';
-  String rpmData = 'Esperando datos OBDII...';
+  String connectionStatus = 'Conectando...'; 
+  String rawData = ''; 
   Timer? _timer;
+  Timer? _locationTimer;
   BluetoothConnection? connection;
   List<BluetoothDevice> devices = [];
-  BluetoothDevice? deviceToConnect;
+  BluetoothDevice? deviceToConnect; 
+  int _rpm = 0; 
+  ValueNotifier<String> rpmNotifier = ValueNotifier<String>('Esperando datos OBDII...');
 
   @override
   void initState() {
     super.initState();
-    requestBluetoothPermissions(); // Solicitar permisos al iniciar
-    startOBDConnection(); // Iniciar conexión OBDII
-    startSendingLocationAutomatically(); // Iniciar el envío automático de ubicación
+    requestBluetoothPermissions(); 
+    startOBDConnection(); 
+    startSendingLocationAutomatically(); 
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _locationTimer?.cancel();
     connection?.dispose();
     super.dispose();
   }
 
   Future<void> requestBluetoothPermissions() async {
-    var statusScan = await Permission.bluetoothScan.status;
-    if (!statusScan.isGranted) {
-      await Permission.bluetoothScan.request();
-    }
-
-    var statusConnect = await Permission.bluetoothConnect.status;
-    if (!statusConnect.isGranted) {
-      await Permission.bluetoothConnect.request();
+    if (await Permission.bluetoothScan.request().isGranted &&
+        await Permission.bluetoothConnect.request().isGranted) {
+    } else {
+      setState(() {
+        connectionStatus = 'Permisos de Bluetooth no concedidos';
+      });
     }
   }
 
   void startOBDConnection() async {
-    await discoverDevices(); // Iniciar el descubrimiento de dispositivos
+    await getPairedDevices();
   }
 
-  Future<void> discoverDevices() async {
-    FlutterBluetoothSerial.instance.startDiscovery().listen((r) {
-      if (r.device.name != null && (r.device.name == 'OBDII' || r.device.name == 'OBD')) {
-        devices.add(r.device);
-        print('Dispositivo encontrado: ${r.device.name}');
+  Future<void> getPairedDevices() async {
+    List<BluetoothDevice> pairedDevices = await FlutterBluetoothSerial.instance.getBondedDevices();
+
+    for (var device in pairedDevices) {
+      print('Dispositivo emparejado: ${device.name}, Dirección: ${device.address}');
+      if (device.name != null && (device.name!.toUpperCase().contains('OBD') || device.name!.toUpperCase().contains('II'))) {
+        devices.add(device);
+        print('Dispositivo OBDII encontrado: ${device.name}');
+        deviceToConnect = device;
+        break;
       }
-    }).onDone(() {
-      connectToDevice(); // Conectar después de que termine
-    });
+    }
+
+    if (deviceToConnect != null) {
+      connectToDevice();
+    } else {
+      print('No se encontraron dispositivos OBDII emparejados.');
+      setState(() {
+        connectionStatus = 'No se encontraron dispositivos OBDII emparejados';
+      });
+    }
   }
 
   void connectToDevice() async {
-    if (devices.isEmpty) {
-      print('No se encontraron dispositivos OBDII.');
+    if (deviceToConnect == null) {
+      print('No hay dispositivo OBDII seleccionado para conectar.');
       return;
     }
 
-    deviceToConnect = devices.first; // Intenta conectar con el primer dispositivo encontrado
+    setState(() {
+      connectionStatus = 'Conectando a OBDII...';
+    });
+
     try {
-      connection = await BluetoothConnection.toAddress(deviceToConnect!.address);
+      connection = await BluetoothConnection.toAddress(deviceToConnect!.address).timeout(
+        const Duration(seconds: 10), 
+        onTimeout: () {
+          throw TimeoutException('Tiempo de espera agotado al intentar conectar con el dispositivo.');
+        },
+      );
+
+      setState(() {
+        connectionStatus = 'Conectado a OBDII';
+      });
       print('Conectado al dispositivo: ${deviceToConnect!.name}');
       print('Comunicación serial establecida, listo para enviar y recibir datos.');
 
-      // Escuchar datos de entrada
+      connection!.output.add(ascii.encode("ATE0\r"));
+      print("Comando ATE0 enviado para desactivar el eco.");
+
+      await Future.delayed(const Duration(seconds: 1));
+
       connection!.input!.listen((Uint8List data) {
         handleData(data);
+      }, onDone: () {
+        print('Conexión cerrada por el dispositivo.');
+        setState(() {
+          connectionStatus = 'Conexión cerrada por el dispositivo';
+        });
+      }, onError: (error) {
+        print('Error en la conexión: $error');
+        setState(() {
+          connectionStatus = 'Error en la conexión: $error';
+        });
       });
 
-      // Enviar el comando para obtener RPM
-      sendRPMCommand();
+      _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (connection != null && connection!.isConnected) {
+          requestRPM();
+        } else {
+          timer.cancel();
+        }
+      });
     } catch (e) {
       print('Error al conectar: $e');
+      setState(() {
+        connectionStatus = 'Error al conectar: $e';
+      });
     }
   }
 
-  void sendRPMCommand() {
-    String command = '010C\r'; // Comando OBDII para obtener RPM
-    connection!.output.add(utf8.encode(command));
-    print('Comando enviado: $command');
+  void requestRPM() {
+    if (connection != null && connection!.isConnected) {
+      String command = "01 0C";
+      connection!.output.add(ascii.encode(command + '\r'));
+      print('Comando RPM solicitado: $command');
+    } else {
+      print('Conexión no disponible para enviar comandos');
+    }
   }
 
   void handleData(Uint8List data) {
-    String result = String.fromCharCodes(data);
-    print('Datos recibidos: $result');
+    String response = ascii.decode(data);
+    print("Datos recibidos: $response");
 
-    // Procesar la respuesta para extraer el valor de RPM
-    List<String> parts = result.trim().split(' '); // Separar la respuesta por espacios
-    if (parts.length >= 3 && parts[0] == '41' && parts[1] == '0C') {
-      // Extraer los dos bytes que contienen el valor de RPM
-      int highByte = int.parse(parts[2], radix: 16); // Convertir de hexadecimal a decimal
-      int lowByte = int.parse(parts[3], radix: 16); // Convertir de hexadecimal a decimal
+    setState(() {
+      rawData = "Datos recibidos: $response";
+    });
 
-      // Calcular RPM
-      int rpm = ((highByte * 256) + lowByte) ~/ 4; // Dividir por 4, fórmula para calcular el valor del rpm
-      setState(() {
-        rpmData = rpm.toString(); // Actualiza la variable RPM
-      });
-    } else {
-      setState(() {
-        rpmData = 'Datos OBDII no válidos'; // Mensaje de error
-      });
+    RegExp regExp = RegExp(r'41 0C ([0-9A-Fa-f]{2}) ([0-9A-Fa-f]{2})');
+    Iterable<RegExpMatch> matches = regExp.allMatches(response);
+
+    if (matches.isNotEmpty) {
+      for (var match in matches) {
+        String A_str = match.group(1)!;
+        String B_str = match.group(2)!;
+
+        int A = int.parse(A_str, radix: 16);
+        int B = int.parse(B_str, radix: 16);
+        _rpm = ((A * 256) + B) ~/ 4;
+        print("RPM: $_rpm");
+        rpmNotifier.value = _rpm.toString();
+        return;
+      }
     }
   }
 
   void startSendingLocationAutomatically() {
-    _timer = Timer.periodic(Duration(seconds: 10), (timer) {
-      _getCurrentLocation(); // Obtener y enviar la ubicación automáticamente cada 10 segundos
+    _locationTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      _getCurrentLocation(); 
     });
   }
 
@@ -158,13 +214,13 @@ class _MyHomePageState extends State<MyHomePage> {
     String formattedTimestamp = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
 
     setState(() {
-      locationMessage = 'Latitud: ${position.latitude}\nLongitud: ${position.longitude}\nTimestamp: $formattedTimestamp\nRPM: $rpmData';
+      locationMessage = 'Latitud: ${position.latitude}\nLongitud: ${position.longitude}\nTimestamp: $formattedTimestamp\nRPM: ${rpmNotifier.value}';
     });
 
-    _sendToIP1(); // Enviar la ubicación a la primera IP
-    _sendToIP2(); // Enviar la ubicación a la segunda IP
-    _sendToIP3(); // Enviar la ubicación a la tercera IP
-    _sendToIP4(); // Enviar la ubicación a la cuarta IP
+    _sendToIP1();
+    _sendToIP2();
+    _sendToIP3();
+    _sendToIP4();
   }
 
   Future<void> _sendToIP1() async {
@@ -238,12 +294,36 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(locationMessage.isNotEmpty ? locationMessage : 'Esperando la primera actualización...', textAlign: TextAlign.center, style: TextStyle(fontSize: 18)),
-          ],
+      body: SingleChildScrollView(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text(locationMessage.isNotEmpty ? locationMessage : 'Esperando la primera actualización...', textAlign: TextAlign.center, style: const TextStyle(fontSize: 18)),
+              const SizedBox(height: 20),
+              Text(connectionStatus, style: const TextStyle(fontSize: 16)), 
+              const SizedBox(height: 20),
+              ValueListenableBuilder<String>(
+                valueListenable: rpmNotifier,
+                builder: (context, value, child) {
+                  return Text('RPM: $value', style: const TextStyle(fontSize: 16));
+                },
+              ),
+              const SizedBox(height: 20),
+              Text(rawData, style: const TextStyle(fontSize: 16, color: Colors.grey)), 
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    connectionStatus = 'Reconectando...';
+                    deviceToConnect = null;
+                  });
+                  startOBDConnection();
+                },
+                child: const Text('Reconectar OBDII'),
+              ),
+            ],
+          ),
         ),
       ),
     );
