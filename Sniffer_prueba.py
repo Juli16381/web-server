@@ -32,12 +32,12 @@ DB_CONFIG = {
 
 
 datos = {
-    'Aplicacion': 'App2',
+    'Aplicacion': 'App1',
     'Latitud': 11.019651,
     'Longitud': -74.8115981,
     'Fecha': '2024-10-29',
     'Hora': '10:10:28',
-    'RPM': 850
+    'RPM': 'error'
 }
 
 
