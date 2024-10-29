@@ -63,11 +63,13 @@ def insertar_en_mysql(datos):
     """
     Inserta los datos en la base de datos MySQL.
     """
+    cnx = None
+    cursor = None
     try:
-        print(f"Insertando datos en MySQL: {datos}")  # Verificar que se están intentando insertar datos
-
+        print(f"Conectando a la base de datos con configuración: {DB_CONFIG}")
         cnx = mysql.connector.connect(**DB_CONFIG)
         cursor = cnx.cursor()
+        print("Conexión a la base de datos establecida correctamente.")
 
         # Insertar en la tabla adecuada según la aplicación
         if datos.get('Aplicacion') == "App1" and 'RPM' not in datos:
@@ -76,7 +78,7 @@ def insertar_en_mysql(datos):
                         "(Latitud, Longitud, Fecha, Hora) "
                         "VALUES (%s, %s, %s, %s)")
             data_dato = (datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'])
-
+            print(f"Preparando para insertar en datos_gps: {data_dato}")
             cursor.execute(add_dato, data_dato)
 
         elif datos.get('Aplicacion') == "App2" and 'RPM' in datos:
@@ -85,8 +87,9 @@ def insertar_en_mysql(datos):
                         "(Latitud, Longitud, Fecha, Hora, RPM) "
                         "VALUES (%s, %s, %s, %s, %s)")
             data_dato = (datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'], datos['RPM'])
-
+            print(f"Preparando para insertar en datos_obd: {data_dato}")
             cursor.execute(add_dato, data_dato)
+
         else:
             print("Error: Datos incompletos o incorrectos para la aplicación especificada.")
             return
@@ -95,11 +98,19 @@ def insertar_en_mysql(datos):
         cnx.commit()
         print("Datos insertados correctamente en la base de datos MySQL.")
 
-        cursor.close()
-        cnx.close()
-
     except mysql.connector.Error as err:
         print(f"Error al insertar en MySQL: {err}")  # Capturar y mostrar cualquier error durante la inserción
 
     except Exception as e:
         print(f"Otro error ocurrió al insertar en MySQL: {e}")  # Capturar cualquier otro tipo de error
+
+    finally:
+        # Cerrar el cursor y la conexión si están abiertos
+        if cursor:
+            cursor.close()
+            print("Cursor cerrado.")
+        if cnx:
+            cnx.close()
+            print("Conexión a la base de datos cerrada.")
+
+insertar_en_mysql(datos)
