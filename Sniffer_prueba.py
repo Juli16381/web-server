@@ -103,18 +103,3 @@ def insertar_en_mysql(datos):
 
     except Exception as e:
         print(f"Otro error ocurrió al insertar en MySQL: {e}")  # Capturar cualquier otro tipo de error
-
-
-
-
-def main():
-    """
-    Funcion principal que inicia el sniffer.
-    """
-    print("Iniciando sniffer de paquetes...")
-    # Construir el filtro de BPF para scapy
-    filtro_bpf = f"udp and dst port {FILTER_PORT} and net {FILTER_IP}"
-    sniff(iface=INTERFACE, filter=filtro_bpf, prn=procesar_paquete, store=0)
-
-if __name__ == "__main__":
-    main()
