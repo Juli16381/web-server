@@ -143,7 +143,7 @@ def insertar_en_mysql(datos):
     cnx = None
     cursor = None
     try:
-        print(f"Conectando a la base de datos con configuración: {DB_CONFIG}")
+        #print(f"Conectando a la base de datos con configuración: {DB_CONFIG}")
         cnx = mysql.connector.connect(**DB_CONFIG)
         cursor = cnx.cursor()
         print("Conexión a la base de datos establecida correctamente.")
