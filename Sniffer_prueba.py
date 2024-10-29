@@ -31,7 +31,7 @@ DB_CONFIG = {
 }
 
 
-payload = {
+datos = {
     'Aplicacion': 'App2',
     'Latitud': 11.019651,
     'Longitud': -74.8115981,
