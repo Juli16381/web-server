@@ -152,18 +152,18 @@ def insertar_en_mysql(datos):
         if datos.get('Aplicacion') == "App1" and 'RPM' not in datos:
             # Insertar en la tabla de datos_gps
             add_dato = ("INSERT INTO datos_gps "
-                        "(Latitud, Longitud, Fecha, Hora) "
-                        "VALUES (%s, %s, %s, %s)")
-            data_dato = (datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'])
+                        "(Aplicacion, Latitud, Longitud, Fecha, Hora) "
+                        "VALUES (%s, %s, %s, %s, %s)")
+            data_dato = (datos['Aplicacion'],datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'])
             print(f"Preparando para insertar en datos_gps: {data_dato}")
             cursor.execute(add_dato, data_dato)
 
         elif datos.get('Aplicacion') == "App2" and 'RPM' in datos:
             # Insertar en la tabla de datos_obd
             add_dato = ("INSERT INTO datos_obd "
-                        "(Latitud, Longitud, Fecha, Hora, RPM) "
-                        "VALUES (%s, %s, %s, %s, %s)")
-            data_dato = (datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'], datos['RPM'])
+                        "(Aplicacion, Latitud, Longitud, Fecha, Hora, RPM) "
+                        "VALUES (%s, %s, %s, %s, %s, %s)")
+            data_dato = (datos['Aplicacion'],datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'], datos['RPM'])
             print(f"Preparando para insertar en datos_obd: {data_dato}")
             cursor.execute(add_dato, data_dato)
 
