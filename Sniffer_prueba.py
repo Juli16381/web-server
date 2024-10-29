@@ -31,91 +31,14 @@ DB_CONFIG = {
 }
 
 
-def procesar_paquete(paquete):
-    print("Paquete capturado")  # Para verificar que se captura un paquete
-    try:
-        if paquete.haslayer(UDP) and paquete.haslayer(IP):
-            udp_layer = paquete.getlayer(UDP)
-            ip_layer = paquete.getlayer(IP)
-
-            # Filtrar por IP de destino y puerto
-            if ip_layer.dst.startswith(FILTER_IP.split('/')[0]) and udp_layer.dport == FILTER_PORT:
-                # Extraer el payload del paquete
-                payload = paquete[UDP].payload.load.decode('utf-8', errors='replace')
-
-                # Verificar el contenido del payload
-                print(f"Payload capturado: {payload}")
-
-                # Procesar el payload
-                datos = parsear_payload(payload)
-
-                if datos:
-                    print(f"Datos extraiÂ­dos: {datos}")  # Verificar los datos extraÃƒÂ­dos
-                    enviar_a_nodejs(datos)
-                    insertar_en_mysql(datos)
-                else:
-                    print("Datos no validos para insercion.")
-    except Exception as e:
-        print(f"Error al procesar el paquete: {e}")
-
-def parsear_payload(payload):
-    """
-    Parsea la carga util del paquete para extraer Latitud, Longitud, Fecha y Hora
-    desde un formato de texto plano.
-    """
-    try:
-        # Dividir el payload por liÂ­neas
-        lineas = payload.splitlines()
-        
-        # Crear un diccionario para almacenar los datos
-        datos = {}
-
-        # Iterar sobre cada lÃƒÂ­nea y extraer los valores
-        for linea in lineas:
-            clave, valor = linea.split(':', 1)  # Limitar el split al primer ':'
-            datos[clave.strip()] = valor.strip()
-
-        # Validar que todos los datos necesarios estan presentes
-        latitud = datos.get('Latitud')
-        longitud = datos.get('Longitud')
-        timestamp = datos.get('Timestamp')
-
-        # Verificar si se envían datos adicionales (por ejemplo, RPM)
-        rpm = datos.get('RPM')
-
-        if latitud and longitud and timestamp:
-            # Dividir el timestamp en fecha y hora
-            fecha, hora = timestamp.split(' ')
-            print(f"Datos válidos extraídos: Latitud={latitud}, Longitud={longitud}, Fecha={fecha}, Hora={hora}")
-            
-            # Si RPM está presente, es de la aplicación 2
-            if rpm:
-                print(f"RPM={rpm} detectado, datos provienen de App2")
-                return {
-                    'Aplicacion': 'App2',
-                    'Latitud': float(latitud),
-                    'Longitud': float(longitud),
-                    'Fecha': fecha,
-                    'Hora': hora,
-                    'RPM': float(rpm)
-                }
-            else:
-                # Si RPM no está presente, es de la aplicación 1
-                print("Datos provienen de App1")
-                return {
-                    'Aplicacion': 'App1',
-                    'Latitud': float(latitud),
-                    'Longitud': float(longitud),
-                    'Fecha': fecha,
-                    'Hora': hora
-                }
-        else:
-            print("Datos incompletos en el payload.")
-            return None
-
-    except Exception as e:
-        print(f"Error al procesar el payload: {e}")
-        return None
+payload = {
+    'Aplicacion': 'App2',
+    'Latitud': 11.019651,
+    'Longitud': -74.8115981,
+    'Fecha': '2024-10-28',
+    'Hora': '21:47:28',
+    'RPM': 1046
+}
 
 
 
