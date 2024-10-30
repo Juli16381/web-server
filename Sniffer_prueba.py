@@ -154,18 +154,24 @@ def insertar_en_mysql(datos):
             add_dato = ("INSERT INTO datos_gps "
                         "(Aplicacion, Latitud, Longitud, Fecha, Hora) "
                         "VALUES (%s, %s, %s, %s, %s)")
-            data_dato = (datos['Aplicacion'],datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'])
+            data_dato = (datos['Aplicacion'], datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'])
             print(f"Preparando para insertar en datos_gps: {data_dato}")
             cursor.execute(add_dato, data_dato)
+            cnx.commit()
+            print("Datos insertados correctamente en datos_gps.")
+            return  # Salir de la función para evitar cualquier inserción adicional
 
         elif datos.get('Aplicacion') == "App2" and 'RPM' in datos:
             # Insertar en la tabla de datos_obd
             add_dato = ("INSERT INTO datos_obd "
                         "(Aplicacion, Latitud, Longitud, Fecha, Hora, RPM) "
                         "VALUES (%s, %s, %s, %s, %s, %s)")
-            data_dato = (datos['Aplicacion'],datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'], datos['RPM'])
+            data_dato = (datos['Aplicacion'], datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'], datos['RPM'])
             print(f"Preparando para insertar en datos_obd: {data_dato}")
             cursor.execute(add_dato, data_dato)
+            cnx.commit()
+            print("Datos insertados correctamente en datos_obd.")
+            return  # Salir de la función para evitar cualquier inserción adicional
 
         else:
             print("Error: Datos incompletos o incorrectos para la aplicación especificada.")
