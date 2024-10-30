@@ -153,7 +153,7 @@ def insertar_en_mysql(datos):
             # Insertar en la tabla de datos_gps
             add_dato = ("INSERT INTO datos_gps "
                         "(Aplicacion, Latitud, Longitud, Fecha, Hora) "
-                        "VALUES (%s,%s, %s, %s, %s, %s)")
+                        "VALUES (%s, %s, %s, %s, %s)")
             data_dato = (datos['Aplicacion'],datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'])
             print(f"Preparando para insertar en datos_gps: {data_dato}")
             cursor.execute(add_dato, data_dato)
