@@ -80,16 +80,35 @@ def parsear_payload(payload):
         longitud = datos.get('Longitud')
         timestamp = datos.get('Timestamp')
 
+        # Verificar si se envían datos adicionales (por ejemplo, RPM)
+        rpm = datos.get('RPM')
+
         if latitud and longitud and timestamp:
             # Dividir el timestamp en fecha y hora
             fecha, hora = timestamp.split(' ')
-            print(f"Datos validos extraiÂ­dos: Latitud={latitud}, Longitud={longitud}, Fecha={fecha}, Hora={hora}")
-            return {
-                'Latitud': float(latitud),
-                'Longitud': float(longitud),
-                'Fecha': fecha,
-                'Hora': hora
-            }
+            print(f"Datos válidos extraídos: Latitud={latitud}, Longitud={longitud}, Fecha={fecha}, Hora={hora}")
+            
+            # Si RPM está presente, es de la aplicación 2
+            if rpm:
+                print(f"RPM={rpm} detectado, datos provienen de App2")
+                return {
+                    'Aplicacion': 'App2',
+                    'Latitud': float(latitud),
+                    'Longitud': float(longitud),
+                    'Fecha': fecha,
+                    'Hora': hora,
+                    'RPM': float(rpm)
+                }
+            else:
+                # Si RPM no está presente, es de la aplicación 1
+                print("Datos provienen de App1")
+                return {
+                    'Aplicacion': 'App1',
+                    'Latitud': float(latitud),
+                    'Longitud': float(longitud),
+                    'Fecha': fecha,
+                    'Hora': hora
+                }
         else:
             print("Datos incompletos en el payload.")
             return None
@@ -115,39 +134,69 @@ def enviar_a_nodejs(datos):
     except requests.exceptions.RequestException as e:
         print(f"Excepcion al enviar datos al servidor Node.js: {e}")
 
+import mysql.connector
 
 def insertar_en_mysql(datos):
     """
     Inserta los datos en la base de datos MySQL.
     """
+    cnx = None
+    cursor = None
     try:
-        print(f"Insertando datos en MySQL: {datos}")  # Verificar que se están intentando insertar datos
-
+        #print(f"Conectando a la base de datos con configuración: {DB_CONFIG}")
         cnx = mysql.connector.connect(**DB_CONFIG)
         cursor = cnx.cursor()
+        print("Conexión a la base de datos establecida correctamente.")
 
-        # Concatenar Fecha y Hora en un solo string en formato 'YYYY-MM-DD HH:MM:SS'
-        fecha_hora = f"{datos['Fecha']} {datos['Hora']}"  # Formato: '2024-10-09 23:15:43'
+        # Insertar en la tabla adecuada según la aplicación
+        if datos.get('Aplicacion') == "App2" and 'RPM' in datos:
+            # Insertar en la tabla de datos_obd
+            add_dato = ("INSERT INTO datos_obd "
+                        "(Aplicacion, Latitud, Longitud, Fecha, Hora, RPM) "
+                        "VALUES (%s, %s, %s, %s, %s, %s)")
+            data_dato = (datos['Aplicacion'], datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'], datos['RPM'])
+            print(f"Preparando para insertar en datos_obd: {data_dato}")
+            cursor.execute(add_dato, data_dato)
+            cnx.commit()
+            print("Datos insertados correctamente en datos_obd.")
+            return  # Salir de la función para evitar cualquier inserción adicional
+    
+        elif datos.get('Aplicacion') == "App1" and 'RPM' not in datos:
+            # Insertar en la tabla de datos_gps
+            add_dato = ("INSERT INTO datos_gps "
+                        "(Aplicacion, Latitud, Longitud, Fecha, Hora) "
+                        "VALUES (%s, %s, %s, %s, %s)")
+            data_dato = (datos['Aplicacion'], datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'])
+            print(f"Preparando para insertar en datos_gps: {data_dato}")
+            cursor.execute(add_dato, data_dato)
+            cnx.commit()
+            print("Datos insertados correctamente en datos_gps.")
+            return  # Salir de la función para evitar cualquier inserción adicional
 
-        # Asegúrate de que la tabla 'datos_gps' tiene la columna 'FechaHora'
-        add_dato = ("INSERT INTO datos_gps "
-                    "(Latitud, Longitud, FechaHora) "  # Cambiar de 'Fecha' y 'Hora' a 'FechaHora'
-                    "VALUES (%s, %s, %s)")
-        data_dato = (datos['Latitud'], datos['Longitud'], fecha_hora)  # Agregar 'fecha_hora'
+        
 
-        cursor.execute(add_dato, data_dato)
+        else:
+            print("Error: Datos incompletos o incorrectos para la aplicación especificada.")
+            return
+
+        # Confirmar los cambios en la base de datos
         cnx.commit()
+        print("Datos insertados correctamente en la base de datos MySQL.")
 
-        print("Datos insertados correctamente en la base de datos MySQL.")  # Verificar que se han insertado datos
-
-        cursor.close()
-        cnx.close()
     except mysql.connector.Error as err:
-        print(f"Error: {err}")
+        print(f"Error al insertar en MySQL: {err}")  # Capturar y mostrar cualquier error durante la inserción
+
     except Exception as e:
-        print(f"Ocurrió un error: {e}")
+        print(f"Otro error ocurrió al insertar en MySQL: {e}")  # Capturar cualquier otro tipo de error
 
-
+    finally:
+        # Cerrar el cursor y la conexión si están abiertos
+        if cursor:
+            cursor.close()
+            print("Cursor cerrado.")
+        if cnx:
+            cnx.close()
+            print("Conexión a la base de datos cerrada.")
 
 def main():
     """
