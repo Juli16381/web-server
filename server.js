@@ -300,8 +300,10 @@ app.get('/datosobd', (req, res) => {
 
         // Llenar la tabla con los datos
         results.forEach((row) => {
-            const fechaFormateada = new Date(row.FechaHora).toLocaleDateString('es-ES');
-            const horaFormateada = new Date(row.FechaHora).toTimeString().split(' ')[0];
+            const fecha = new Date(row.FechaHora);
+            const fechaFormateada = fecha.toLocaleDateString('es-ES');
+            const horaFormateada = fecha.toTimeString().split(' ')[0]; // Formato HH:mm:ss
+            
             html += `
             <tr>
                 <td>${row.id}</td>
@@ -323,7 +325,6 @@ app.get('/datosobd', (req, res) => {
         res.send(html);  // Enviar la tabla al navegador
     });
 });
-
 
 
 
