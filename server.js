@@ -309,6 +309,10 @@ app.get('/Obd', (req, res) => {
     });
 });
 
+// Manejador para rutas no encontradas
+app.use((req, res) => {
+    res.status(404).send('Página no encontrada');
+});
 
 
   // Iniciar el servidor en el puerto 80
