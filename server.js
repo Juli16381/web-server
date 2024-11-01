@@ -75,6 +75,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
                         const horaFormateada = fechaHora.toTimeString().split(' ')[0];
 
                         io.emit('new-data', {
+                            carro: '1',
                             Latitud: latestData.Latitud,
                             Longitud: latestData.Longitud,
                             Fecha: fechaFormateada,
@@ -121,6 +122,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
                         const horaFormateada = fechaHora.toTimeString().split(' ')[0];
 
                         io.emit('new-obd-data', {
+                            carro: '2',
                             Latitud: latestData.Latitud,
                             Longitud: latestData.Longitud,
                             Fecha: fechaFormateada,
