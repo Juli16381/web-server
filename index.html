@@ -241,27 +241,30 @@
             let ultimaLatitud2 = null;
             let ultimaLongitud2 = null;
 
-            document.getElementById('filterForm1').addEventListener('submit', function(event) {
-            event.preventDefault(); 
-                
-            if (selectedCar === 'carro1') {
-             socket.on('new-data', (data) => {
-                if (!filtrando) {
-                    actualizarMapa(data);
-                }
-                 
-            } else if (selectedCar === 'carro2') {
+      document.getElementById('filterForm1').addEventListener('submit', function(event) {
+    event.preventDefault();
 
-                 socket.on('new-obd-data', (data) => {
-                if (!filtrando) {
-                    actualizarMapa1(data);
-                }
-                     
-            } else {
-            // Manejo para "ambos" si es necesario
+    const selectedCar = document.getElementById('carSelection').value;
+
+    if (selectedCar === 'carro1') {
+        socket.on('new-data', (data) => {
+            if (!filtrando) {
+                actualizarMapa(data);
             }
+        }); // Cierre del socket.on para 'carro1'
+        
+    } else if (selectedCar === 'carro2') {
+        socket.on('new-obd-data', (data) => {
+            if (!filtrando) {
+                actualizarMapa1(data);
+            }
+        }); // Cierre del socket.on para 'carro2'
+        
+    } else {
+        // Lógica para manejar el caso en el que se seleccionen "ambos" carros
+    }
+}); // Cierre del event listener del formulario
 
-    });
 
             function actualizarMapa(data) {
                 if (!data || !data.Latitud || !data.Longitud || !data.Fecha || !data.Hora) {
