@@ -241,11 +241,27 @@
             let ultimaLatitud2 = null;
             let ultimaLongitud2 = null;
 
-            socket.on('new-data', (data) => {
+            document.getElementById('filterForm1').addEventListener('submit', function(event) {
+            event.preventDefault(); 
+                
+            if (selectedCar === 'carro1') {
+             socket.on('new-data', (data) => {
                 if (!filtrando) {
                     actualizarMapa(data);
-                }
-            });
+                });
+                 
+            } else if (selectedCar === 'carro2') {
+
+                 socket.on('new-obd-data', (data) => {
+                if (!filtrando) {
+                    actualizarMapa1(data);
+                });
+                     
+            } else {
+            // Manejo para "ambos" si es necesario
+            }
+
+    }
 
             function actualizarMapa(data) {
                 if (!data || !data.Latitud || !data.Longitud || !data.Fecha || !data.Hora) {
