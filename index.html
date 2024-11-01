@@ -177,27 +177,25 @@
             }
 
              // Mostrar/ocultar los formularios de filtrado y selección de carro al hacer clic en el botón
-    document.getElementById('toggle-filter-btn').addEventListener('click', function() {
-    const filterForm = document.getElementById('filterForm');
-    const filterForm1 = document.getElementById('filterForm1');
-    const sliderContainer = document.getElementById('slider-container');
-
-    // Verificar el estado de ambos formularios
-    const isFilterFormVisible = filterForm.style.display === 'block';
-    const isFilterForm1Visible = filterForm1.style.display === 'block';
-
-    // Alternar la visibilidad de ambos formularios
-    if (!isFilterFormVisible || !isFilterForm1Visible) {
-        filterForm.style.display = 'block';
-        filterForm1.style.display = 'block'; // Mostrar formulario de selección de carro
-        sliderContainer.style.display = 'block'; // Mostrar slider
-        limpiarMapa();
-    } else {
-        filterForm.style.display = 'none';
-        filterForm1.style.display = 'none'; // Ocultar formulario de selección de carro
-        sliderContainer.style.display = 'none'; // Ocultar slider
-    }
-});
+            document.getElementById('toggle-filter-btn').addEventListener('click', function() {
+            const filterForm = document.getElementById('filterForm');
+            const filterForm1 = document.getElementById('filterForm1');
+            const sliderContainer = document.getElementById('slider-container');
+            // Verificar el estado de ambos formularios
+            const isFilterFormVisible = filterForm.style.display === 'block';
+            const isFilterForm1Visible = filterForm1.style.display === 'block';
+            // Alternar la visibilidad de ambos formularios
+              if (!isFilterFormVisible || !isFilterForm1Visible) {
+            filterForm.style.display = 'block';
+            filterForm1.style.display = 'block'; // Mostrar formulario de selección de carro
+            sliderContainer.style.display = 'block'; // Mostrar slider
+            limpiarMapa();
+        } else {
+            filterForm.style.display = 'none';
+            filterForm1.style.display = 'none'; // Ocultar formulario de selección de carro
+        }
+            document.getElementById('slider-container').style.display = 'none';
+    });
 
 
     
