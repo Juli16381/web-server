@@ -249,7 +249,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
 
     // Ruta para mostrar los datos históricos de OBD
 app.get('/datosobd', (req, res) => {
-    let query = 'SELECT id, Aplicacion, Latitud, Longitud, DATE_FORMAT(FechaHora, "%Y-%m-%d %H:%i:%s") as FechaHora, rpm FROM datos_obd ORDER BY FechaHora DESC, id DESC';
+    let query = 'SELECT id, Aplicacion, Latitud, Longitud, FechaHora, rpm FROM datos_obd ORDER BY FechaHora DESC, id DESC';
     
     db.query(query, (err, results) => {
         if (err) {
@@ -323,6 +323,7 @@ app.get('/datosobd', (req, res) => {
         res.send(html);  // Enviar la tabla al navegador
     });
 });
+
 
 
 
