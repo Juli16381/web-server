@@ -179,7 +179,6 @@
             document.getElementById('toggle-filter-btn').addEventListener('click', function() {
             const filterForm = document.getElementById('filterForm');
             const filterForm1 = document.getElementById('filterForm1'); // Seleccionar el formulario de selección de carro
-            const sliderContainer = document.getElementById('slider-container'); // Asegúrate de que tienes un contenedor para el slider
 
             if (filterForm.style.display === 'none' || filterForm.style.display === '') {
             filterForm.style.display = 'block'; // Mostrar el formulario de filtrado
@@ -189,8 +188,9 @@
             } else {
             filterForm.style.display = 'none'; // Ocultar el formulario de filtrado
             filterForm1.style.display = 'none'; // Ocultar el formulario de selección de carro
-            sliderContainer.style.display = 'none'; // Ocultar el slider si es necesario
+           
         }
+            document.getElementById('slider-container').style.display = 'none';
     });
 
             
