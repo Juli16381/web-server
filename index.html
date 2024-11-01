@@ -108,14 +108,11 @@
     <!-- Botón para mostrar/ocultar el formulario de filtrado -->
     <button id="toggle-filter-btn">Filtrar información</button>
 
-     <!-- Formulario de filtrado -->
-    <form id="filterForm1">
-        <label for="carSelection">Seleccionar carro:</label>
-        <select id="carSelection" name="carSelection">
-            <option value="carro1">Carro 1</option>
-            <option value="carro2">Carro 2</option>
-            <option value="ambos">Ambos</option>
-        </select>
+    <div id="carSelectionButtons">
+    <button type="button" id="carro1Btn">Carro 1</button>
+    <button type="button" id="carro2Btn">Carro 2</button>
+    <button type="button" id="ambosBtn">Ambos</button>
+    </div>
 
     <!-- Formulario de filtrado -->
     <form id="filterForm">
@@ -241,31 +238,39 @@
             let ultimaLatitud2 = null;
             let ultimaLongitud2 = null;
 
-      document.getElementById('filterForm1').addEventListener('submit', function(event) {
-    event.preventDefault();
+    document.getElementById('carro1Btn').addEventListener('click', function() {
+    alert("Carro 1 seleccionado");
+    socket.on('new-data', (data) => {
+        if (!filtrando) {
+            actualizarMapa(data);
+        }
+    });
+});
 
-    const selectedCar = document.getElementById('carSelection').value;
+document.getElementById('carro2Btn').addEventListener('click', function() {
+    alert("Carro 2 seleccionado");
+    socket.on('new-obd-data', (data) => {
+        if (!filtrando) {
+            actualizarMapa1(data);
+        }
+    });
+});
 
-    if (selectedCar === 'carro1') {
-         alert("carro 1");
-        socket.on('new-data', (data) => {
-            if (!filtrando) {
-                actualizarMapa(data);
-            }
-        }); // Cierre del socket.on para 'carro1'
-        
-    } else if (selectedCar === 'carro2') {
-         alert("carro 2");
-        socket.on('new-obd-data', (data) => {
-            if (!filtrando) {
-                actualizarMapa1(data);
-            }
-        }); // Cierre del socket.on para 'carro2'
-        
-    } else {
-        // Lógica para manejar el caso en el que se seleccionen "ambos" carros
-    }
-}); // Cierre del event listener del formulario
+document.getElementById('ambosBtn').addEventListener('click', function() {
+    alert("Ambos carros seleccionados");
+    // Lógica para manejar ambos carros si es necesario
+    socket.on('new-data', (data) => {
+        if (!filtrando) {
+            actualizarMapa(data); // Carro 1
+        }
+    });
+
+    socket.on('new-obd-data', (data) => {
+        if (!filtrando) {
+            actualizarMapa1(data); // Carro 2
+        }
+    });
+});
 
 
             function actualizarMapa(data) {
