@@ -247,67 +247,67 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
         });
     });
 
-    // Ruta para mostrar los datos de datos_obd en HTML
     app.get('/datosObd', (req, res) => {
-        let query = 'SELECT * FROM datos_obd ORDER BY FechaHora DESC, id DESC';
-        
-        db.query(query, (err, results) => {
-            if (err) {
-                console.error('Error al consultar la base de datos:', err);
-                res.status(500).send('Error al consultar la base de datos');
-                return;
-            }
+    let query = 'SELECT * FROM datos_obd ORDER BY FechaHora DESC, id DESC';
+    
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al consultar la base de datos:', err);
+            res.status(500).send('Error al consultar la base de datos');
+            return;
+        }
 
-            let html = `
-            <!DOCTYPE html>
-            <html lang="es">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Historial de Datos OBD</title>
-                <style>
-                    table { width: 100%; border-collapse: collapse; text-align: center; }
-                    th, td { border: 1px solid black; padding: 8px; }
-                    th { background-color: #ce72c0; color: white; }
-                </style>
-            </head>
-            <body>
-                <h1>Historial de Datos OBD</h1>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Latitud</th>
-                            <th>Longitud</th>
-                            <th>Fecha</th>
-                            <th>Hora</th>
-                            <th>RPM</th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
+        let html = `
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Historial de Datos OBD</title>
+            <style>
+                table { width: 100%; border-collapse: collapse; text-align: center; }
+                th, td { border: 1px solid black; padding: 8px; }
+                th { background-color: #ce72c0; color: white; }
+            </style>
+        </head>
+        <body>
+            <h1>Historial de Datos OBD</h1>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Latitud</th>
+                        <th>Longitud</th>
+                        <th>Fecha</th>
+                        <th>Hora</th>
+                        <th>RPM</th>
+                    </tr>
+                </thead>
+                <tbody>`;
 
-            results.forEach((row) => {
-                const [fecha, hora] = row.FechaHora.split(' ');
-                html += `
-                <tr>
-                    <td>${row.id}</td>
-                    <td>${row.Latitud}</td>
-                    <td>${row.Longitud}</td>
-                    <td>${fecha}</td>
-                    <td>${hora}</td>
-                    <td>${row.RPM}</td>
-                </tr>`;
-            });
-
+        results.forEach((row) => {
+            const [fecha, hora] = row.FechaHora.split(' ');
             html += `
-                    </tbody>
-                </table>
-            </body>
-            </html>`;
-
-            res.send(html);
+            <tr>
+                <td>${row.id}</td>
+                <td>${row.Latitud}</td>
+                <td>${row.Longitud}</td>
+                <td>${fecha}</td>
+                <td>${hora}</td>
+                <td>${row.RPM}</td>
+            </tr>`;
         });
+
+        html += `
+                </tbody>
+            </table>
+        </body>
+        </html>`;
+
+        res.send(html);
     });
+});
+
 
   // Iniciar el servidor en el puerto 80
     server.listen(80, '0.0.0.0', () => {
