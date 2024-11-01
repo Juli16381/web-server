@@ -284,7 +284,6 @@ window.addEventListener('beforeunload', function() {
     localStorage.setItem('isFiltering', 'false');
 });
 
-
             const socket = io();
 
             let autoCenter = true;
@@ -363,6 +362,7 @@ window.addEventListener('beforeunload', function() {
 
     document.getElementById('carro1Btn').addEventListener('click', function() {
     ultimaUbicacionControlCarro1.addTo(map);
+    ultimaUbicacionControlCarro2.remove();
     socket.on('new-data', (data) => {
         if (!filtrando) {
             actualizarMapa(data);
@@ -372,6 +372,7 @@ window.addEventListener('beforeunload', function() {
 
 document.getElementById('carro2Btn').addEventListener('click', function() {
     ultimaUbicacionControlCarro2.addTo(map);
+    ultimaUbicacionControlCarro1.remove();
     socket.on('new-obd-data', (data) => {
         if (!filtrando) {
             actualizarMapa1(data);
