@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title id="name-title">Datos GPS</title>
     <script>
-        // Función para obtener el nombre del servidor y actualizar el título
+    // Función para obtener el nombre del servidor y actualizar el título
         function fetchName() {
             fetch('/name')
                 .then(response => response.json())
@@ -16,23 +16,6 @@
 
         // Ejecutar la función cuando la página cargue
         document.addEventListener('DOMContentLoaded', fetchName);
-
-        // Mostrar los formularios de selección de carro y filtrado cuando se haga clic en el botón
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('toggle-filter-btn').addEventListener('click', function() {
-                const filterForm = document.getElementById('filterForm');
-                const carSelectionForm = document.getElementById('carSelectionForm');
-
-                // Alternar la visibilidad de ambos formularios
-                if (carSelectionForm.style.display === 'none' && filterForm.style.display === 'none') {
-                    carSelectionForm.style.display = 'block';
-                    filterForm.style.display = 'block';
-                } else {
-                    carSelectionForm.style.display = 'none';
-                    filterForm.style.display = 'none';
-                }
-            });
-        });
     </script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
@@ -84,8 +67,8 @@
             margin-bottom: 7px;
             border-radius: 5px;
         }
-        /* Ocultar inicialmente los formularios */
-        #filterForm, #carSelectionForm {
+        /* Ocultar inicialmente el formulario */
+        #filterForm {
             display: none;
             margin-bottom: 15px;
         }
@@ -100,39 +83,46 @@
             width: 30%;
             margin-top: 1px;
         }
-        #map {
-            width: 100%;
-            margin-bottom: 20px;
-            height: 70vh;
-            max-width: 100vw;
-        }
-        .container {
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            max-width: 100vw;
-        }
-        .data-container {
-            width: 100%;
-            max-width: 100vw;
+            #map {
+                width: 100%;
+                margin-bottom: 20px;
+                height: 70vh;
+                max-width: 100vw;
+            }
+            .container {
+                flex-direction: column;
+                align-items: center;
+                width: 100%;
+                max-width: 100vw;
+            }
+            .data-container {
+                width: 100%;
+                max-width: 100vw;
+            }
         }
     </style>
 </head>
 <body>
     <h1 class="title">TrackMe</h1>
 
-    <!-- Botón para mostrar/ocultar los formularios de filtrado -->
+    <!-- Botón para mostrar/ocultar el formulario de filtrado -->
     <button id="toggle-filter-btn">Filtrar información</button>
 
-    <!-- Formulario de selección de carro -->
-    <form id="carSelectionForm">
+    <form id="filterForm1">
+    <label for="carSelection">Seleccionar carro:</label><br>
+    <button type="button" id="carro1" value="carro1">Carro 1</button>
+    <button type="button" id="carro2" value="carro2">Carro 2</button>
+    <button type="button" id="ambos" value="ambos">Ambos</button>
+    </form>
+
+     <!-- Formulario de filtrado -->
+    <form id="filterForm1">
         <label for="carSelection">Seleccionar carro:</label>
         <select id="carSelection" name="carSelection">
             <option value="carro1">Carro 1</option>
             <option value="carro2">Carro 2</option>
             <option value="ambos">Ambos</option>
         </select>
-    </form>
 
     <!-- Formulario de filtrado -->
     <form id="filterForm">
