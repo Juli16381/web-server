@@ -286,28 +286,31 @@ app.get('/datosObd', (req, res) => {
                 </thead>
                 <tbody>`;
 
-        results.forEach((row) => {
-            const [fecha, hora] = row.FechaHora.split(' ');
+         // Llenar la tabla con los datos
+            results.forEach((row) => {
+                const fechaFormateada = new Date(row.FechaHora).toLocaleDateString('es-ES');
+                const horaFormateada = new Date(row.FechaHora).toTimeString().split(' ')[0];
+                html += `
+                <tr>
+                    <td>${row.id}</td>
+                    <td>${row.Latitud}</td>
+                    <td>${row.Longitud}</td>
+                    <td>${fechaFormateada}</td>  
+                    <td>${horaFormateada}</td>  
+                    <td>${row.RPM}</td>
+                </tr>`;
+            });
+
             html += `
-            <tr>
-                <td>${row.id}</td>
-                <td>${row.Latitud}</td>
-                <td>${row.Longitud}</td>
-                <td>${fecha}</td>
-                <td>${hora}</td>
-                <td>${row.RPM}</td>
-            </tr>`;
+                    </tbody>
+                </table>
+            </body>
+            </html>`;
+
+            res.send(html);  // Enviar la tabla al navegador
         });
-
-        html += `
-                </tbody>
-            </table>
-        </body>
-        </html>`;
-
-        res.send(html);
     });
-});
+        
 
 // Manejador para rutas no encontradas
 app.use((req, res) => {
