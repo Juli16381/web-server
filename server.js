@@ -247,8 +247,9 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
         });
     });
 
-   app.get('/datosobd', (req, res) => {
-    let query = 'SELECT * FROM datos_obd ORDER BY FechaHora DESC, id DESC';
+    // Ruta para mostrar los datos históricos de OBD
+app.get('/datosobd', (req, res) => {
+    let query = 'SELECT id, Aplicacion, Latitud, Longitud, DATE_FORMAT(FechaHora, "%Y-%m-%d %H:%i:%s") as FechaHora, rpm FROM datos_obd ORDER BY FechaHora DESC, id DESC';
     
     db.query(query, (err, results) => {
         if (err) {
@@ -282,7 +283,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
             </style>
         </head>
         <body>
-            <h1>Historial de Datos OBD de Carro 2</h1>
+            <h1>Historial de Datos OBD</h1>
             <table>
                 <thead>
                     <tr>
@@ -319,7 +320,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
         </body>
         </html>`;
 
-        res.send(html);
+        res.send(html);  // Enviar la tabla al navegador
     });
 });
 
