@@ -85,7 +85,7 @@ def parsear_payload(payload):
         timestamp = datos.get('Timestamp')
 
         # Identificar el CarroID en el payload
-        carroid = "Carro 1" if "carro 1" in payload.lower() else "Carro 2" if "carro 2" in payload.lower() else None
+        carroid = "Carro 1" if "Carro 1" in payload.lower() else "Carro 2" if "Carro 2" in payload.lower() else None
 
         # Verificar si se envían datos adicionales (por ejemplo, RPM)
         rpm = datos.get('RPM')
@@ -150,24 +150,24 @@ def insertar_en_mysql(datos):
         print("Conexión a la base de datos establecida correctamente.")
 
         # Insertar en la tabla adecuada según la aplicación
-        if datos.get('Aplicacion') == "App2" and 'RPM' in datos:
+        if datos.get('Carroid') == "Carro 2" and 'RPM' in datos:
             # Insertar en la tabla de datos_obd
             add_dato = ("INSERT INTO datos_obd "
-                        "(Aplicacion, Latitud, Longitud, Fecha, Hora, RPM) "
+                        "(Carroid, Latitud, Longitud, Fecha, Hora, RPM) "
                         "VALUES (%s, %s, %s, %s, %s, %s)")
-            data_dato = (datos['Aplicacion'], datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'], datos['RPM'])
+            data_dato = (datos['Carroid'], datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'], datos['RPM'])
             print(f"Preparando para insertar en datos_obd: {data_dato}")
             cursor.execute(add_dato, data_dato)
             cnx.commit()
             print("Datos insertados correctamente en datos_obd.")
             return  # Salir de la función para evitar cualquier inserción adicional
     
-        elif datos.get('Aplicacion') == "App1" and 'RPM' not in datos:
+        elif datos.get('Carroid') == "Carro 1" and 'RPM' not in datos:
             # Insertar en la tabla de datos_gps
             add_dato = ("INSERT INTO datos_gps "
-                        "(Aplicacion, Latitud, Longitud, Fecha, Hora) "
+                        "(Carroid, Latitud, Longitud, Fecha, Hora) "
                         "VALUES (%s, %s, %s, %s, %s)")
-            data_dato = (datos['Aplicacion'], datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'])
+            data_dato = (datos['Carroid'], datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'])
             print(f"Preparando para insertar en datos_gps: {data_dato}")
             cursor.execute(add_dato, data_dato)
             cnx.commit()
