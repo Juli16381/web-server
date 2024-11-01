@@ -22,9 +22,14 @@
             const filterForm = document.getElementById('filterForm');
             const carSelectionForm = document.getElementById('carSelectionForm');
 
-            // Alternar la visibilidad del formulario de filtrado
-            filterForm.style.display = filterForm.style.display === 'none' ? 'block' : 'none';
-            carSelectionForm.style.display = carSelectionForm.style.display === 'none' ? 'block' : 'none';
+            // Alternar la visibilidad del formulario de filtrado y del formulario de selección de carro
+            if (filterForm.style.display === 'none' && carSelectionForm.style.display === 'none') {
+                filterForm.style.display = 'block';
+                carSelectionForm.style.display = 'block';
+            } else {
+                filterForm.style.display = 'none';
+                carSelectionForm.style.display = 'none';
+            }
         });
 
         // Manejo del envío del formulario
@@ -34,8 +39,9 @@
             // Aquí puedes obtener las fechas y enviar la información para filtrar los datos
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
+            const carSelection = document.getElementById('carSelection').value;
 
-            console.log('Fechas seleccionadas:', startDate, endDate);
+            console.log('Fechas seleccionadas:', startDate, endDate, 'Carro seleccionado:', carSelection);
             // Añadir lógica para filtrar datos aquí...
         });
     </script>
@@ -129,12 +135,6 @@
 
     <!-- Botón para mostrar/ocultar el formulario de filtrado -->
     <button id="toggle-filter-btn">Filtrar información</button>
-
-    <div id="carSelectionButtons">
-    <button type="button" id="carro1Btn">Carro 1</button>
-    <button type="button" id="carro2Btn">Carro 2</button>
-    <button type="button" id="ambosBtn">Ambos</button>
-    </div>
 
     <!-- Formulario de selección de carro -->
     <form id="carSelectionForm">
