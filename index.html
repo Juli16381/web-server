@@ -266,8 +266,8 @@ document.getElementById('toggle-filter-btn').addEventListener('click', function(
     document.getElementById('slider-container').style.display = 'none';
 });
 
-// Agregar evento para el botón de regresar
-document.getElementById('regresarBtn').addEventListener('click', function() {
+    // Agregar evento para el botón de regresar
+    document.getElementById('regresarBtn').addEventListener('click', function() {
     // Ocultar formularios de filtrado
     document.getElementById('filterForm').style.display = 'none';
     document.getElementById('filterForm1').style.display = 'none'; 
@@ -291,6 +291,8 @@ document.getElementById('regresarBtn').addEventListener('click', function() {
             let autoCenterTimeout;
             let filtrando = false;
             let primerCentrado = true;
+            let filtrando2 = false;  
+            let primerCentrado2 = true;
 
             // Inicializar el mapa
             const map = L.map('map').setView([10.96854, -74.78132], 13);
@@ -301,20 +303,36 @@ document.getElementById('regresarBtn').addEventListener('click', function() {
                 attribution: '© OpenStreetMap contributors'
             }).addTo(map);
 
-            let ultimaUbicacionControl = L.control({position: 'bottomleft'});
-            ultimaUbicacionControl.onAdd = function(map) {
-                const div = L.DomUtil.create('div', 'leaflet-control');
-                div.id = 'ultima-ubicacion-info';
-                div.innerHTML = `
-                    <b>Última ubicación</b><br>
-                    Latitud: <span id="ultima-latitud">-</span><br>
-                    Longitud: <span id="ultima-longitud">-</span><br>
-                    Fecha: <span id="ultima-fecha">-</span><br>
-                    Hora: <span id="ultima-hora">-</span>
-                `;
-                return div;
-            };
-            ultimaUbicacionControl.addTo(map);
+            // Control para el Carro 1
+        let ultimaUbicacionControlCarro1 = L.control({ position: 'bottomleft' });
+        ultimaUbicacionControlCarro1.onAdd = function(map) {
+        const div = L.DomUtil.create('div', 'leaflet-control');
+        div.id = 'ultima-ubicacion-info-carro1';
+        div.innerHTML = `
+            <b>Última ubicación Carro 1</b><br>
+            Latitud: <span id="ultima-latitud">-</span><br>
+            Longitud: <span id="ultima-longitud">-</span><br>
+            Fecha: <span id="ultima-fecha">-</span><br>
+            Hora: <span id="ultima-hora">-</span><br>
+        `;
+        return div;
+    };
+
+    // Control para el Carro 2
+        let ultimaUbicacionControlCarro2 = L.control({ position: 'bottomright' });
+        ultimaUbicacionControlCarro2.onAdd = function(map) {
+        const div = L.DomUtil.create('div', 'leaflet-control');
+        div.id = 'ultima-ubicacion-info-carro2';
+        div.innerHTML = `
+            <b>Última ubicación Carro 2</b><br>
+            Latitud: <span id="ultima-latitud2">-</span><br>
+            Longitud: <span id="ultima-longitud2">-</span><br>
+            Fecha: <span id="ultima-fecha2">-</span><br>
+            Hora: <span id="ultima-hora2">-</span><br>
+            RPM: <span id="ultima-rpm-carro2">-</span><br>
+    `;
+        return div;
+};
 
             // Polilínea carro 1
             let recorrido = L.polyline([], { color: '#800080' }).addTo(map);
@@ -338,7 +356,6 @@ document.getElementById('regresarBtn').addEventListener('click', function() {
             }).addTo(map);
 
             let marcadorSlider = null; // Marcador que se actualizará con el slider
-
             let ultimaLatitud = null;
             let ultimaLongitud = null;
             let ultimaLatitud2 = null;
@@ -349,6 +366,7 @@ document.getElementById('regresarBtn').addEventListener('click', function() {
     socket.on('new-data', (data) => {
         if (!filtrando) {
             actualizarMapa(data);
+            ultimaUbicacionControlCarro1.addTo(map);
         }
     });
 });
@@ -358,6 +376,7 @@ document.getElementById('carro2Btn').addEventListener('click', function() {
     socket.on('new-obd-data', (data) => {
         if (!filtrando) {
             actualizarMapa1(data);
+             ultimaUbicacionControlCarro2.addTo(map);
         }
     });
 });
@@ -368,12 +387,14 @@ document.getElementById('ambosBtn').addEventListener('click', function() {
     socket.on('new-data', (data) => {
         if (!filtrando) {
             actualizarMapa(data); // Carro 1
+             ultimaUbicacionControlCarro2.addTo(map);
         }
     });
 
     socket.on('new-obd-data', (data) => {
         if (!filtrando) {
             actualizarMapa1(data); // Carro 2
+             ultimaUbicacionControlCarro2.addTo(map);
         }
     });
 });
@@ -414,6 +435,50 @@ document.getElementById('ambosBtn').addEventListener('click', function() {
                 }
             }
 
+        // Función para actualizar el mapa con datos del carro 2
+        function actualizarMapa1(data) {
+        if (!data || !data.Latitud || !data.Longitud || !data.Fecha || !data.Hora || !data.RPM) {
+        console.error('Datos inválidos recibidos:', data);
+        return;
+        }
+    
+        const nuevaLatitud = parseFloat(data.Latitud);
+        const nuevaLongitud = parseFloat(data.Longitud);
+        const fechaFormateada = data.Fecha.split('T')[0];
+        const horaFormateada = data.Hora;
+        const rpmFormateada = data.RPM;
+
+        // Evitar actualizaciones si la posición no ha cambiado
+        if (ultimaLatitud2 !== null && ultimaLongitud2 !== null && 
+        ultimaLatitud2 === nuevaLatitud && ultimaLongitud2 === nuevaLongitud) {
+        return;
+        }
+
+        // Actualizar los elementos de visualización
+        document.getElementById('ultima-latitud2').innerText = nuevaLatitud.toFixed(3);
+        document.getElementById('ultima-longitud2').innerText = nuevaLongitud.toFixed(3);
+        document.getElementById('ultima-fecha2').innerText = fechaFormateada;
+        document.getElementById('ultima-hora2').innerText = horaFormateada;
+        document.getElementById('ultima-rpm').innerText = rpmFormateada;  // Asegúrate de que este ID exista
+
+        // Agregar la nueva posición al recorrido si no está en modo filtrado
+        if (!filtrando2) {
+        recorrido2.addLatLng([nuevaLatitud, nuevaLongitud]);
+        }
+
+        // Actualizar la posición del marcador de la última ubicación
+        marcadorUltimaUbicacion2.setLatLng([nuevaLatitud, nuevaLongitud]);
+        if (primerCentrado2) {
+        map.setView([nuevaLatitud, nuevaLongitud], 13);  // Ajustar el nivel de zoom
+        primerCentrado2 = false;  // Evitar más centrados automáticos
+        }
+    
+        // Actualizar las variables de última ubicación
+        ultimaLatitud2 = nuevaLatitud;
+        ultimaLongitud2 = nuevaLongitud;
+    }
+
+            
             function cargarDatosDesdeServidor() {
                 fetch('/historicos')
                     .then(response => response.json())
