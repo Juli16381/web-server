@@ -248,20 +248,20 @@
              socket.on('new-data', (data) => {
                 if (!filtrando) {
                     actualizarMapa(data);
-                });
+                }
                  
             } else if (selectedCar === 'carro2') {
 
                  socket.on('new-obd-data', (data) => {
                 if (!filtrando) {
                     actualizarMapa1(data);
-                });
+                }
                      
             } else {
             // Manejo para "ambos" si es necesario
             }
 
-    }
+    });
 
             function actualizarMapa(data) {
                 if (!data || !data.Latitud || !data.Longitud || !data.Fecha || !data.Hora) {
