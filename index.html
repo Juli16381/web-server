@@ -124,6 +124,7 @@
     <button type="button" id="ambosBtn">Ambos</button>
     </div>
 
+    filterForm1.style.display = 'none'; 
     <form id="filterForm1">
     <label for="carSelection">Seleccionar carro:</label>
     <select id="carSelection" name="carSelection">
@@ -148,7 +149,7 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
-        filterForm1.style.display = 'none'; 
+       
         document.addEventListener('DOMContentLoaded', function() {
             // Obtener la fecha y hora actuales
             const now = new Date();
