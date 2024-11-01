@@ -247,8 +247,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
         });
     });
 
-   // Ruta para mostrar los datos históricos de carro 2 en tabla (ruta escondida)
-app.get('/datosobd', (req, res) => {
+   app.get('/datosobd', (req, res) => {
     let query = 'SELECT * FROM datos_obd ORDER BY FechaHora DESC, id DESC';
     
     db.query(query, (err, results) => {
@@ -288,6 +287,7 @@ app.get('/datosobd', (req, res) => {
                 <thead>
                     <tr>
                         <th>ID</th>
+                        <th>Aplicación</th>
                         <th>Latitud</th>
                         <th>Longitud</th>
                         <th>Fecha</th>
@@ -304,11 +304,12 @@ app.get('/datosobd', (req, res) => {
             html += `
             <tr>
                 <td>${row.id}</td>
+                <td>${row.Aplicacion}</td>
                 <td>${row.Latitud}</td>
                 <td>${row.Longitud}</td>
                 <td>${fechaFormateada}</td>  
                 <td>${horaFormateada}</td>  
-                <td>${row.RPM}</td>  <!-- Añadiendo la columna de RPM -->
+                <td>${row.rpm}</td>
             </tr>`;
         });
 
@@ -318,9 +319,10 @@ app.get('/datosobd', (req, res) => {
         </body>
         </html>`;
 
-        res.send(html);  // Enviar la tabla al navegador
+        res.send(html);
     });
 });
+
 
 
   // Iniciar el servidor en el puerto 80
