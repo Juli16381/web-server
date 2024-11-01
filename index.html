@@ -382,7 +382,7 @@ document.getElementById('carro2Btn').addEventListener('click', function() {
 
 document.getElementById('ambosBtn').addEventListener('click', function() {
      ultimaUbicacionControlCarro2.addTo(map);
-     ultimaUbicacionControlCarro2.addTo(map);
+     ultimaUbicacionControlCarro1.addTo(map);
     // Lógica para manejar ambos carros si es necesario
     socket.on('new-data', (data) => {
         if (!filtrando) {
