@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -118,25 +117,6 @@
         <button type="submit">Filtrar</button>
     </form>
 
-    <!-- Botones de selección de carro -->
-    <div id="carSelectionButtons">
-    <button type="button" id="carro1Btn">Carro 1</button>
-    <button type="button" id="carro2Btn">Carro 2</button>
-    <button type="button" id="ambosBtn">Ambos</button>
-    </div>
-
-   
-    <form id="filterForm1">
-    <label for="carSelection">Seleccionar carro:</label>
-    <select id="carSelection" name="carSelection">
-        <option value="carro1">Carro 1</option>
-        <option value="carro2">Carro 2</option>
-        <option value="ambos">Ambos</option>
-    </select>
-    </form>
-
-    <button id="regresarBtn" style="display: none;">Regresar</button>
-
     <!-- Slider para controlar el avance debajo del formulario de filtrado -->
     <div id="slider-container">
         <input type="range" id="filter-slider" min="0" value="0" step="1">
@@ -150,8 +130,6 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
-        
-        filterForm1.style.display = 'none'; 
         document.addEventListener('DOMContentLoaded', function() {
             // Obtener la fecha y hora actuales
             const now = new Date();
@@ -181,109 +159,19 @@
                 });
             }
 
-            
-    // Inicializar el estado al cargar la página
-    document.addEventListener('DOMContentLoaded', function() {
-    const filterForm = document.getElementById('filterForm');
-    const filterForm1 = document.getElementById('filterForm1');
-    const sliderContainer = document.getElementById('slider-container');
-    const carSelectionButtons = document.getElementById('carSelectionButtons');
-    const regresarBtn = document.getElementById('regresarBtn');
 
-    // Comprobar el estado almacenado en localStorage
-    const isFiltering = localStorage.getItem('isFiltering') === 'true';
-
-    if (isFiltering) {
-        filterForm.style.display = 'block';
-        filterForm1.style.display = 'block'; 
-        sliderContainer.style.display = 'block'; 
-        carSelectionButtons.style.display = 'none';
-        regresarBtn.style.display = 'block'; 
-    } else {
-        filterForm.style.display = 'none';
-        filterForm1.style.display = 'none'; 
-        sliderContainer.style.display = 'none'; 
-        carSelectionButtons.style.display = 'block'; 
-        regresarBtn.style.display = 'none'; 
-    }
-});
-
-    document.addEventListener('DOMContentLoaded', function() {
-    const filterForm = document.getElementById('filterForm');
-    const filterForm1 = document.getElementById('filterForm1');
-    const sliderContainer = document.getElementById('slider-container');
-    const carSelectionButtons = document.getElementById('carSelectionButtons');
-    const regresarBtn = document.getElementById('regresarBtn');
-
-    // Establecer todos los elementos en su estado inicial
-    filterForm.style.display = 'none';
-    filterForm1.style.display = 'none'; // Asegurarse de que este formulario esté oculto
-    sliderContainer.style.display = 'none'; // Ocultar slider
-    carSelectionButtons.style.display = 'block'; // Mostrar botones de selección de carro
-    regresarBtn.style.display = 'none'; // Asegurarse de que el botón de regresar esté oculto
-});
-
-// Limpiar el mapa antes de refrescar la página
-window.addEventListener('beforeunload', function() {
-    limpiarMapa();
-});
-
-// Mostrar/ocultar los formularios de filtrado y selección de carro al hacer clic en el botón
-    document.getElementById('toggle-filter-btn').addEventListener('click', function() {
-    const filterForm = document.getElementById('filterForm');
-    const filterForm1 = document.getElementById('filterForm1');
-    const sliderContainer = document.getElementById('slider-container');
-    const carSelectionButtons = document.getElementById('carSelectionButtons');
-    const regresarBtn = document.getElementById('regresarBtn');
-
-    // Verificar el estado de ambos formularios
-    const isFilterFormVisible = filterForm.style.display === 'block';
-    const isFilterForm1Visible = filterForm1.style.display === 'block';
-
-    // Alternar la visibilidad de ambos formularios
-    if (!isFilterFormVisible || !isFilterForm1Visible) {
-        filterForm.style.display = 'block';
-        filterForm1.style.display = 'block'; // Mostrar formulario de selección de carro
-        sliderContainer.style.display = 'block'; // Mostrar slider
-        limpiarMapa();
-        
-        // Ocultar botones de selección de carro y mostrar botón de regresar
-        carSelectionButtons.style.display = 'none';
-        regresarBtn.style.display = 'block';
-
-        // Guardar estado en localStorage
-        localStorage.setItem('isFiltering', 'true');
-    } else {
-        filterForm.style.display = 'none';
-        filterForm1.style.display = 'none'; // Ocultar formulario de selección de carro        
-        // Mostrar botones de selección de carro y ocultar botón de regresar
-        carSelectionButtons.style.display = 'block';
-        regresarBtn.style.display = 'none'; // Ocultar el botón de regresar
-
-        // Guardar estado en localStorage
-        localStorage.setItem('isFiltering', 'false');
-    }
-
-    document.getElementById('slider-container').style.display = 'none';
-});
-
-    // Agregar evento para el botón de regresar
-    document.getElementById('regresarBtn').addEventListener('click', function() {
-    // Ocultar formularios de filtrado
-    document.getElementById('filterForm').style.display = 'none';
-    document.getElementById('filterForm1').style.display = 'none'; 
-    document.getElementById('slider-container').style.display = 'none'; 
-
-    // Mostrar botones de selección de carro
-    document.getElementById('carSelectionButtons').style.display = 'block';
-    
-    // Ocultar botón de regresar
-    this.style.display = 'none';
-    limpiarMapa();
-
-    // Guardar estado en localStorage
-    localStorage.setItem('isFiltering', 'false');
-});
+            // Mostrar/ocultar el formulario de filtrado al hacer clic en el botón
+            document.getElementById('toggle-filter-btn').addEventListener('click', function() {
+                const filterForm = document.getElementById('filterForm');
+                if (filterForm.style.display === 'none' || filterForm.style.display === '') {
+                    filterForm.style.display = 'block';
+                    sliderContainer.style.display = 'block'; // Mostrar slider cuando se muestra el formulario
+                    limpiarMapa();
+                } else {
+                    filterForm.style.display = 'none';
+                }
+                document.getElementById('slider-container').style.display = 'none';
+            });
 
             const socket = io();
 
@@ -291,8 +179,6 @@ window.addEventListener('beforeunload', function() {
             let autoCenterTimeout;
             let filtrando = false;
             let primerCentrado = true;
-            let filtrando2 = false;  
-            let primerCentrado2 = true;
 
             // Inicializar el mapa
             const map = L.map('map').setView([10.96854, -74.78132], 13);
@@ -303,40 +189,26 @@ window.addEventListener('beforeunload', function() {
                 attribution: '© OpenStreetMap contributors'
             }).addTo(map);
 
-            // Control para el Carro 1
-        let ultimaUbicacionControlCarro1 = L.control({ position: 'bottomleft' });
-        ultimaUbicacionControlCarro1.onAdd = function(map) {
-        const div = L.DomUtil.create('div', 'leaflet-control');
-        div.id = 'ultima-ubicacion-info-carro1';
-        div.innerHTML = `
-            <b>Última ubicación Carro 1</b><br>
-            Latitud: <span id="ultima-latitud">-</span><br>
-            Longitud: <span id="ultima-longitud">-</span><br>
-            Fecha: <span id="ultima-fecha">-</span><br>
-            Hora: <span id="ultima-hora">-</span><br>
-        `;
-        return div;
-    };
+            let ultimaUbicacionControl = L.control({position: 'bottomleft'});
+            ultimaUbicacionControl.onAdd = function(map) {
+                const div = L.DomUtil.create('div', 'leaflet-control');
+                div.id = 'ultima-ubicacion-info';
+                div.innerHTML = `
+                    <b>Última ubicación</b><br>
+                    Latitud: <span id="ultima-latitud">-</span><br>
+                    Longitud: <span id="ultima-longitud">-</span><br>
+                    Fecha: <span id="ultima-fecha">-</span><br>
+                    Hora: <span id="ultima-hora">-</span>
+                `;
+                return div;
+            };
+            ultimaUbicacionControl.addTo(map);
 
-    // Control para el Carro 2
-        let ultimaUbicacionControlCarro2 = L.control({ position: 'bottomright' });
-        ultimaUbicacionControlCarro2.onAdd = function(map) {
-        const div = L.DomUtil.create('div', 'leaflet-control');
-        div.id = 'ultima-ubicacion-info-carro2';
-        div.innerHTML = `
-            <b>Última ubicación Carro 2</b><br>
-            Latitud: <span id="ultima-latitud2">-</span><br>
-            Longitud: <span id="ultima-longitud2">-</span><br>
-            Fecha: <span id="ultima-fecha2">-</span><br>
-            Hora: <span id="ultima-hora2">-</span><br>
-            RPM: <span id="ultima-rpm-carro2">-</span><br>
-    `;
-        return div;
-};
-
-            // Polilínea carro 1
+            // Polilínea para el recorrido general
             let recorrido = L.polyline([], { color: '#800080' }).addTo(map);
+            // Polilínea para el recorrido filtrado 
             let recorridoFiltrado = L.polyline([], { color: '#FF6FC6' });
+
             let marcadorUltimaUbicacion = L.circleMarker([0, 0], {
                 radius: 10,
                 color: '#800080',
@@ -344,60 +216,16 @@ window.addEventListener('beforeunload', function() {
                 fillOpacity: 1,
             }).addTo(map);
 
-            
-            // Polilínea carro 2
-            let recorrido2 = L.polyline([], { color: '#FF4500' }).addTo(map);
-            let recorridoFiltrado2 = L.polyline([], { color: '#007FFF' });
-            let marcadorUltimaUbicacion2 = L.circleMarker([0, 0], {
-                radius: 10,
-                color: '#FF0000',
-                fillColor: '#FF0000',
-                fillOpacity: 1,
-            }).addTo(map);
-
             let marcadorSlider = null; // Marcador que se actualizará con el slider
+
             let ultimaLatitud = null;
             let ultimaLongitud = null;
-            let ultimaLatitud2 = null;
-            let ultimaLongitud2 = null;
 
-    document.getElementById('carro1Btn').addEventListener('click', function() {
-    ultimaUbicacionControlCarro1.addTo(map);
-    ultimaUbicacionControlCarro2.remove();
-    socket.on('new-data', (data) => {
-        if (!filtrando) {
-            actualizarMapa(data);
-        }
-    });
-});
-
-document.getElementById('carro2Btn').addEventListener('click', function() {
-    ultimaUbicacionControlCarro2.addTo(map);
-    ultimaUbicacionControlCarro1.remove();
-    socket.on('new-obd-data', (data) => {
-        if (!filtrando) {
-            actualizarMapa1(data);
-        }
-    });
-});
-
-document.getElementById('ambosBtn').addEventListener('click', function() {
-     ultimaUbicacionControlCarro2.addTo(map);
-     ultimaUbicacionControlCarro1.addTo(map);
-    // Lógica para manejar ambos carros si es necesario
-    socket.on('new-data', (data) => {
-        if (!filtrando) {
-            actualizarMapa(data); // Carro 1
-        }
-    });
-
-    socket.on('new-obd-data', (data) => {
-        if (!filtrando) {
-            actualizarMapa1(data); // Carro 2
-        }
-    });
-});
-
+            socket.on('new-data', (data) => {
+                if (!filtrando) {
+                    actualizarMapa(data);
+                }
+            });
 
             function actualizarMapa(data) {
                 if (!data || !data.Latitud || !data.Longitud || !data.Fecha || !data.Hora) {
@@ -434,50 +262,6 @@ document.getElementById('ambosBtn').addEventListener('click', function() {
                 }
             }
 
-        // Función para actualizar el mapa con datos del carro 2
-        function actualizarMapa1(data) {
-        if (!data || !data.Latitud || !data.Longitud || !data.Fecha || !data.Hora || !data.RPM) {
-        console.error('Datos inválidos recibidos:', data);
-        return;
-        }
-    
-        const nuevaLatitud = parseFloat(data.Latitud);
-        const nuevaLongitud = parseFloat(data.Longitud);
-        const fechaFormateada = data.Fecha.split('T')[0];
-        const horaFormateada = data.Hora;
-        const rpmFormateada = data.RPM;
-
-        // Evitar actualizaciones si la posición no ha cambiado
-        if (ultimaLatitud2 !== null && ultimaLongitud2 !== null && 
-        ultimaLatitud2 === nuevaLatitud && ultimaLongitud2 === nuevaLongitud) {
-        return;
-        }
-
-        // Actualizar los elementos de visualización
-        document.getElementById('ultima-latitud2').innerText = nuevaLatitud.toFixed(3);
-        document.getElementById('ultima-longitud2').innerText = nuevaLongitud.toFixed(3);
-        document.getElementById('ultima-fecha2').innerText = fechaFormateada;
-        document.getElementById('ultima-hora2').innerText = horaFormateada;
-        document.getElementById('ultima-rpm').innerText = rpmFormateada;  // Asegúrate de que este ID exista
-
-        // Agregar la nueva posición al recorrido si no está en modo filtrado
-        if (!filtrando2) {
-        recorrido2.addLatLng([nuevaLatitud, nuevaLongitud]);
-        }
-
-        // Actualizar la posición del marcador de la última ubicación
-        marcadorUltimaUbicacion2.setLatLng([nuevaLatitud, nuevaLongitud]);
-        if (primerCentrado2) {
-        map.setView([nuevaLatitud, nuevaLongitud], 13);  // Ajustar el nivel de zoom
-        primerCentrado2 = false;  // Evitar más centrados automáticos
-        }
-    
-        // Actualizar las variables de última ubicación
-        ultimaLatitud2 = nuevaLatitud;
-        ultimaLongitud2 = nuevaLongitud;
-    }
-
-            
             function cargarDatosDesdeServidor() {
                 fetch('/historicos')
                     .then(response => response.json())
@@ -587,5 +371,3 @@ document.getElementById('ambosBtn').addEventListener('click', function() {
     </script>
 </body>
 </html>
-
-
