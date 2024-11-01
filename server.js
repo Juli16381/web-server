@@ -247,8 +247,8 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
         });
     });
 
-    // Ruta para mostrar los datos de datos_obd en HTML
-app.get('/datosObd', (req, res) => {
+   // Ruta para mostrar los datos históricos de carro 2 en tabla (ruta escondida)
+app.get('/datosobd', (req, res) => {
     let query = 'SELECT * FROM datos_obd ORDER BY FechaHora DESC, id DESC';
     
     db.query(query, (err, results) => {
@@ -258,6 +258,7 @@ app.get('/datosObd', (req, res) => {
             return;
         }
 
+        // Renderizar los datos en una tabla HTML
         let html = `
         <!DOCTYPE html>
         <html lang="es">
@@ -266,13 +267,23 @@ app.get('/datosObd', (req, res) => {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Historial de Datos OBD</title>
             <style>
-                table { width: 100%; border-collapse: collapse; text-align: center; }
-                th, td { border: 1px solid black; padding: 8px; }
-                th { background-color: #ce72c0; color: white; }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    text-align: center;
+                }
+                th, td {
+                    border: 1px solid black;
+                    padding: 8px;
+                }
+                th {
+                    background-color: #ce72c0;
+                    color: white;
+                }
             </style>
         </head>
         <body>
-            <h1>Historial de Datos OBD</h1>
+            <h1>Historial de Datos OBD de Carro 2</h1>
             <table>
                 <thead>
                     <tr>
@@ -286,35 +297,29 @@ app.get('/datosObd', (req, res) => {
                 </thead>
                 <tbody>`;
 
-         // Llenar la tabla con los datos
-            results.forEach((row) => {
-                const fechaFormateada = new Date(row.FechaHora).toLocaleDateString('es-ES');
-                const horaFormateada = new Date(row.FechaHora).toTimeString().split(' ')[0];
-                html += `
-                <tr>
-                    <td>${row.id}</td>
-                    <td>${row.Latitud}</td>
-                    <td>${row.Longitud}</td>
-                    <td>${fechaFormateada}</td>  
-                    <td>${horaFormateada}</td>  
-                    <td>${row.RPM}</td>
-                </tr>`;
-            });
-
+        // Llenar la tabla con los datos
+        results.forEach((row) => {
+            const fechaFormateada = new Date(row.FechaHora).toLocaleDateString('es-ES');
+            const horaFormateada = new Date(row.FechaHora).toTimeString().split(' ')[0];
             html += `
-                    </tbody>
-                </table>
-            </body>
-            </html>`;
-
-            res.send(html);  // Enviar la tabla al navegador
+            <tr>
+                <td>${row.id}</td>
+                <td>${row.Latitud}</td>
+                <td>${row.Longitud}</td>
+                <td>${fechaFormateada}</td>  
+                <td>${horaFormateada}</td>  
+                <td>${row.RPM}</td>  <!-- Añadiendo la columna de RPM -->
+            </tr>`;
         });
-    });
-        
 
-// Manejador para rutas no encontradas
-app.use((req, res) => {
-    res.status(404).send('Página no encontrada');
+        html += `
+                </tbody>
+            </table>
+        </body>
+        </html>`;
+
+        res.send(html);  // Enviar la tabla al navegador
+    });
 });
 
 
