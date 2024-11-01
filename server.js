@@ -247,7 +247,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
         });
     });
 
-    app.get('/datosObd', (req, res) => {
+    app.get('/datosobd', (req, res) => {
     let query = 'SELECT * FROM datos_obd ORDER BY FechaHora DESC, id DESC';
     
     db.query(query, (err, results) => {
