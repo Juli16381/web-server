@@ -248,7 +248,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
     });
 
     // Ruta para mostrar los datos de datos_obd en HTML
-app.get('/datosobd', (req, res) => {
+app.get('/datosObd', (req, res) => {
     let query = 'SELECT * FROM datos_obd ORDER BY FechaHora DESC, id DESC';
     
     db.query(query, (err, results) => {
@@ -308,6 +308,7 @@ app.get('/datosobd', (req, res) => {
         res.send(html);
     });
 });
+
 
 
   // Iniciar el servidor en el puerto 80
