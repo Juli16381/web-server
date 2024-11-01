@@ -85,7 +85,7 @@ def parsear_payload(payload):
         timestamp = datos.get('Timestamp')
 
         # Identificar el CarroID en el payload
-        carroid = "Carro 1" if "carro1" in payload.lower() else "Carro 2" if "carro2" in payload.lower() else None
+        carroid = "Carro 1" if "carro 1" in payload.lower() else "Carro 2" if "carro 2" in payload.lower() else None
 
         # Verificar si se envían datos adicionales (por ejemplo, RPM)
         rpm = datos.get('RPM')
