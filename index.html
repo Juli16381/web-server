@@ -176,20 +176,29 @@
                 });
             }
 
+                 // Mostrar/ocultar el formulario de filtrado al hacer clic en el botón
                 document.getElementById('toggle-filter-btn').addEventListener('click', function() {
                 const filterForm = document.getElementById('filterForm');
-                const filterForm1 = document.getElementById('filterForm1');
                 if (filterForm.style.display === 'none' || filterForm.style.display === '') {
                     filterForm.style.display = 'block';
-                    filterForm1.style.display = 'block'; // Mostrar formulario de selección de carro
                     sliderContainer.style.display = 'block'; // Mostrar slider cuando se muestra el formulario
                     limpiarMapa();
                 } else {
                     filterForm.style.display = 'none';
-                    filterForm1.style.display = 'none'; // Ocultar formulario de selección de carro
                 }
-                document.getElementById('slider-container').style.display = 'none';
+
+                const filterForm1 = document.getElementById('filterForm1');
+                if (filterForm1.style.display === 'none' || filterForm1.style.display === '') {
+                    filterForm1.style.display = 'block';
+                    sliderContainer.style.display = 'block'; // Mostrar slider cuando se muestra el formulario
+                    limpiarMapa();
+                } else {
+                    filterForm1.style.display = 'none';
+                }
+               document.getElementById('slider-container').style.display = 'none';
+                    
             });
+
     
 
             
