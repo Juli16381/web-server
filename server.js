@@ -187,7 +187,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
         });
     });
 
-    // Ruta para mostrar los datos de datos_gps en HTML
+       // Ruta para mostrar los datos históricos en tabla (ruta escondida)
     app.get('/datos', (req, res) => {
         let query = 'SELECT * FROM datos_gps ORDER BY FechaHora DESC, id DESC';
         
@@ -198,6 +198,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
                 return;
             }
 
+            // Renderizar los datos en una tabla HTML
             let html = `
             <!DOCTYPE html>
             <html lang="es">
@@ -206,9 +207,19 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>Historial de Datos GPS</title>
                 <style>
-                    table { width: 100%; border-collapse: collapse; text-align: center; }
-                    th, td { border: 1px solid black; padding: 8px; }
-                    th { background-color: #ce72c0; color: white; }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        text-align: center;
+                    }
+                    th, td {
+                        border: 1px solid black;
+                        padding: 8px;
+                    }
+                    th {
+                        background-color: #ce72c0;
+                        color: white;
+                    }
                 </style>
             </head>
             <body>
@@ -225,15 +236,17 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
                     </thead>
                     <tbody>`;
 
+            // Llenar la tabla con los datos
             results.forEach((row) => {
-                const [fecha, hora] = row.FechaHora.split(' ');
+                const fechaFormateada = new Date(row.FechaHora).toLocaleDateString('es-ES');
+                const horaFormateada = new Date(row.FechaHora).toTimeString().split(' ')[0];
                 html += `
                 <tr>
                     <td>${row.id}</td>
                     <td>${row.Latitud}</td>
                     <td>${row.Longitud}</td>
-                    <td>${fecha}</td>
-                    <td>${hora}</td>
+                    <td>${fechaFormateada}</td>  
+                    <td>${horaFormateada}</td>  
                 </tr>`;
             });
 
@@ -243,12 +256,12 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
             </body>
             </html>`;
 
-            res.send(html);
+            res.send(html);  // Enviar la tabla al navegador
         });
     });
 
     // Ruta para mostrar los datos históricos de OBD
-app.get('/datosobd', (req, res) => {
+    app.get('/datosobd', (req, res) => {
     let query = 'SELECT id, Aplicacion, Latitud, Longitud, FechaHora, rpm FROM datos_obd ORDER BY FechaHora DESC, id DESC';
     
     db.query(query, (err, results) => {
