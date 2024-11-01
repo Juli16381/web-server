@@ -10,6 +10,7 @@ const io = socketIo(server);
 
 let db;
 let lastProcessedId = null;
+let lastProcessedObdId = null;
 
 console.log("El servidor está iniciando...");
 
@@ -41,7 +42,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
         console.log('Conectado a la base de datos MySQL.');
     });
 
-    // Función para verificar y emitir nuevos datos
+    // Función para verificar y emitir nuevos datos de datos_gps
     function checkForNewData() {
         if (!db) {
             console.error('La conexión a la base de datos aún no está lista.');
@@ -70,14 +71,63 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
                             throw new Error('Fecha inválida');
                         }
 
-                        const fechaFormateada = fechaHora.toISOString().split('T')[0]; // Formatear fecha como "YYYY-MM-DD"
-                        const horaFormateada = fechaHora.toTimeString().split(' ')[0];  // Obtener solo la hora
+                        const fechaFormateada = fechaHora.toISOString().split('T')[0];
+                        const horaFormateada = fechaHora.toTimeString().split(' ')[0];
 
                         io.emit('new-data', {
+                            carro: '1',
                             Latitud: latestData.Latitud,
                             Longitud: latestData.Longitud,
-                            Fecha: fechaFormateada, // Formato correcto de la fecha
-                            Hora: horaFormateada    // Formato correcto de la hora
+                            Fecha: fechaFormateada,
+                            Hora: horaFormateada
+                        });
+                    } catch (error) {
+                        console.error('Error al formatear la fecha y hora:', error);
+                    }
+                }
+            }
+        });
+    }
+
+    // Función para verificar y emitir nuevos datos de datos_obd
+    function checkForNewObdData() {
+        if (!db) {
+            console.error('La conexión a la base de datos aún no está lista.');
+            return;
+        }
+
+        let query = 'SELECT * FROM datos_obd ORDER BY id DESC LIMIT 1';
+
+        db.query(query, (err, results) => {
+            if (err) {
+                console.error('Error al consultar la base de datos:', err);
+                return;
+            }
+
+            if (results.length > 0) {
+                const latestData = results[0];
+
+                if (lastProcessedObdId === null || latestData.id > lastProcessedObdId) {
+                    lastProcessedObdId = latestData.id;
+                    console.log('Nuevos datos de OBD encontrados:', latestData);
+
+                    try {
+                        const fechaHora = new Date(latestData.FechaHora);
+
+                        if (isNaN(fechaHora)) {
+                            throw new Error('Fecha inválida');
+                        }
+
+                        const fechaFormateada = fechaHora.toISOString().split('T')[0];
+                        const horaFormateada = fechaHora.toTimeString().split(' ')[0];
+
+                        io.emit('new-obd-data', {
+                            carro: '2',
+                            Latitud: latestData.Latitud,
+                            Longitud: latestData.Longitud,
+                            Fecha: fechaFormateada,
+                            Hora: horaFormateada,
+                            RPM: latestData.RPM
                         });
                     } catch (error) {
                         console.error('Error al formatear la fecha y hora:', error);
@@ -89,19 +139,14 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
 
     // Verificar nuevos datos cada 5 segundos
     setInterval(checkForNewData, 5000);
+    setInterval(checkForNewObdData, 5000);
 
     // Ruta para servir la página principal
     app.get('/', (req, res) => {
         res.sendFile(__dirname + '/index.html');
     });
 
-    // Ruta para obtener el nombre de usuario desde las credenciales
-    app.get('/name', (req, res) => {
-        const nombreUsuario = credenciales.DB_NOMBRE;  // Usar el nombre del archivo de credenciales
-        res.json({ name: nombreUsuario });
-    });
-
-    // Ruta para obtener los datos históricos
+    // Ruta para obtener los datos históricos de datos_gps
     app.get('/historicos', (req, res) => {
         let query = 'SELECT * FROM datos_gps ORDER BY FechaHora DESC, id DESC';
         db.query(query, (err, results) => {
@@ -111,11 +156,31 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
                 return;
             }
 
-            // Formatear la fecha para que siempre sea "YYYY-MM-DD"
             const formattedResults = results.map(row => ({
                 ...row,
-                Fecha: new Date(row.FechaHora).toISOString().split('T')[0],  // Formatear fecha
-                Hora: new Date(row.FechaHora).toTimeString().split(' ')[0]   // Formatear hora
+                Fecha: new Date(row.FechaHora).toISOString().split('T')[0],
+                Hora: new Date(row.FechaHora).toTimeString().split(' ')[0]
+            }));
+
+            res.json(formattedResults);
+        });
+    });
+
+    // Ruta para obtener los datos históricos de datos_obd
+    app.get('/historicosObd', (req, res) => {
+        let query = 'SELECT * FROM datos_obd ORDER BY FechaHora DESC, id DESC';
+        db.query(query, (err, results) => {
+            if (err) {
+                console.error('Error al consultar la base de datos:', err);
+                res.status(500).send('Error al consultar la base de datos');
+                return;
+            }
+
+            const formattedResults = results.map(row => ({
+                ...row,
+                Fecha: new Date(row.FechaHora).toISOString().split('T')[0],
+                Hora: new Date(row.FechaHora).toTimeString().split(' ')[0],
+                RPM: row.RPM 
             }));
 
             res.json(formattedResults);
@@ -153,7 +218,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
         });
     });
 
-    // Ruta para mostrar los datos históricos en tabla (ruta escondida)
+       // Ruta para mostrar los datos históricos en tabla (ruta escondida)
     app.get('/datos', (req, res) => {
         let query = 'SELECT * FROM datos_gps ORDER BY FechaHora DESC, id DESC';
         
@@ -226,9 +291,101 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
         });
     });
 
-    // Iniciar el servidor en el puerto 80
+    // Ruta para mostrar los datos históricos de OBD
+    app.get('/datosobd', (req, res) => {
+    let query = 'SELECT id, Aplicacion, Latitud, Longitud, FechaHora, rpm FROM datos_obd ORDER BY FechaHora DESC, id DESC';
+    
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al consultar la base de datos:', err);
+            res.status(500).send('Error al consultar la base de datos');
+            return;
+        }
+
+        // Renderizar los datos en una tabla HTML
+        let html = `
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Historial de Datos OBD</title>
+            <style>
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    text-align: center;
+                }
+                th, td {
+                    border: 1px solid black;
+                    padding: 8px;
+                }
+                th {
+                    background-color: #ce72c0;
+                    color: white;
+                }
+            </style>
+        </head>
+        <body>
+            <h1>Historial de Datos OBD</h1>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Aplicación</th>
+                        <th>Latitud</th>
+                        <th>Longitud</th>
+                        <th>Fecha</th>
+                        <th>Hora</th>
+                        <th>RPM</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+        // Llenar la tabla con los datos
+        results.forEach((row) => {
+            const fecha = new Date(row.FechaHora);
+            const fechaFormateada = fecha.toLocaleDateString('es-ES');
+            const horaFormateada = fecha.toTimeString().split(' ')[0]; // Formato HH:mm:ss
+            
+            html += `
+            <tr>
+                <td>${row.id}</td>
+                <td>${row.Aplicacion}</td>
+                <td>${row.Latitud}</td>
+                <td>${row.Longitud}</td>
+                <td>${fechaFormateada}</td>  
+                <td>${horaFormateada}</td>  
+                <td>${row.rpm}</td>
+            </tr>`;
+        });
+
+        html += `
+                </tbody>
+            </table>
+        </body>
+        </html>`;
+
+        res.send(html);  // Enviar la tabla al navegador
+    });
+});
+
+
+
+  // Iniciar el servidor en el puerto 80
     server.listen(80, '0.0.0.0', () => {
         console.log('Servidor escuchando en el puerto 80');
     });
 });
+
+
+
+
+
+
+
+
+
+
+
 
