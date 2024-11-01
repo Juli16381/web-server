@@ -177,7 +177,8 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
             const formattedResults = results.map(row => ({
                 ...row,
                 Fecha: new Date(row.FechaHora).toISOString().split('T')[0],
-                Hora: new Date(row.FechaHora).toTimeString().split(' ')[0]
+                Hora: new Date(row.FechaHora).toTimeString().split(' ')[0],
+                RPM: row.RPM 
             }));
 
             res.json(formattedResults);
