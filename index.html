@@ -228,7 +228,7 @@ window.addEventListener('beforeunload', function() {
 });
 
 // Mostrar/ocultar los formularios de filtrado y selección de carro al hacer clic en el botón
-document.getElementById('toggle-filter-btn').addEventListener('click', function() {
+    document.getElementById('toggle-filter-btn').addEventListener('click', function() {
     const filterForm = document.getElementById('filterForm');
     const filterForm1 = document.getElementById('filterForm1');
     const sliderContainer = document.getElementById('slider-container');
@@ -362,39 +362,36 @@ document.getElementById('toggle-filter-btn').addEventListener('click', function(
             let ultimaLongitud2 = null;
 
     document.getElementById('carro1Btn').addEventListener('click', function() {
+    ultimaUbicacionControlCarro1.addTo(map);
     socket.on('new-data', (data) => {
         if (!filtrando) {
             actualizarMapa(data);
-             alert("Carro 1 seleccionado");
-            ultimaUbicacionControlCarro1.addTo(map);
         }
     });
 });
 
 document.getElementById('carro2Btn').addEventListener('click', function() {
-    alert("Carro 2 seleccionado");
+    ultimaUbicacionControlCarro2.addTo(map);
     socket.on('new-obd-data', (data) => {
         if (!filtrando) {
             actualizarMapa1(data);
-             ultimaUbicacionControlCarro2.addTo(map);
         }
     });
 });
 
 document.getElementById('ambosBtn').addEventListener('click', function() {
-    alert("Ambos carros seleccionados");
+     ultimaUbicacionControlCarro2.addTo(map);
+     ultimaUbicacionControlCarro2.addTo(map);
     // Lógica para manejar ambos carros si es necesario
     socket.on('new-data', (data) => {
         if (!filtrando) {
             actualizarMapa(data); // Carro 1
-             ultimaUbicacionControlCarro2.addTo(map);
         }
     });
 
     socket.on('new-obd-data', (data) => {
         if (!filtrando) {
             actualizarMapa1(data); // Carro 2
-             ultimaUbicacionControlCarro2.addTo(map);
         }
     });
 });
