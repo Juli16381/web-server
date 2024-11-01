@@ -187,6 +187,37 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
         });
     });
 
+    // Ruta para filtrar los datos entre fechas
+    app.get('/filterData', (req, res) => {
+        const startDate = new Date(req.query.startDate);
+        const endDate = new Date(req.query.endDate);
+
+        console.log('Fechas recibidas:', {
+            startDate: startDate.toISOString(),
+            endDate: endDate.toISOString()
+        });
+
+        const formattedStartDate = startDate.toISOString().slice(0, 19).replace('T', ' ');
+        const formattedEndDate = endDate.toISOString().slice(0, 19).replace('T', ' ');
+
+        const query = `SELECT * FROM datos_gps WHERE FechaHora BETWEEN ? AND ?`;
+        db.query(query, [formattedStartDate, formattedEndDate], (error, results) => {
+            if (error) {
+                console.error('Error al realizar la consulta:', error);
+                res.status(500).json({ error: 'Error al realizar la consulta.' });
+            } else {
+                // Formatear la fecha para que siempre sea "YYYY-MM-DD"
+                const formattedResults = results.map(row => ({
+                    ...row,
+                    Fecha: new Date(row.FechaHora).toISOString().split('T')[0],  // Formatear fecha
+                    Hora: new Date(row.FechaHora).toTimeString().split(' ')[0]   // Formatear hora
+                }));
+
+                res.json(formattedResults);
+            }
+        });
+    });
+
        // Ruta para mostrar los datos históricos en tabla (ruta escondida)
     app.get('/datos', (req, res) => {
         let query = 'SELECT * FROM datos_gps ORDER BY FechaHora DESC, id DESC';
