@@ -109,15 +109,6 @@
     <button id="toggle-filter-btn">Filtrar información</button>
 
     <!-- Formulario de filtrado -->
-    <form id="filterForm1">
-        <label for="carSelection">Seleccionar carro:</label>
-        <select id="carSelection" name="carSelection">
-            <option value="carro1">Carro 1</option>
-            <option value="carro2">Carro 2</option>
-            <option value="ambos">Ambos</option>
-        </select>
-
-    <!-- Formulario de filtrado -->
     <form id="filterForm">
         <label for="startDate">Fecha y hora de inicio:</label>
         <input type="datetime-local" id="startDate" name="startDate">
@@ -213,58 +204,28 @@
             };
             ultimaUbicacionControl.addTo(map);
 
+            // Polilínea para el recorrido general
+            let recorrido = L.polyline([], { color: '#800080' }).addTo(map);
+            // Polilínea para el recorrido filtrado 
+            let recorridoFiltrado = L.polyline([], { color: '#FF6FC6' });
 
-            let recorrido1 = L.polyline([], { color: '#800080' }).addTo(map);
-            let recorridoFiltrado1 = L.polyline([], { color: '#FF6FC6' });
-            let marcadorUltimaUbicacion1 = L.circleMarker([0, 0], {
+            let marcadorUltimaUbicacion = L.circleMarker([0, 0], {
                 radius: 10,
                 color: '#800080',
                 fillColor: '#800080',
                 fillOpacity: 1,
             }).addTo(map);
 
-            let recorrido2 = L.polyline([], { color: '#FF4500' }).addTo(map);
-            let recorridoFiltrado2 = L.polyline([], { color: '#00CED1' });
-            let marcadorUltimaUbicacion2 = L.circleMarker([0, 0], {
-                radius: 10,
-                color: '#FF0000',
-                fillColor: '#FF0000',
-                fillOpacity: 1,
-            }).addTo(map);
-
             let marcadorSlider = null; // Marcador que se actualizará con el slider
 
-            let ultimaLatitud1 = null;
-            let ultimaLongitud1 = null;
-            let ultimaLatitud2 = null;
-            let ultimaLongitud2 = null;
+            let ultimaLatitud = null;
+            let ultimaLongitud = null;
 
-         document.getElementById('filterForm1').addEventListener('submit', function(event) {
-         event.preventDefault(); // Evita que se envíe el formulario de manera predeterminada
-
-         // Obtener los valores del formulario
-        const selectedCar = document.getElementById('carSelection').value;
-    
-        // Establecer la URL del fetch y el socket en función del carro seleccionado
-        let socketEvent;
-
-        if (selectedCar === 'carro1') {
             socket.on('new-data', (data) => {
                 if (!filtrando) {
                     actualizarMapa(data);
                 }
             });
-            
-        } else if (selectedCar === 'carro2') {
-        socketEvent = 'new-obd-data'; // Evento para carro 2
-
-            
-        } else {
-        // Manejo para "ambos" si es necesario
-        
-    }
-
-            
 
             function actualizarMapa(data) {
                 if (!data || !data.Latitud || !data.Longitud || !data.Fecha || !data.Hora) {
@@ -404,7 +365,7 @@
 
                     })
                     .catch(error => console.error('Error:', error));
-            }
+            });
 
         });
     </script>
