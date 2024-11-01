@@ -178,7 +178,7 @@
             }
 
     // Inicializar el estado al cargar la página
-document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function() {
     const filterForm = document.getElementById('filterForm');
     const filterForm1 = document.getElementById('filterForm1');
     const sliderContainer = document.getElementById('slider-container');
@@ -250,6 +250,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('carSelectionButtons').style.display = 'block';
     // Ocultar botón de regresar
     this.style.display = 'none';
+    limpiarMapa();
     // Guardar estado en localStorage
     localStorage.setItem('isFiltering', 'false');
 });
