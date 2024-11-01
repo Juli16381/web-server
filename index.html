@@ -108,6 +108,15 @@
     <!-- Botón para mostrar/ocultar el formulario de filtrado -->
     <button id="toggle-filter-btn">Filtrar información</button>
 
+     <!-- Formulario de filtrado -->
+    <form id="filterForm1">
+        <label for="carSelection">Seleccionar carro:</label>
+        <select id="carSelection" name="carSelection">
+            <option value="carro1">Carro 1</option>
+            <option value="carro2">Carro 2</option>
+            <option value="ambos">Ambos</option>
+        </select>
+
     <!-- Formulario de filtrado -->
     <form id="filterForm">
         <label for="startDate">Fecha y hora de inicio:</label>
@@ -204,11 +213,9 @@
             };
             ultimaUbicacionControl.addTo(map);
 
-            // Polilínea para el recorrido general
+            // Polilínea carro 1
             let recorrido = L.polyline([], { color: '#800080' }).addTo(map);
-            // Polilínea para el recorrido filtrado 
             let recorridoFiltrado = L.polyline([], { color: '#FF6FC6' });
-
             let marcadorUltimaUbicacion = L.circleMarker([0, 0], {
                 radius: 10,
                 color: '#800080',
@@ -216,10 +223,23 @@
                 fillOpacity: 1,
             }).addTo(map);
 
+            
+            // Polilínea carro 2
+            let recorrido2 = L.polyline([], { color: '#FF4500' }).addTo(map);
+            let recorridoFiltrado2 = L.polyline([], { color: '#007FFF' });
+            let marcadorUltimaUbicacion2 = L.circleMarker([0, 0], {
+                radius: 10,
+                color: '#FF0000',
+                fillColor: '#FF0000',
+                fillOpacity: 1,
+            }).addTo(map);
+
             let marcadorSlider = null; // Marcador que se actualizará con el slider
 
             let ultimaLatitud = null;
             let ultimaLongitud = null;
+            let ultimaLatitud2 = null;
+            let ultimaLongitud2 = null;
 
             socket.on('new-data', (data) => {
                 if (!filtrando) {
