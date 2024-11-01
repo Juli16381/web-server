@@ -247,6 +247,7 @@
     const selectedCar = document.getElementById('carSelection').value;
 
     if (selectedCar === 'carro1') {
+         alert("carro 1");
         socket.on('new-data', (data) => {
             if (!filtrando) {
                 actualizarMapa(data);
@@ -254,6 +255,7 @@
         }); // Cierre del socket.on para 'carro1'
         
     } else if (selectedCar === 'carro2') {
+         alert("carro 2");
         socket.on('new-obd-data', (data) => {
             if (!filtrando) {
                 actualizarMapa1(data);
