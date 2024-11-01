@@ -148,6 +148,7 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
+        filterForm1.style.display = 'none'; 
         document.addEventListener('DOMContentLoaded', function() {
             // Obtener la fecha y hora actuales
             const now = new Date();
@@ -177,7 +178,6 @@
                 });
             }
 
-    filterForm1.style.display = 'none'; 
             
     // Inicializar el estado al cargar la página
     document.addEventListener('DOMContentLoaded', function() {
@@ -192,21 +192,20 @@
 
     if (isFiltering) {
         filterForm.style.display = 'block';
-        filterForm1.style.display = 'block'; // Mostrar formulario de selección de carro
-        sliderContainer.style.display = 'block'; // Mostrar slider
-        carSelectionButtons.style.display = 'none'; // Ocultar botones de selección de carro
-        regresarBtn.style.display = 'block'; // Mostrar botón de regresar
+        filterForm1.style.display = 'block'; 
+        sliderContainer.style.display = 'block'; 
+        carSelectionButtons.style.display = 'none';
+        regresarBtn.style.display = 'block'; 
     } else {
         filterForm.style.display = 'none';
-        filterForm1.style.display = 'none'; // Asegurarse de que este formulario esté oculto
-        sliderContainer.style.display = 'none'; // Ocultar slider
-        carSelectionButtons.style.display = 'block'; // Mostrar botones de selección de carro
-        regresarBtn.style.display = 'none'; // Asegurarse de que el botón de regresar esté oculto
+        filterForm1.style.display = 'none'; 
+        sliderContainer.style.display = 'none'; 
+        carSelectionButtons.style.display = 'block'; 
+        regresarBtn.style.display = 'none'; 
     }
 });
 
-            // Inicializar el estado al cargar la página
-document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function() {
     const filterForm = document.getElementById('filterForm');
     const filterForm1 = document.getElementById('filterForm1');
     const sliderContainer = document.getElementById('slider-container');
