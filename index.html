@@ -362,10 +362,10 @@ document.getElementById('toggle-filter-btn').addEventListener('click', function(
             let ultimaLongitud2 = null;
 
     document.getElementById('carro1Btn').addEventListener('click', function() {
-    alert("Carro 1 seleccionado");
     socket.on('new-data', (data) => {
         if (!filtrando) {
             actualizarMapa(data);
+             alert("Carro 1 seleccionado");
             ultimaUbicacionControlCarro1.addTo(map);
         }
     });
