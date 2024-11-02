@@ -479,41 +479,46 @@ window.addEventListener('beforeunload', function() {
         ultimaLongitud2 = nuevaLongitud2;
     }
 
-    const carSelection = document.getElementById('carSelection');
+            
+// Variables globales
+const carSelection = document.getElementById('carSelection');
 const recorridoCarro1 = L.polyline([], { color: '#FF0000' }).addTo(map); // Polilínea para carro 1 (rojo)
 const recorridoCarro2 = L.polyline([], { color: '#0000FF' }).addTo(map); // Polilínea para carro 2 (azul)
+const recorridoFiltrado = L.polyline([], { color: '#00FF00', dashArray: '5, 5' }); // Polilínea para datos filtrados (verde)
+let ultimaLatitudCarro1 = null;
+let ultimaLongitudCarro1 = null;
+let ultimaLatitudCarro2 = null;
+let ultimaLongitudCarro2 = null;
+let filtrando = false;
+let marcadorSlider = null;
 
+// Evento para selección de carro
 carSelection.addEventListener('change', function() {
     const selectedValue = carSelection.value;
     console.log(`Carro seleccionado: ${selectedValue}`); // Log de selección
 
     // Limpiar mapa antes de agregar nuevos datos
     limpiarMapa();
-    ultimaUbicacionControlCarro1.remove(map);
-    ultimaUbicacionControlCarro2.remove(map);
     recorridoCarro1.setLatLngs([]); // Limpiar polilínea carro 1
     recorridoCarro2.setLatLngs([]); // Limpiar polilínea carro 2
 
     // Mostrar la ubicación y datos según el carro seleccionado
     if (selectedValue === 'carro1') {
         alert('Carro 1 seleccionado');
-        ultimaUbicacionControlCarro1.addTo(map);
         cargarDatosDesdeServidor('/historicos', 'carro1');
 
     } else if (selectedValue === 'carro2') {
         alert('Carro 2 seleccionado');
-        ultimaUbicacionControlCarro2.addTo(map);
         cargarDatosDesdeServidor('/historicosObd', 'carro2');
 
     } else if (selectedValue === 'ambos') {
         alert('Ambos carros seleccionados');
-        ultimaUbicacionControlCarro1.addTo(map);
-        ultimaUbicacionControlCarro2.addTo(map);
         cargarDatosDesdeServidor('/historicos', 'carro1');
         cargarDatosDesdeServidor('/historicosObd', 'carro2');
     } 
 });
 
+// Función para cargar datos históricos basada en la URL según el carro
 function cargarDatosDesdeServidor(url, carro) {
     console.log(`Cargando datos desde: ${url} para ${carro}`); // Log de carga
     fetch(url)
@@ -529,27 +534,30 @@ function cargarDatosDesdeServidor(url, carro) {
                     console.log(`Coordenadas recibidas: ${nuevaLatitud}, ${nuevaLongitud}`);
 
                     // Comprobar si la nueva ubicación es la misma que la anterior
-                    if (ultimaLatitud !== null && ultimaLongitud !== null &&
-                        ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
-                        console.log(`Ubicación repetida: ${nuevaLatitud}, ${nuevaLongitud}`);
-                        return;
-                    }
-
-                    // Cambiar el color de la polilínea según el carro
                     if (carro === 'carro1') {
+                        if (ultimaLatitudCarro1 === nuevaLatitud && ultimaLongitudCarro1 === nuevaLongitud) {
+                            console.log(`Ubicación repetida para carro 1: ${nuevaLatitud}, ${nuevaLongitud}`);
+                            return;
+                        }
                         recorridoCarro1.addLatLng([nuevaLatitud, nuevaLongitud]);
+                        ultimaLatitudCarro1 = nuevaLatitud;
+                        ultimaLongitudCarro1 = nuevaLongitud;
                     } else if (carro === 'carro2') {
+                        if (ultimaLatitudCarro2 === nuevaLatitud && ultimaLongitudCarro2 === nuevaLongitud) {
+                            console.log(`Ubicación repetida para carro 2: ${nuevaLatitud}, ${nuevaLongitud}`);
+                            return;
+                        }
                         recorridoCarro2.addLatLng([nuevaLatitud, nuevaLongitud]);
+                        ultimaLatitudCarro2 = nuevaLatitud;
+                        ultimaLongitudCarro2 = nuevaLongitud;
                     }
-                    
-                    ultimaLatitud = nuevaLatitud;
-                    ultimaLongitud = nuevaLongitud;
                 });
 
-                // Centrar el mapa en la última ubicación
-                if (ultimaLatitud !== null && ultimaLongitud !== null) {
-                    map.setView([ultimaLatitud, ultimaLongitud], 13);
-                    marcadorUltimaUbicacion.setLatLng([ultimaLatitud, ultimaLongitud]);
+                // Centrar el mapa en la última ubicación del carro seleccionado
+                if (carro === 'carro1' && ultimaLatitudCarro1 !== null && ultimaLongitudCarro1 !== null) {
+                    map.setView([ultimaLatitudCarro1, ultimaLongitudCarro1], 13);
+                } else if (carro === 'carro2' && ultimaLatitudCarro2 !== null && ultimaLongitudCarro2 !== null) {
+                    map.setView([ultimaLatitudCarro2, ultimaLongitudCarro2], 13);
                 }
             } else {
                 console.log(`No hay datos para ${carro} o estamos filtrando.`);
@@ -558,9 +566,84 @@ function cargarDatosDesdeServidor(url, carro) {
         .catch(error => console.error('Error al cargar los datos históricos:', error));
 });
 
+// Evento de filtrado de fechas que cambia según el carro seleccionado
+document.getElementById('filterForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const selectedValue = carSelection.value; // Obtiene el valor seleccionado
+
+    const startDate = new Date(document.getElementById('startDate').value);
+    const endDate = new Date(document.getElementById('endDate').value);
+
+    if (endDate < startDate) {
+        alert('La fecha de fin no puede ser menor que la fecha de inicio.');
+        return;
+    }
+
+    const startISOString = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000).toISOString();
+    const endISOString = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000).toISOString();
+
+    filtrando = true;
+    map.removeLayer(recorridoFiltrado);
+    recorridoFiltrado.setLatLngs([]); // Limpiar la polilínea filtrada
+
+    const filterUrl = selectedValue === 'carro2' ? '/filterObdData' : '/filterData';
+
+    fetch(`${filterUrl}?startDate=${startISOString}&endDate=${endISOString}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.length === 0) {
+                alert('No se encontraron datos en el rango de tiempo especificado');
+                return;
+            }
+
+            const puntosFiltrados = data.map((registro) => {
+                const lat = parseFloat(registro.Latitud);
+                const lon = parseFloat(registro.Longitud);
+                recorridoFiltrado.addLatLng([lat, lon]);
+                return [lat, lon];
+            });
+
+            recorridoFiltrado.addTo(map);
+
+            if (puntosFiltrados.length > 0) {
+                const firstPoint = puntosFiltrados[0];
+                map.setView(firstPoint, 13);
+            }
+
+            const slider = document.getElementById('filter-slider');
+            slider.max = puntosFiltrados.length - 1;
+            slider.value = 0;
+            document.getElementById('slider-container').style.display = 'block';
+
+            slider.addEventListener('input', function() {
+                const index = parseInt(slider.value);
+                const puntoActual = puntosFiltrados[index];
+                const fecha = data[index].Fecha;
+                const hora = data[index].Hora;
+
+                const popupContent = `<b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}`;
+                if (!marcadorSlider) {
+                    marcadorSlider = L.circleMarker(puntoActual, {
+                        radius: 8,
+                        color: '#800080',
+                        fillColor: '#800080',
+                        fillOpacity: 1,
+                    }).addTo(map);
+                } else {
+                    marcadorSlider.setLatLng(puntoActual);
+                }
+                marcadorSlider.bindPopup(popupContent).openPopup();
+                map.panTo(puntoActual);
+            });
+        })
+        .catch(error => console.error('Error:', error));
+});
+
             
         });
     </script>
 </body>
 </html>
+
 
