@@ -524,10 +524,12 @@ window.addEventListener('beforeunload', function() {
         ultimaUbicacionControlCarro2.addTo(map);
         ultimaUbicacionControlCarro1.addTo(map);
         cargarDatosDesdeServidor('/historicos', 'carro1');
-        recorridoCarro1Filtrado.addTo(map);
-        recorridoCarro1Filtrado.setLatLngs([]); 
         cargarDatosDesdeServidor('/historicosObd', 'carro2');
-        recorridoCarro2Filtrado.addTo(map);
+        if (marcadorSlider) {
+        map.removeLayer(marcadorSlider); // Eliminar el marcador del slider existente
+        marcadorSlider = null; // Reiniciar el marcador del slider
+       
+    }
           
 }
     
@@ -589,14 +591,19 @@ function cargarDatosDesdeServidor(url, carro) {
     const endISOString = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000).toISOString();
 
     filtrando = true;
-    // Limpiar solo la polilínea del carro que no se está utilizando
-    if (selectedValue === 'carro1') {
-        recorridoCarro2Filtrado.setLatLngs([]); // Limpiar solo los datos del carro 2
-    } else {
-        recorridoCarro1Filtrado.setLatLngs([]); // Limpiar solo los datos del carro 1
-    }
 
-    const filterUrl = selectedValue === 'carro2' ? '/filterObdData' : '/filterData';
+    let filterUrl = '';
+    if (selectedValue === 'carro1') {
+    filterUrl = '/filterData'; // URL para carro 1
+    recorridoCarro2Filtrado.setLatLngs([]); 
+    } else if (selectedValue === 'carro2') {
+    filterUrl = '/filterObdData'; // URL para carro 2
+    recorridoCarro1Filtrado.setLatLngs([]); 
+    } else if (selectedValue === 'ambos') {
+    // No se establece un filterUrl aquí porque necesitas manejar ambos casos
+    recorridoCarro1Filtrado.setLatLngs([]); 
+    recorridoCarro2Filtrado.setLatLngs([]); 
+}
 
     fetch(`${filterUrl}?startDate=${startISOString}&endDate=${endISOString}`)
         .then(response => response.json())
@@ -612,9 +619,9 @@ function cargarDatosDesdeServidor(url, carro) {
                 const lon = parseFloat(registro.Longitud);
              
                 // Añadir puntos a la polilínea correspondiente
-                if (selectedValue === 'carro1') {
+                if (selectedValue === 'carro1' || selectedValue === 'ambos') {
                     recorridoCarro1Filtrado.addLatLng([lat, lon]);
-                } else {
+                } else if (selectedValue === 'carro2' || selectedValue === 'ambos') {
                     recorridoCarro2Filtrado.addLatLng([lat, lon]);
                 }
                 return [lat, lon];
@@ -624,10 +631,14 @@ function cargarDatosDesdeServidor(url, carro) {
             if (selectedValue === 'carro1') {
                 recorridoCarro1Filtrado.addTo(map);
                 recorridoCarro2Filtrado.remove(); // Remover la polilínea del carro 2
-            } else {
+            } else if (selectedValue === 'carro2') {
                 recorridoCarro2Filtrado.addTo(map);
                 recorridoCarro1Filtrado.remove(); // Remover la polilínea del carro 1
-            }
+            } else {
+                 recorridoCarro2Filtrado.addTo(map);
+                 recorridoCarro1Filtrado.addTo(map);
+
+                } 
 
             if (puntosFiltrados.length > 0) {
                 const firstPoint = puntosFiltrados[0];
