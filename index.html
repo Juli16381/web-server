@@ -616,11 +616,6 @@ const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).
                     fillColor: '#800080',
                     fillOpacity: 1,
                 }).addTo(map);
-
-                // Limpiar el marcador del slider antes de añadir uno nuevo
-                if (marcadorSlider) {
-                map.removeLayer(marcadorSlider);
-                }
                 
                 marcadorSlider.bindPopup(popupContent).openPopup();
                 map.panTo(puntoActual);
