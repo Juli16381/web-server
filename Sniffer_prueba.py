@@ -58,27 +58,34 @@ def procesar_paquete(paquete):
     except Exception as e:
         print(f"Error al procesar el paquete: {e}")
 
+
+
+
 def parsear_payload(payload):
     """
-    Parsea la carga util del paquete para extraer Latitud, Longitud, Fecha y Hora
+    Parsea la carga útil del paquete para extraer Latitud, Longitud, Fecha, Hora y CarroID
     desde un formato de texto plano.
     """
     try:
-        # Dividir el payload por liÂ­neas
+        # Dividir el payload por líneas
         lineas = payload.splitlines()
         
         # Crear un diccionario para almacenar los datos
         datos = {}
 
-        # Iterar sobre cada lÃƒÂ­nea y extraer los valores
+        # Iterar sobre cada línea y extraer los valores
         for linea in lineas:
-            clave, valor = linea.split(':', 1)  # Limitar el split al primer ':'
-            datos[clave.strip()] = valor.strip()
+            if ':' in linea:
+                clave, valor = linea.split(':', 1)  # Limitar el split al primer ':'
+                datos[clave.strip()] = valor.strip()
 
-        # Validar que todos los datos necesarios estan presentes
+        # Validar que todos los datos necesarios están presentes
         latitud = datos.get('Latitud')
         longitud = datos.get('Longitud')
         timestamp = datos.get('Timestamp')
+
+        # Identificar el CarroID en el payload
+        carroid = "Carro 1" if "carro 1" in payload.lower() else "Carro 2" if "carro 2" in payload.lower() else None
 
         # Verificar si se envían datos adicionales (por ejemplo, RPM)
         rpm = datos.get('RPM')
@@ -88,27 +95,20 @@ def parsear_payload(payload):
             fecha, hora = timestamp.split(' ')
             print(f"Datos válidos extraídos: Latitud={latitud}, Longitud={longitud}, Fecha={fecha}, Hora={hora}")
             
-            # Si RPM está presente, es de la aplicación 2
+            # Retornar los datos con el identificador del carro
+            resultado = {
+                'Carroid': carroid,
+                'Latitud': float(latitud),
+                'Longitud': float(longitud),
+                'Fecha': fecha,
+                'Hora': hora
+            }
+            
+            # Agregar RPM si está presente
             if rpm:
-                print(f"RPM={rpm} detectado, datos provienen de App2")
-                return {
-                    'Aplicacion': 'App2',
-                    'Latitud': float(latitud),
-                    'Longitud': float(longitud),
-                    'Fecha': fecha,
-                    'Hora': hora,
-                    'RPM': float(rpm)
-                }
-            else:
-                # Si RPM no está presente, es de la aplicación 1
-                print("Datos provienen de App1")
-                return {
-                    'Aplicacion': 'App1',
-                    'Latitud': float(latitud),
-                    'Longitud': float(longitud),
-                    'Fecha': fecha,
-                    'Hora': hora
-                }
+                resultado['RPM'] = float(rpm)
+            
+            return resultado
         else:
             print("Datos incompletos en el payload.")
             return None
@@ -116,6 +116,7 @@ def parsear_payload(payload):
     except Exception as e:
         print(f"Error al procesar el payload: {e}")
         return None
+
 
 
 
@@ -149,24 +150,24 @@ def insertar_en_mysql(datos):
         print("Conexión a la base de datos establecida correctamente.")
 
         # Insertar en la tabla adecuada según la aplicación
-        if datos.get('Aplicacion') == "App2" and 'RPM' in datos:
+        if datos.get('Carroid') == "Carro 2" and 'RPM' in datos:
             # Insertar en la tabla de datos_obd
             add_dato = ("INSERT INTO datos_obd "
-                        "(Aplicacion, Latitud, Longitud, Fecha, Hora, RPM) "
+                        "(Carroid, Latitud, Longitud, Fecha, Hora, RPM) "
                         "VALUES (%s, %s, %s, %s, %s, %s)")
-            data_dato = (datos['Aplicacion'], datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'], datos['RPM'])
+            data_dato = (datos['Carroid'], datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'], datos['RPM'])
             print(f"Preparando para insertar en datos_obd: {data_dato}")
             cursor.execute(add_dato, data_dato)
             cnx.commit()
             print("Datos insertados correctamente en datos_obd.")
             return  # Salir de la función para evitar cualquier inserción adicional
     
-        elif datos.get('Aplicacion') == "App1" and 'RPM' not in datos:
+        elif datos.get('Carroid') == "Carro 1" and 'RPM' not in datos:
             # Insertar en la tabla de datos_gps
             add_dato = ("INSERT INTO datos_gps "
-                        "(Aplicacion, Latitud, Longitud, Fecha, Hora) "
+                        "(Carroid, Latitud, Longitud, Fecha, Hora) "
                         "VALUES (%s, %s, %s, %s, %s)")
-            data_dato = (datos['Aplicacion'], datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'])
+            data_dato = (datos['Carroid'], datos['Latitud'], datos['Longitud'], datos['Fecha'], datos['Hora'])
             print(f"Preparando para insertar en datos_gps: {data_dato}")
             cursor.execute(add_dato, data_dato)
             cnx.commit()
