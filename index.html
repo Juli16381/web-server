@@ -510,6 +510,8 @@ window.addEventListener('beforeunload', function() {
       } else if (selectedValue === 'ambos') {
         ultimaUbicacionControlCarro2.addTo(map);
         ultimaUbicacionControlCarro1.addTo(map);
+        recorridoCarro1Filtrado.setLatLngs([]); 
+        recorridoCarro2Filtrado.setLatLngs([]);
         cargarDatosDesdeServidor('/historicos', 'carro1');
         cargarDatosDesdeServidor('/historicosObd', 'carro2');
         recorridoCarro1Filtrado.addTo(map);
