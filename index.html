@@ -524,6 +524,9 @@ function cargarDatosDesdeServidor(url, carro) {
                 data.forEach((registro) => {
                     const nuevaLatitud = parseFloat(registro.Latitud);
                     const nuevaLongitud = parseFloat(registro.Longitud);
+                    const fecha = registro.Fecha; // Obtener la fecha del registro
+                    const hora = registro.Hora; // Obtener la hora del registro
+                    const rpm = registro.RPM; 
 
                     if (ultimaLatitud !== null && ultimaLongitud !== null &&
                         ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
