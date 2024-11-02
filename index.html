@@ -599,48 +599,30 @@ const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).
             slider.value = 0;
             document.getElementById('slider-container').style.display = 'block';
 
-            // Limpiar el marcador del slider antes de añadir uno nuevo
-            if (marcadorSlider) {
-                map.removeLayer(marcadorSlider);
-            }
 
             slider.addEventListener('input', function() {
-    const index = parseInt(slider.value);
-    const puntoActual = puntosFiltrados[index];
+                const index = parseInt(slider.value);
+                const puntoActual = puntosFiltrados[index];
+                const fecha = data[index].Fecha;
+                const hora = data[index].Hora;
 
-    // Extraer las fechas y horas para este punto
-    const fecha = data[index].Fecha;
-    const hora = data[index].Hora;
+                const popupContent = `<b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}`;
 
-    // Crear el contenido del popup con la fecha y la hora
-    const popupContent = `<b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}`;
-
-    // Verifica si el marcadorSlider ya existe
-    if (!marcadorSlider) {
-        // Si no existe, créalo y añádelo al mapa
-        marcadorSlider = L.circleMarker(puntoActual, {
-            radius: 8,
-            color: '#800080',  // Color personalizado para el marcador del slider
-            fillColor: '#800080',
-            fillOpacity: 1,
-        }).addTo(map);
-    } else {
-        // Si ya existe, solo actualiza su posición
-        marcadorSlider.setLatLng(puntoActual);
-    }
-
-    // Actualiza el contenido del popup y abre el popup
-    marcadorSlider.setPopupContent(popupContent).openPopup();
-    map.panTo(puntoActual);  // Centramos el mapa en el punto del slider
-});
-
-
+                 if (marcadorSlider) {
+                map.removeLayer(marcadorSlider);
+                }
+                
+                // Crear un nuevo marcador cada vez que se mueve el slider
+                marcadorSlider = L.circleMarker(puntoActual, {
+                    radius: 8,
+                    color: '#800080',
+                    fillColor: '#800080',
+                    fillOpacity: 1,
+                }).addTo(map);
+                
+                marcadorSlider.bindPopup(popupContent).openPopup();
+                map.panTo(puntoActual);
+            });
         })
         .catch(error => console.error('Error:', error));
 });
-
-    
-        });
-    </script>
-</body>
-</html>
