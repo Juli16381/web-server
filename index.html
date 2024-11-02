@@ -627,7 +627,8 @@ const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).
                 const puntoActual = puntosFiltrados[index];
                 const fecha = data[index].Fecha;
                 const hora = data[index].Hora;
-                 const rpm = data[index].RPM !== undefined ? data[index].RPM : 'N/A'; // Manejo de undefined
+                const rpm = data[index].RPM; // Asegúrate de que estás accediendo correctamente
+                console.log('RPM actual:', rpm); // Verifica el valor de RPM aquí
                 const popupContent = `<b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}<br><b>RPM:</b> ${rpm}`;
 
             
