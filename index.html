@@ -626,6 +626,7 @@ const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).
                 const puntoActual = puntosFiltrados[index];
                 const fecha = data[index].Fecha;
                 const hora = data[index].Hora;
+                const rpm = data[index].RPM;
 
                 const popupContent = `<b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}`;
                 
