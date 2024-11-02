@@ -726,6 +726,10 @@ function cargarDatosDesdeServidor(url, carro) {
                 slider.max = puntosFiltrados.length - 1;
                 slider.value = 0;
                 document.getElementById('slider-container').style.display = 'block';
+                if (marcadorSlider) {
+                map.removeLayer(marcadorSlider); // Remover el marcador anterior
+                marcadorSlider = null; // Resetear el marcador
+                }
 
                slider.addEventListener('input', function() {
                 const index = parseInt(slider.value);
