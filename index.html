@@ -492,14 +492,24 @@ window.addEventListener('beforeunload', function() {
     if (selectedValue === 'carro1') {
         alert('Carro 1');
         ultimaUbicacionControlCarro1.addTo(map);
-        cargarDatosDesdeServidor('/historicos', 'carro1');    
-        map.removeLayer(marcadorSlider); 
+        cargarDatosDesdeServidor('/historicos', 'carro1');  
+        if (marcadores.length > 0) {
+        marcadores.forEach(marcador => {
+            map.removeLayer(marcador);
+        });
+        marcadores = []; // Reiniciar el arreglo de marcadores
+    }
 
     } else if (selectedValue === 'carro2') {
         alert('Carro 2');
         ultimaUbicacionControlCarro2.addTo(map);
         cargarDatosDesdeServidor('/historicosObd', 'carro2');
-        map.removeLayer(marcadorSlider); 
+        if (marcadores.length > 0) {
+        marcadores.forEach(marcador => {
+            map.removeLayer(marcador);
+        });
+        marcadores = []; // Reiniciar el arreglo de marcadores
+    }
 
       } else if (selectedValue === 'ambos') {
         alert('Carro 2');
@@ -603,37 +613,49 @@ const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).
                 map.setView(firstPoint, 13);
             }
 
-            const slider = document.getElementById('filter-slider');
-            slider.max = puntosFiltrados.length - 1;
-            slider.value = 0;
-            document.getElementById('slider-container').style.display = 'block';
+            let marcadorSlider = null; // Inicializar el marcador del slider
+let marcadores = []; // Arreglo para almacenar marcadores de los puntos filtrados
 
-             // Limpiar el marcador del slider antes de añadir uno nuevo
-                if (marcadorSlider) {
-                map.removeLayer(marcadorSlider);
-                }
+const slider = document.getElementById('filter-slider');
+slider.max = puntosFiltrados.length - 1;
+slider.value = 0;
+document.getElementById('slider-container').style.display = 'block';
 
-            slider.addEventListener('input', function() {
-                const index = parseInt(slider.value);
-                const puntoActual = puntosFiltrados[index];
-                const fecha = data[index].Fecha;
-                const hora = data[index].Hora;
+// Limpiar el marcador del slider antes de añadir uno nuevo
+if (marcadorSlider) {
+    map.removeLayer(marcadorSlider); // Eliminar el marcador del slider existente
+}
 
-                const popupContent = `<b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}`;
-                
-                // Crear un nuevo marcador cada vez que se mueve el slider
-                marcadorSlider = L.circleMarker(puntoActual, {
-                    radius: 8,
-                    color: '#800080',
-                    fillColor: '#800080',
-                    fillOpacity: 1,
-                }).addTo(map);
-                
-                marcadorSlider.bindPopup(popupContent).openPopup();
-                map.panTo(puntoActual);
-            });
-        })
-        .catch(error => console.error('Error:', error));
+slider.addEventListener('input', function() {
+    const index = parseInt(slider.value);
+    const puntoActual = puntosFiltrados[index];
+    const fecha = data[index].Fecha;
+    const hora = data[index].Hora;
+
+    const popupContent = `<b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}`;
+
+    // Limpiar los marcadores existentes del arreglo al cambiar el carro
+    if (marcadores.length > 0) {
+        marcadores.forEach(marcador => {
+            map.removeLayer(marcador);
+        });
+        marcadores = []; // Reiniciar el arreglo de marcadores
+    }
+
+    // Crear un nuevo marcador cada vez que se mueve el slider
+    marcadorSlider = L.circleMarker(puntoActual, {
+        radius: 8,
+        color: '#800080',
+        fillColor: '#800080',
+        fillOpacity: 1,
+    }).addTo(map);
+
+    // Almacenar el marcador en el arreglo
+    marcadores.push(marcadorSlider);
+
+    // Agregar el popup con la fecha y la hora en el marcador
+    marcadorSlider.bindPopup(popupContent).openPopup();
+    map.panTo(puntoActual);
 });
 
     
