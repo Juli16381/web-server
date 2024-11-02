@@ -598,6 +598,16 @@ function cargarDatosDesdeServidor(url, carro) {
 
     filtrando = true;
 
+    recorridoCarro1Filtrado.setLatLngs([]); 
+    recorridoCarro2Filtrado.setLatLngs([]);
+    recorridoCarro1Filtrado.remove(map);
+    recorridoCarro2Filtrado.remove(map);
+        
+    if (marcadorSlider) {
+        map.removeLayer(marcadorSlider); // Eliminar marcador previo
+        marcadorSlider = null;
+    }
+
     let filterUrl = '';
     if (selectedValue === 'carro1') {
     filterUrl = '/filterData'; // URL para carro 1
