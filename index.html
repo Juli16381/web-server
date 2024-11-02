@@ -360,26 +360,39 @@ window.addEventListener('beforeunload', function() {
             let ultimaLatitud2 = null;
             let ultimaLongitud2 = null;
 
-    document.getElementById('carro1Btn').addEventListener('click', function() {
+            // Define la función para manejar los datos de Carro 1
+function manejarDatosCarro1(data) {
+    if (!filtrando) {
+        actualizarMapa(data);
+    }
+}
+
+// Configura el socket para Carro 1 una vez
+socket.on('new-data', manejarDatosCarro1);
+
+// Evento de Carro 1
+document.getElementById('carro1Btn').addEventListener('click', function() {
     ultimaUbicacionControlCarro1.addTo(map);
     ultimaUbicacionControlCarro2.remove();
-    socket.on('new-data', (data) => {
-        if (!filtrando) {
-            actualizarMapa(data);
-        }
-    });
+    // No necesitas hacer nada aquí, solo asegúrate de que el evento está activo
 });
 
+// Evento de Carro 2
 document.getElementById('carro2Btn').addEventListener('click', function() {
     ultimaUbicacionControlCarro2.addTo(map);
     ultimaUbicacionControlCarro1.remove();
-    socket.off('new-data');
+    
+    // Desactiva el evento de Carro 1
+    socket.off('new-data', manejarDatosCarro1);  // Esto desactiva solo el evento de Carro 1
+
+    // Configura el socket para Carro 2
     socket.on('new-obd-data', (data) => {
         if (!filtrando) {
             actualizarMapa1(data);
         }
     });
 });
+
 
 document.getElementById('ambosBtn').addEventListener('click', function() {
      ultimaUbicacionControlCarro2.addTo(map);
