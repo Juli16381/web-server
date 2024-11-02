@@ -131,7 +131,6 @@
          <option value="nada">---</option>
         <option value="carro1">Carro 1</option>
         <option value="carro2">Carro 2</option>
-        <option value="ambos">Ambos</option>
     </select>
     </form>
 
@@ -488,18 +487,15 @@ carSelection.addEventListener('change', function() {
         alert('Carro 1');
         ultimaUbicacionControlCarro1.addTo(map);
         ultimaUbicacionControlCarro2.remove(map);
+        limpiarMapa();
         cargarDatosDesdeServidor('/historicos');
     } else if (selectedValue === 'carro2') {
         alert('Carro 2');
         ultimaUbicacionControlCarro2.addTo(map);
         ultimaUbicacionControlCarro1.remove(map);
+        limpiarMapa();
         cargarDatosDesdeServidor('/historicosObd');
-    } else if (selectedValue === 'ambos') {
-        alert('Ambos carros');
-        ultimaUbicacionControlCarro2.addTo(map);
-        ultimaUbicacionControlCarro1.addTo(map);
-        limpiarMapa(); // Limpia el mapa para ambos carros si es necesario.
-    }
+    } 
 });
 
 // Función para cargar datos históricos basada en la URL según el carro
