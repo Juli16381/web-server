@@ -127,7 +127,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
                             Longitud: latestData.Longitud,
                             Fecha: fechaFormateada,
                             Hora: horaFormateada,
-                            RPM: latestData.RPM
+                            rpm: latestData.rpm
                         });
                     } catch (error) {
                         console.error('Error al formatear la fecha y hora:', error);
@@ -190,7 +190,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
                 ...row,
                 Fecha: new Date(row.FechaHora).toISOString().split('T')[0],
                 Hora: new Date(row.FechaHora).toTimeString().split(' ')[0],
-                RPM: row.RPM
+                rpm: row.rpm
             }));
 
             res.json(formattedResults);
@@ -213,7 +213,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
             ...row,
             Fecha: new Date(row.FechaHora).toISOString().split('T')[0],
             Hora: new Date(row.FechaHora).toTimeString().split(' ')[0],
-            RPM: row.RPM
+            rpm: row.rpm
         }));
 
         res.json(formattedResults);
