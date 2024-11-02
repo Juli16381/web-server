@@ -360,14 +360,8 @@ window.addEventListener('beforeunload', function() {
             let ultimaLatitud2 = null;
             let ultimaLongitud2 = null;
 
-            // Define la función para manejar los datos de Carro 1
-function manejarDatosCarro1(data) {
-    if (!filtrando) {
-        actualizarMapa(data);
-    }
-}
 
-  document.getElementById('carro1Btn').addEventListener('click', function() {
+    document.getElementById('carro1Btn').addEventListener('click', function() {
     ultimaUbicacionControlCarro1.addTo(map);
     ultimaUbicacionControlCarro2.remove();
     socket.on('new-data', (data) => {
