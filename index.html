@@ -130,6 +130,8 @@
     <select id="carSelection" name="carSelection">
         <option value="carro1">Carro 1</option>
         <option value="carro2">Carro 2</option>
+         <option value="ambos">Ambos</option>
+        
         
     </select>
     </form>
@@ -333,7 +335,6 @@ window.addEventListener('beforeunload', function() {
 };
             // Polilínea carro 1
             let recorrido = L.polyline([], { color: '#800080' }).addTo(map);
-            let recorridoFiltrado = L.polyline([], { color: '#FF6FC6' });
             let marcadorUltimaUbicacion = L.circleMarker([0, 0], {
                 radius: 10,
                 color: '#800080',
@@ -344,7 +345,6 @@ window.addEventListener('beforeunload', function() {
             
             // Polilínea carro 2
             let recorrido2 = L.polyline([], { color: '#FF4500' }).addTo(map);
-            let recorridoFiltrado2 = L.polyline([], { color: '#007FFF' });
             let marcadorUltimaUbicacion2 = L.circleMarker([0, 0], {
                 radius: 10,
                 color: '#FF0000',
@@ -477,7 +477,6 @@ window.addEventListener('beforeunload', function() {
         ultimaLongitud2 = nuevaLongitud2;
     }
     
-
     const carSelection = document.getElementById('carSelection');
     const recorridoCarro1 = L.polyline([], { color: '#FF0000' }).addTo(map); // Polilínea para carro 1 (rojo)
     const recorridoCarro2 = L.polyline([], { color: '#0000FF' }).addTo(map); // Polilínea para carro 2 (azul)
@@ -519,13 +518,6 @@ function cargarDatosDesdeServidor(url, carro) {
                         ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
                         return;
                     }
-
-                    // Cambiar el color de la polilínea según el carro
-                    if (carro === 'carro1') {
-                        recorridoCarro1.addLatLng([nuevaLatitud, nuevaLongitud]);
-                    } else {
-                        recorridoCarro2.addLatLng([nuevaLatitud, nuevaLongitud]);
-                    }
                     
                     ultimaLatitud = nuevaLatitud;
                     ultimaLongitud = nuevaLongitud;
@@ -545,18 +537,13 @@ const recorridoCarro1Filtrado = L.polyline([], { color: '#FF0000', weight: 3 }).
 const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).addTo(map); // Polilínea filtrada para carro 2 (azul)
 
 // Evento de filtrado de fechas que cambia según el carro seleccionado
-document.getElementById('filterForm').addEventListener('submit', function(event) {
+    document.getElementById('filterForm').addEventListener('submit', function(event) {
     event.preventDefault();
 
     const selectedValue = carSelection.value; // Obtiene el valor seleccionado
     const startDate = new Date(document.getElementById('startDate').value);
     const endDate = new Date(document.getElementById('endDate').value);
 
-    // Verificar si hay carro seleccionado
-    if (selectedValue === 'default') {
-        alert('Por favor, selecciona un carro antes de filtrar.');
-        return; // Detiene la ejecución si no hay carro seleccionado
-    }
 
     if (endDate < startDate) {
         alert('La fecha de fin no puede ser menor que la fecha de inicio.');
