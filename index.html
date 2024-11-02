@@ -627,9 +627,9 @@ const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).
                 const fecha = data[index].Fecha;
                 const hora = data[index].Hora;
                 const rpm = data[index].RPM;
+                const popupContent = `<b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}<br><b>RPM:</b> ${rpm}`;
 
-                const popupContent = `<b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}`;
-                
+            
                   if (!marcadorSlider) {
                     marcadorSlider = L.circleMarker(puntoActual, {
                     radius: 8,
