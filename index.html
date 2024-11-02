@@ -482,11 +482,13 @@ window.addEventListener('beforeunload', function() {
 
             
      const carSelection = document.getElementById('carSelection');
+     selectedValue === 'carro1';
      carSelection.addEventListener('change', function() {
      const selectedValue = carSelection.value; 
 
     if (selectedValue === 'carro1') {
         alert('Carro 1'); 
+        ultimaUbicacionControlCarro1.addTo(map);
           function cargarDatosDesdeServidor() {
                 fetch('/historicos')
                     .then(response => response.json())
@@ -516,7 +518,7 @@ window.addEventListener('beforeunload', function() {
                     .catch(error => console.error('Error al cargar los datos históricos:', error));
             }
 
-            document.getElementById('filterForm').addEventListener('submit', function(event) {
+               document.getElementById('filterForm').addEventListener('submit', function(event) {
                 event.preventDefault();
 
                 let startDate = new Date(document.getElementById('startDate').value);
@@ -594,11 +596,14 @@ window.addEventListener('beforeunload', function() {
 
     } else if (selectedValue === 'carro2') {
         alert('Carro 2'); 
+        ultimaUbicacionControlCarro2.addTo(map);
+        ultimaUbicacionControlCarro1.remove(map);
         limpiarMapa();
 
     } else if (selectedValue === 'ambos') {
         alert('Ambos carros'); 
-         limpiarMapa();
+         ultimaUbicacionControlCarro2.addTo(map);
+         ultimaUbicacionControlCarro1.addTo(map);
     }
 });
             
