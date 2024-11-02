@@ -436,7 +436,7 @@ window.addEventListener('beforeunload', function() {
 
         // Función para actualizar el mapa con datos del carro 2
         function actualizarMapa2(data2) {
-        if (!data2 || !data2.Latitud || !data2.Longitud || !data2.Fecha || !data2.Hora || !data2.RPM) {
+        if (!data2 || !data2.Latitud || !data2.Longitud || !data2.Fecha || !data2.Hora || !data2.rpm) {
         console.error('Datos inválidos recibidos:', data2);
         return;
         }
@@ -445,7 +445,7 @@ window.addEventListener('beforeunload', function() {
         const nuevaLongitud2 = parseFloat(data2.Longitud);
         const fechaFormateada2 = data2.Fecha.split('T')[0];
         const horaFormateada2 = data2.Hora;
-        const rpmFormateada2 = data2.RPM;
+        const rpmFormateada2 = data2.rpm;
 
         // Evitar actualizaciones si la posición no ha cambiado
         if (ultimaLatitud2 !== null && ultimaLongitud2 !== null && 
