@@ -602,11 +602,9 @@ function cargarDatosDesdeServidor(url, carro) {
     recorridoCarro2Filtrado.setLatLngs([]);
     recorridoCarro1Filtrado.remove(map);
     recorridoCarro2Filtrado.remove(map);
-        
-    if (marcadorSlider) {
-        map.removeLayer(marcadorSlider); // Eliminar marcador previo
-        marcadorSlider = null;
-    }
+    map.removeLayer(marcadorSlider); 
+    marcadorSlider = null;
+    
 
     let filterUrl = '';
     if (selectedValue === 'carro1') {
