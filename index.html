@@ -489,7 +489,6 @@ carSelection.addEventListener('change', function() {
         ultimaUbicacionControlCarro2.remove(map);
         limpiarMapa();
         cargarDatosDesdeServidor('/historicos');
-        marcadorUltimaUbicacion = L.marker([ultimaLatitud, ultimaLongitud]).addTo(map);
 
     } else if (selectedValue === 'carro2') {
         alert('Carro 2');
