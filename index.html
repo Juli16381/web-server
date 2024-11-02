@@ -480,229 +480,164 @@ window.addEventListener('beforeunload', function() {
         ultimaLongitud2 = nuevaLongitud2;
     }
 
-            
+    
      const carSelection = document.getElementById('carSelection');
      carSelection.addEventListener('change', function() {
-     const selectedValue = carSelection.value; 
-    
-    if (selectedValue === 'carro1') {
+     const selectedValue = carSelection.value;
+
+     if (selectedValue === 'carro1') {
         alert('Carro 1'); 
         ultimaUbicacionControlCarro1.addTo(map);
         ultimaUbicacionControlCarro2.remove(map);
-          function cargarDatosDesdeServidor() {
-                fetch('/historicos')
-                    .then(response => response.json())
-                    .then(data => {
-                        if (!filtrando && data.length > 0) {
-                            data.forEach((registro) => {
-                                const nuevaLatitud = parseFloat(registro.Latitud);
-                                const nuevaLongitud = parseFloat(registro.Longitud);
-
-                                if (ultimaLatitud !== null && ultimaLongitud !== null && 
-                                    ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
-                                    return;
-                                }
-
-                                recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
-
-                                ultimaLatitud = nuevaLatitud;
-                                ultimaLongitud = nuevaLongitud;
-                            });
-
-                            if (ultimaLatitud !== null && ultimaLongitud !== null) {
-                                map.setView([ultimaLatitud, ultimaLongitud], 13);
-                                marcadorUltimaUbicacion.setLatLng([ultimaLatitud, ultimaLongitud]);
-                            }
-                        }
-                    })
-                    .catch(error => console.error('Error al cargar los datos históricos:', error));
-            }
-
-               document.getElementById('filterForm').addEventListener('submit', function(event) {
-                event.preventDefault();
-
-                let startDate = new Date(document.getElementById('startDate').value);
-                let endDate = new Date(document.getElementById('endDate').value);
-
-                if (endDate < startDate) {
-                    alert('La fecha de fin no puede ser menor que la fecha de inicio.');
-                    return;
-                }
-
-                startDate = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000);
-                endDate = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000);
-
-                filtrando = true;
-
-                map.removeLayer(recorrido);
-
-                fetch(`/filterData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.length === 0) {
-                            alert('No se encontraron datos en el rango de tiempo especificado');
-                            return;
-                        }
-
-                        recorridoFiltrado.setLatLngs([]);
-
-                        const puntosFiltrados = data.map((registro) => {
-                            const lat = parseFloat(registro.Latitud);
-                            const lon = parseFloat(registro.Longitud);
-                            recorridoFiltrado.addLatLng([lat, lon]);
-                            return [lat, lon];
-                        });
-
-                        // Agregar la línea filtrada al mapa
-                        recorridoFiltrado.addTo(map);
-
-                        if (puntosFiltrados.length > 0) {
-                            const firstPoint = puntosFiltrados[0];
-                            map.setView(firstPoint, 13);  // Ajusta el nivel de zoom
-                        }
-
-                        // Configurar el slider con los puntos filtrados
-                        const slider = document.getElementById('filter-slider');
-                        slider.max = puntosFiltrados.length - 1;
-                        slider.value = 0;
-                        document.getElementById('slider-container').style.display = 'block';
-                        // Crear o mover el marcador dinámico en el mapa con el slider
-                        slider.addEventListener('input', function() {
-                            const index = parseInt(slider.value);
-                            const puntoActual = puntosFiltrados[index];
-                            // Extraer las fechas y horas para este punto
-                            const fecha = data[index].Fecha;
-                            const hora = data[index].Hora;
-                            // Crear el contenido del popup con la fecha y la hora
-                            const popupContent = `<b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}`;
-                            if (!marcadorSlider) {
-                                marcadorSlider = L.circleMarker(puntoActual, {
-                                    radius: 8,
-                                    color: '#800080',  // Color personalizado para el marcador del slider
-                                    fillColor: '#800080',
-                                    fillOpacity: 1,
-                                }).addTo(map);
-                            } else {
-                                marcadorSlider.setLatLng(puntoActual);  // Actualizar posición del marcador
-                            }
-                            // Agregar el popup con la fecha y la hora en el marcador
-                            marcadorSlider.bindPopup(popupContent).openPopup();
-                            map.panTo(puntoActual);  // Centramos el mapa en el punto del slider
-                        });
-
-                    })
-                    .catch(error => console.error('Error:', error));
-            });
-
+        cargarDatosDesdeServidor(); // Llama a la función de carga para carro 1
     } else if (selectedValue === 'carro2') {
         alert('Carro 2'); 
         ultimaUbicacionControlCarro2.addTo(map);
         ultimaUbicacionControlCarro1.remove(map);
+        cargarDatosDesdeServidor2(); // Llama a la función de carga para carro 2
+    }
+});
 
-        function cargarDatosDesdeServidor2() {
-                fetch('/historicosObd')
-                    .then(response => response.json())
-                    .then(data => {
-                        if (!filtrando2 && data.length > 0) {
-                            data.forEach((registro) => {
-                                const nuevaLatitud2 = parseFloat(registro.Latitud);
-                                const nuevaLongitud2 = parseFloat(registro.Longitud);
-                                const rpm = registro.RPM;
+function cargarDatosDesdeServidor() {
+    fetch('/historicos')
+        .then(response => response.json())
+        .then(data => {
+            if (!filtrando && data.length > 0) {
+                // Procesar datos para carro 1
+                procesarDatos(data, recorrido, marcadorUltimaUbicacion);
+            }
+        })
+        .catch(error => console.error('Error al cargar los datos históricos:', error));
+}
 
-                                if (ultimaLatitud2 !== null && ultimaLongitud2 !== null && 
-                                    ultimaLatitud2 === nuevaLatitud2 && ultimaLongitud2 === nuevaLongitud2) {
-                                    return;
-                                }
+function cargarDatosDesdeServidor2() {
+    fetch('/historicosObd')
+        .then(response => response.json())
+        .then(data => {
+            if (!filtrando2 && data.length > 0) {
+                // Procesar datos para carro 2
+                procesarDatos(data, recorrido2, marcadorUltimaUbicacion2);
+            }
+        })
+        .catch(error => console.error('Error al cargar los datos históricos 2:', error));
+}
 
-                                recorrido2.addLatLng([nuevaLatitud2, nuevaLongitud2]);
+// Función para procesar datos comunes
+function procesarDatos(data, recorridoLayer, marcador) {
+    data.forEach((registro) => {
+        const nuevaLatitud = parseFloat(registro.Latitud);
+        const nuevaLongitud = parseFloat(registro.Longitud);
 
-                                ultimaLatitud2 = nuevaLatitud2;
-                                ultimaLongitud2 = nuevaLongitud2;
-                            });
+        if (ultimaLatitud !== null && ultimaLongitud !== null && 
+            ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
+            return;
+        }
 
-                            if (ultimaLatitud2 !== null && ultimaLongitud2 !== null) {
-                                map.setView([ultimaLatitud2, ultimaLongitud2], 13);
-                                marcadorUltimaUbicacion2.setLatLng([ultimaLatitud2, ultimaLongitud2]);
-                            }
-                        }
-                    })
-                    .catch(error => console.error('Error al cargar los datos históricos 2:', error));
+        recorridoLayer.addLatLng([nuevaLatitud, nuevaLongitud]);
+
+        if (recorridoLayer === recorrido) { // Solo actualiza para carro 1
+            ultimaLatitud = nuevaLatitud;
+            ultimaLongitud = nuevaLongitud;
+        } else { // Actualiza para carro 2
+            ultimaLatitud2 = nuevaLatitud;
+            ultimaLongitud2 = nuevaLongitud;
+        }
+    });
+
+    if ((recorridoLayer === recorrido && ultimaLatitud !== null && ultimaLongitud !== null) || 
+        (recorridoLayer === recorrido2 && ultimaLatitud2 !== null && ultimaLongitud2 !== null)) {
+        const latitudFinal = recorridoLayer === recorrido ? ultimaLatitud : ultimaLatitud2;
+        const longitudFinal = recorridoLayer === recorrido ? ultimaLongitud : ultimaLongitud2;
+        map.setView([latitudFinal, longitudFinal], 13);
+        marcador.setLatLng([latitudFinal, longitudFinal]);
+    }
+}
+
+// Manejo del formulario de filtrado (fuera de los bloques de carro)
+document.getElementById('filterForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    let startDate = new Date(document.getElementById('startDate').value);
+    let endDate = new Date(document.getElementById('endDate').value);
+
+    if (endDate < startDate) {
+        alert('La fecha de fin no puede ser menor que la fecha de inicio.');
+        return;
+    }
+
+    startDate = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000);
+    endDate = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000);
+
+    if (selectedValue === 'carro1') {
+        filtrando = true;
+        map.removeLayer(recorrido);
+        filtrarDatos('/filterData', startDate, endDate, recorridoFiltrado);
+    } else if (selectedValue === 'carro2') {
+        filtrando2 = true;
+        map.removeLayer(recorrido2);
+        filtrarDatos('/filterObdData', startDate, endDate, recorridoFiltrado2);
+    }
+});
+
+// Función para filtrar datos
+function filtrarDatos(url, startDate, endDate, recorridoFiltradoLayer) {
+    fetch(`${url}?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.length === 0) {
+                alert('No se encontraron datos en el rango de tiempo especificado');
+                return;
             }
 
-               document.getElementById('filterForm').addEventListener('submit', function(event) {
-                event.preventDefault();
+            recorridoFiltradoLayer.setLatLngs([]);
 
-                let startDate = new Date(document.getElementById('startDate').value);
-                let endDate = new Date(document.getElementById('endDate').value);
+            const puntosFiltrados = data.map((registro) => {
+                const lat = parseFloat(registro.Latitud);
+                const lon = parseFloat(registro.Longitud);
+                recorridoFiltradoLayer.addLatLng([lat, lon]);
+                return [lat, lon];
+            });
 
-                if (endDate < startDate) {
-                    alert('La fecha de fin no puede ser menor que la fecha de inicio.');
-                    return;
-                }
+            recorridoFiltradoLayer.addTo(map);
 
-                startDate = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000);
-                endDate = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000);
+            if (puntosFiltrados.length > 0) {
+                const firstPoint = puntosFiltrados[0];
+                map.setView(firstPoint, 13);  // Ajusta el nivel de zoom
+            }
 
-                filtrando2 = true;
+            configurarSlider(puntosFiltrados, data);
+        })
+        .catch(error => console.error('Error:', error));
+}
 
-                map.removeLayer(recorrido2);
+// Función para configurar el slider
+function configurarSlider(puntosFiltrados, data) {
+    const slider = document.getElementById('filter-slider');
+    slider.max = puntosFiltrados.length - 1;
+    slider.value = 0;
+    document.getElementById('slider-container').style.display = 'block';
 
-                fetch(`/filterObdData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.length === 0) {
-                            alert('No se encontraron datos en el rango de tiempo especificado');
-                            return;
-                        }
-
-                        recorridoFiltrado2.setLatLngs([]);
-
-                        const puntosFiltrados = data.map((registro) => {
-                            const lat = parseFloat(registro.Latitud);
-                            const lon = parseFloat(registro.Longitud);
-                            recorridoFiltrado2.addLatLng([lat, lon]);
-                            return [lat, lon];
-                        });
-
-                        // Agregar la línea filtrada al mapa
-                        recorridoFiltrado2.addTo(map);
-
-                        if (puntosFiltrados.length > 0) {
-                            const firstPoint = puntosFiltrados[0];
-                            map.setView(firstPoint, 13);  // Ajusta el nivel de zoom
-                        }
-
-                        // Configurar el slider con los puntos filtrados
-                        const slider = document.getElementById('filter-slider');
-                        slider.max = puntosFiltrados.length - 1;
-                        slider.value = 0;
-                        document.getElementById('slider-container').style.display = 'block';
-                        // Crear o mover el marcador dinámico en el mapa con el slider
-                        slider.addEventListener('input', function() {
-                            const index = parseInt(slider.value);
-                            const puntoActual = puntosFiltrados[index];
-                            // Extraer las fechas y horas para este punto
-                            const fecha = data[index].Fecha;
-                            const hora = data[index].Hora;
-                            // Crear el contenido del popup con la fecha y la hora
-                            const popupContent = `<b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}`;
-                            if (!marcadorSlider) {
-                                marcadorSlider = L.circleMarker(puntoActual, {
-                                    radius: 8,
-                                    color: '#800080',  // Color personalizado para el marcador del slider
-                                    fillColor: '#800080',
-                                    fillOpacity: 1,
-                                }).addTo(map);
-                            } else {
-                                marcadorSlider.setLatLng(puntoActual);  // Actualizar posición del marcador
-                            }
-                            // Agregar el popup con la fecha y la hora en el marcador
-                            marcadorSlider.bindPopup(popupContent).openPopup();
-                            map.panTo(puntoActual);  // Centramos el mapa en el punto del slider
-                        });
-
-                    })
-                    .catch(error => console.error('Error:', error));
+    slider.addEventListener('input', function() {
+        const index = parseInt(slider.value);
+        const puntoActual = puntosFiltrados[index];
+        const fecha = data[index].Fecha;
+        const hora = data[index].Hora;
+        const popupContent = `<b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}`;
+        
+        if (!marcadorSlider) {
+            marcadorSlider = L.circleMarker(puntoActual, {
+                radius: 8,
+                color: '#800080',
+                fillColor: '#800080',
+                fillOpacity: 1,
+            }).addTo(map);
+        } else {
+            marcadorSlider.setLatLng(puntoActual);
+        }
+        marcadorSlider.bindPopup(popupContent).openPopup();
+        map.panTo(puntoActual);
+    });
+         
             });
 
         
