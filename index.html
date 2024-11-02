@@ -505,6 +505,7 @@ window.addEventListener('beforeunload', function() {
     }
 
     } else if (selectedValue === 'carro2') {
+        limpiarMapa();
         ultimaUbicacionControlCarro2.addTo(map);
         cargarDatosDesdeServidor('/historicosObd', 'carro2');
         recorridoCarro1Filtrado.setLatLngs([]); // Limpiar solo los datos del carro 1
