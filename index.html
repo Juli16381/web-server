@@ -606,6 +606,7 @@ function cargarDatosDesdeServidor(url, carro) {
     recorridoCarro2Filtrado.setLatLngs([]);
     recorridoCarro1Filtrado.remove(map);
     recorridoCarro2Filtrado.remove(map);
+    map.removeLayer(marcadorSlider)
   
     
 
@@ -752,9 +753,6 @@ function cargarDatosDesdeServidor(url, carro) {
                 
                 marcadorSlider.bindPopup(popupContent).openPopup();
                 map.panTo(puntoActual);
-                  if (marcadorSlider) {
-        map.removeLayer(marcadorSlider); // Eliminar el marcador existente
-    }
             });
         })
         .catch(error => console.error('Error:', error));
