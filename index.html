@@ -602,13 +602,15 @@ const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).
                 return [lat, lon];
             });
 
-            // Mostrar la polilínea del carro seleccionado
-            if (selectedValue === 'carro1') {
+             if (selectedValue === 'carro1') {
                 recorridoCarro1Filtrado.addTo(map);
-                recorridoCarro2Filtrado.remove(); // Remover la polilínea del carro 2
-            } else {
+                recorridoCarro2Filtrado.remove();
+            } else if (selectedValue === 'carro2') {
                 recorridoCarro2Filtrado.addTo(map);
-                recorridoCarro1Filtrado.remove(); // Remover la polilínea del carro 1
+                recorridoCarro1Filtrado.remove();
+            } else {
+                recorridoCarro1Filtrado.addTo(map);
+                recorridoCarro2Filtrado.addTo(map);
             }
 
             if (puntosFiltrados.length > 0) {
