@@ -130,6 +130,8 @@
     <select id="carSelection" name="carSelection">
         <option value="carro1">Carro 1</option>
         <option value="carro2">Carro 2</option>
+         <option value="ambos">Ambos</option>
+        
         
     </select>
     </form>
@@ -333,7 +335,6 @@ window.addEventListener('beforeunload', function() {
 };
             // Polilínea carro 1
             let recorrido = L.polyline([], { color: '#800080' }).addTo(map);
-            let recorridoFiltrado = L.polyline([], { color: '#FF6FC6' });
             let marcadorUltimaUbicacion = L.circleMarker([0, 0], {
                 radius: 10,
                 color: '#800080',
@@ -344,7 +345,6 @@ window.addEventListener('beforeunload', function() {
             
             // Polilínea carro 2
             let recorrido2 = L.polyline([], { color: '#FF4500' }).addTo(map);
-            let recorridoFiltrado2 = L.polyline([], { color: '#007FFF' });
             let marcadorUltimaUbicacion2 = L.circleMarker([0, 0], {
                 radius: 10,
                 color: '#FF0000',
@@ -476,13 +476,8 @@ window.addEventListener('beforeunload', function() {
         ultimaLatitud2 = nuevaLatitud2;
         ultimaLongitud2 = nuevaLongitud2;
     }
-
-            
-
+    
     const carSelection = document.getElementById('carSelection');
-    const recorridoCarro1 = L.polyline([], { color: '#FF0000' }).addTo(map); // Polilínea para carro 1 (rojo)
-    const recorridoCarro2 = L.polyline([], { color: '#0000FF' }).addTo(map); // Polilínea para carro 2 (azul)
-
     carSelection.addEventListener('change', function() {
     const selectedValue = carSelection.value;
 
@@ -520,13 +515,6 @@ function cargarDatosDesdeServidor(url, carro) {
                         ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
                         return;
                     }
-
-                    // Cambiar el color de la polilínea según el carro
-                    if (carro === 'carro1') {
-                        recorridoCarro1.addLatLng([nuevaLatitud, nuevaLongitud]);
-                    } else {
-                        recorridoCarro2.addLatLng([nuevaLatitud, nuevaLongitud]);
-                    }
                     
                     ultimaLatitud = nuevaLatitud;
                     ultimaLongitud = nuevaLongitud;
@@ -541,6 +529,10 @@ function cargarDatosDesdeServidor(url, carro) {
         .catch(error => console.error('Error al cargar los datos históricos:', error));
 }
 
+        // Variables para las polilíneas de los carros
+const recorridoCarro1Filtrado = L.polyline([], { color: '#FF0000', weight: 3 }).addTo(map); // Polilínea filtrada para carro 1 (rojo)
+const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).addTo(map); // Polilínea filtrada para carro 2 (azul)
+
 // Evento de filtrado de fechas que cambia según el carro seleccionado
     document.getElementById('filterForm').addEventListener('submit', function(event) {
     event.preventDefault();
@@ -548,6 +540,7 @@ function cargarDatosDesdeServidor(url, carro) {
     const selectedValue = carSelection.value; // Obtiene el valor seleccionado
     const startDate = new Date(document.getElementById('startDate').value);
     const endDate = new Date(document.getElementById('endDate').value);
+
 
     if (endDate < startDate) {
         alert('La fecha de fin no puede ser menor que la fecha de inicio.');
@@ -558,7 +551,12 @@ function cargarDatosDesdeServidor(url, carro) {
     const endISOString = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000).toISOString();
 
     filtrando = true;
-    map.removeLayer(recorridoFiltrado);
+    // Limpiar solo la polilínea del carro que no se está utilizando
+    if (selectedValue === 'carro1') {
+        recorridoCarro2Filtrado.setLatLngs([]); // Limpiar solo los datos del carro 2
+    } else {
+        recorridoCarro1Filtrado.setLatLngs([]); // Limpiar solo los datos del carro 1
+    }
 
     const filterUrl = selectedValue === 'carro2' ? '/filterObdData' : '/filterData';
 
@@ -570,16 +568,26 @@ function cargarDatosDesdeServidor(url, carro) {
                 return;
             }
 
-            recorridoFiltrado.setLatLngs([]);
-
             const puntosFiltrados = data.map((registro) => {
                 const lat = parseFloat(registro.Latitud);
                 const lon = parseFloat(registro.Longitud);
-                recorridoFiltrado.addLatLng([lat, lon]);
+                // Añadir puntos a la polilínea correspondiente
+                if (selectedValue === 'carro1') {
+                    recorridoCarro1Filtrado.addLatLng([lat, lon]);
+                } else {
+                    recorridoCarro2Filtrado.addLatLng([lat, lon]);
+                }
                 return [lat, lon];
             });
 
-            recorridoFiltrado.addTo(map);
+            // Mostrar la polilínea del carro seleccionado
+            if (selectedValue === 'carro1') {
+                recorridoCarro1Filtrado.addTo(map);
+                recorridoCarro2Filtrado.remove(); // Remover la polilínea del carro 2
+            } else {
+                recorridoCarro2Filtrado.addTo(map);
+                recorridoCarro1Filtrado.remove(); // Remover la polilínea del carro 1
+            }
 
             if (puntosFiltrados.length > 0) {
                 const firstPoint = puntosFiltrados[0];
@@ -591,6 +599,11 @@ function cargarDatosDesdeServidor(url, carro) {
             slider.value = 0;
             document.getElementById('slider-container').style.display = 'block';
 
+            // Limpiar el marcador del slider antes de añadir uno nuevo
+            if (marcadorSlider) {
+                map.removeLayer(marcadorSlider);
+            }
+
             slider.addEventListener('input', function() {
                 const index = parseInt(slider.value);
                 const puntoActual = puntosFiltrados[index];
@@ -598,16 +611,15 @@ function cargarDatosDesdeServidor(url, carro) {
                 const hora = data[index].Hora;
 
                 const popupContent = `<b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}`;
-                if (!marcadorSlider) {
-                    marcadorSlider = L.circleMarker(puntoActual, {
-                        radius: 8,
-                        color: '#800080',
-                        fillColor: '#800080',
-                        fillOpacity: 1,
-                    }).addTo(map);
-                } else {
-                    marcadorSlider.setLatLng(puntoActual);
-                }
+                
+                // Crear un nuevo marcador cada vez que se mueve el slider
+                marcadorSlider = L.circleMarker(puntoActual, {
+                    radius: 8,
+                    color: '#800080',
+                    fillColor: '#800080',
+                    fillOpacity: 1,
+                }).addTo(map);
+                
                 marcadorSlider.bindPopup(popupContent).openPopup();
                 map.panTo(puntoActual);
             });
@@ -615,9 +627,4 @@ function cargarDatosDesdeServidor(url, carro) {
         .catch(error => console.error('Error:', error));
 });
 
-            
-        });
-    </script>
-</body>
-</html>
 
