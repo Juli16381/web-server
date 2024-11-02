@@ -498,6 +498,13 @@ window.addEventListener('beforeunload', function() {
         alert('Carro 2');
         ultimaUbicacionControlCarro2.addTo(map);
         cargarDatosDesdeServidor('/historicosObd', 'carro2');
+
+      } else if (selectedValue === 'ambos') {
+        alert('Carro 2');
+        ultimaUbicacionControlCarro2.addTo(map);
+         ultimaUbicacionControlCarro1.addTo(map);
+        cargarDatosDesdeServidor('/historicos', 'carro1');
+        cargarDatosDesdeServidor('/historicosObd', 'carro2');
     } 
 });
 
