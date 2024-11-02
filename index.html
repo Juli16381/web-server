@@ -629,13 +629,13 @@ const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).
         marcadorSlider.setLatLng(puntoActual);
     }
 
-    // Actualiza el popup con el nuevo contenido
-    marcadorSlider.bindPopup(popupContent).openPopup();
+    // Actualiza el contenido del popup y abre el popup
+    marcadorSlider.setPopupContent(popupContent).openPopup();
     map.panTo(puntoActual);  // Centramos el mapa en el punto del slider
 });
 
 
-                    })
+        })
         .catch(error => console.error('Error:', error));
 });
 
