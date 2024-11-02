@@ -125,7 +125,7 @@
     </div>
 
    
-    <form id="filterForm1"  style="margin-top: 0px; margin-bottom: 10px; padding-top: 0px; position: relative; top: -5px;">
+    <form id="filterForm1" style="margin-bottom: 10px; display: none;">
     <label for="carSelection">Seleccionar carro:</label>
     <select id="carSelection" name="carSelection">
         <option value="carro1">Carro 1</option>
@@ -150,7 +150,6 @@
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         
-        filterForm1.style.display = 'none'; 
         document.addEventListener('DOMContentLoaded', function() {
             // Obtener la fecha y hora actuales
             const now = new Date();
