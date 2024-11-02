@@ -493,7 +493,12 @@ window.addEventListener('beforeunload', function() {
     // Mostrar la ubicación y datos según el carro seleccionado
     if (selectedValue === 'carro1') {
         ultimaUbicacionControlCarro1.addTo(map);
-        cargarDatosDesdeServidor('/historicos', 'carro1');    
+        cargarDatosDesdeServidor('/historicos', 'carro1');   
+        recorridoCarro2Filtrado.setLatLngs([]); // Limpiar solo los datos del carro 2
+        recorridoCarro2Filtrado.remove(); // Asegúrate de remover la polilínea del carro 2 del mapa
+        if (!map.hasLayer(recorridoCarro1Filtrado)) {
+        recorridoCarro1Filtrado.addTo(map);
+    }
         if (marcadorSlider) {
         map.removeLayer(marcadorSlider); // Eliminar el marcador del slider existente
         marcadorSlider = null; // Reiniciar el marcador del slider
@@ -502,19 +507,27 @@ window.addEventListener('beforeunload', function() {
     } else if (selectedValue === 'carro2') {
         ultimaUbicacionControlCarro2.addTo(map);
         cargarDatosDesdeServidor('/historicosObd', 'carro2');
+        recorridoCarro1Filtrado.setLatLngs([]); // Limpiar solo los datos del carro 1
+        recorridoCarro1Filtrado.remove(); // Asegúrate de remover la polilínea del carro 1 del mapa
+        // Añadir la polilínea del carro 2 al mapa si no está ya
+        if (!map.hasLayer(recorridoCarro2Filtrado)) {
+        recorridoCarro2Filtrado.addTo(map);
+    }
         if (marcadorSlider) {
         map.removeLayer(marcadorSlider); // Eliminar el marcador del slider existente
         marcadorSlider = null; // Reiniciar el marcador del slider
-        recorridoCarro1Filtrado.setLatLngs([]);
-        recorridoCarro1Filtrado.remove(map)
-        recorridoCarro2Filtrado.addTo(map); 
+       
     }
 
       } else if (selectedValue === 'ambos') {
         ultimaUbicacionControlCarro2.addTo(map);
          ultimaUbicacionControlCarro1.addTo(map);
+        recorridoCarro1Filtrado.setLatLngs([]); 
+        recorridoCarro2Filtrado.setLatLngs([]);
         cargarDatosDesdeServidor('/historicos', 'carro1');
         cargarDatosDesdeServidor('/historicosObd', 'carro2');
+        recorridoCarro1Filtrado.addTo(map);
+        recorridoCarro2Filtrado.addTo(map);
     } 
 });
 
