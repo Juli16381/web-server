@@ -489,6 +489,8 @@ carSelection.addEventListener('change', function() {
         ultimaUbicacionControlCarro2.remove(map);
         limpiarMapa();
         cargarDatosDesdeServidor('/historicos');
+        marcadorUltimaUbicacion = L.marker([ultimaLatitud, ultimaLongitud]).addTo(map);
+
     } else if (selectedValue === 'carro2') {
         alert('Carro 2');
         ultimaUbicacionControlCarro2.addTo(map);
@@ -532,11 +534,6 @@ document.getElementById('filterForm').addEventListener('submit', function(event)
     event.preventDefault();
 
     const selectedValue = carSelection.value; // Obtiene el valor seleccionado
-
-    if (selectedValue !== 'carro1' && selectedValue !== 'carro2') {
-        alert('Por favor, seleccione un carro para filtrar.');
-        return;
-    }
 
     const startDate = new Date(document.getElementById('startDate').value);
     const endDate = new Date(document.getElementById('endDate').value);
