@@ -291,7 +291,6 @@ window.addEventListener('beforeunload', function() {
             let autoCenterTimeout;
             let filtrando = false;
             let primerCentrado = true;
-            let filtrando2 = false;  
             let primerCentrado2 = true;
 
             // Inicializar el mapa
@@ -333,7 +332,6 @@ window.addEventListener('beforeunload', function() {
     `;
         return div;
 };
-
             // Polilínea carro 1
             let recorrido = L.polyline([], { color: '#800080' }).addTo(map);
             let recorridoFiltrado = L.polyline([], { color: '#FF6FC6' });
@@ -378,7 +376,7 @@ window.addEventListener('beforeunload', function() {
     ultimaUbicacionControlCarro1.remove();
     socket.off('new-data');
     socket.on('new-obd-data', (data) => {
-        if (!filtrando2) {
+        if (!filtrando) {
             actualizarMapa1(data);
         }
     });
@@ -395,9 +393,9 @@ window.addEventListener('beforeunload', function() {
         }
     });
 
-    socket.on('new-obd-data', (data) => {
-        if (!filtrando2) {
-            actualizarMapa1(data); // Carro 2
+    socket.on('new-obd-data', (data2) => {
+        if (!filtrando) {
+            actualizarMapa2(data2); // Carro 2
         }
     });
 });
@@ -438,17 +436,17 @@ window.addEventListener('beforeunload', function() {
             }
 
         // Función para actualizar el mapa con datos del carro 2
-        function actualizarMapa1(data) {
-        if (!data || !data.Latitud || !data.Longitud || !data.Fecha || !data.Hora || !data.RPM) {
-        console.error('Datos inválidos recibidos:', data);
+        function actualizarMapa2(data2) {
+        if (!data2 || !data2.Latitud || !data2.Longitud || !data2.Fecha || !data2.Hora || !data2.RPM) {
+        console.error('Datos inválidos recibidos:', data2);
         return;
         }
     
-        const nuevaLatitud2 = parseFloat(data.Latitud);
-        const nuevaLongitud2 = parseFloat(data.Longitud);
-        const fechaFormateada2 = data.Fecha.split('T')[0];
-        const horaFormateada2 = data.Hora;
-        const rpmFormateada2 = data.RPM;
+        const nuevaLatitud2 = parseFloat(data2.Latitud);
+        const nuevaLongitud2 = parseFloat(data2.Longitud);
+        const fechaFormateada2 = data2.Fecha.split('T')[0];
+        const horaFormateada2 = data2.Hora;
+        const rpmFormateada2 = data2.RPM;
 
         // Evitar actualizaciones si la posición no ha cambiado
         if (ultimaLatitud2 !== null && ultimaLongitud2 !== null && 
@@ -602,9 +600,9 @@ window.addEventListener('beforeunload', function() {
         function cargarDatosDesdeServidor2() {
                 fetch('/historicosObd')
                     .then(response => response.json())
-                    .then(data => {
-                        if (!filtrando2 && data.length > 0) {
-                            data.forEach((registro) => {
+                    .then(data2 => {
+                        if (!filtrando && data2.length > 0) {
+                            data2.forEach((registro) => {
                                 const nuevaLatitud2 = parseFloat(registro.Latitud);
                                 const nuevaLongitud2 = parseFloat(registro.Longitud);
                                 const rpm = registro.RPM;
@@ -643,21 +641,21 @@ window.addEventListener('beforeunload', function() {
                 startDate = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000);
                 endDate = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000);
 
-                filtrando2 = true;
+                filtrando = true;
 
                 map.removeLayer(recorrido2);
 
                 fetch(`/filterObdData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
                     .then(response => response.json())
-                    .then(data => {
-                        if (data.length === 0) {
+                    .then(data2 => {
+                        if (data2.length === 0) {
                             alert('No se encontraron datos en el rango de tiempo especificado');
                             return;
                         }
 
                         recorridoFiltrado2.setLatLngs([]);
 
-                        const puntosFiltrados = data.map((registro) => {
+                        const puntosFiltrados = data2.map((registro) => {
                             const lat = parseFloat(registro.Latitud);
                             const lon = parseFloat(registro.Longitud);
                             recorridoFiltrado2.addLatLng([lat, lon]);
@@ -682,8 +680,8 @@ window.addEventListener('beforeunload', function() {
                             const index = parseInt(slider.value);
                             const puntoActual = puntosFiltrados[index];
                             // Extraer las fechas y horas para este punto
-                            const fecha = data[index].Fecha;
-                            const hora = data[index].Hora;
+                            const fecha = data2[index].Fecha;
+                            const hora = data2[index].Hora;
                             // Crear el contenido del popup con la fecha y la hora
                             const popupContent = `<b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}`;
                             if (!marcadorSlider) {
