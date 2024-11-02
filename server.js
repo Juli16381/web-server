@@ -168,6 +168,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
 
    // Ruta para obtener datos filtrados por rango de fechas para datos_obd
     app.get('/filterObdData', (req, res) => {
+          console.log("se consulta obdfilter");
     const startDate = new Date(req.query.startDate);
     const endDate = new Date(req.query.endDate);
 
@@ -199,6 +200,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
 
     // Ruta para obtener todos los datos históricos de datos_obd
     app.get('/historicosObd', (req, res) => {
+        console.log("se consulta obd");
     const query = 'SELECT * FROM datos_obd ORDER BY FechaHora DESC, id DESC';
     db.query(query, (err, results) => {
         if (err) {
