@@ -523,14 +523,9 @@ window.addEventListener('beforeunload', function() {
         } else if (selectedValue === 'ambos') {
         ultimaUbicacionControlCarro2.addTo(map);
         ultimaUbicacionControlCarro1.addTo(map);
-        recorridoCarro2Filtrado.setLatLngs([]);
-        recorridoCarro1Filtrado.setLatLngs([]);
-        recorridoCarro1Filtrado.remove(map);
-        recorridoCarro2Filtrado.remove(map);
         cargarDatosDesdeServidor('/historicos', 'carro1');
         recorridoCarro1Filtrado.addTo(map);
         recorridoCarro1Filtrado.setLatLngs([]); 
-        recorridoCarro2Filtrado.addTo(map);
         cargarDatosDesdeServidor('/historicosObd', 'carro2');
         recorridoCarro2Filtrado.addTo(map);
           
@@ -538,8 +533,8 @@ window.addEventListener('beforeunload', function() {
     
 });
 
-    const recorridoCarro1Filtrado = L.polyline([], { color: '#FF0000', weight: 3 }).addTo(map); // Polilínea filtrada para carro 1 (rojo)
-    const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).addTo(map); // Polilínea filtrada para carro 2 (azul)
+const recorridoCarro1Filtrado = L.polyline([], { color: '#FF0000', weight: 3 }).addTo(map); // Polilínea filtrada para carro 1 (rojo)
+const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).addTo(map); // Polilínea filtrada para carro 2 (azul)
 // Función para cargar datos históricos basada en la URL según el carro
 function cargarDatosDesdeServidor(url, carro) {
     fetch(url)
@@ -560,7 +555,7 @@ function cargarDatosDesdeServidor(url, carro) {
                     
                       if (carro === 'carro1') {
                         recorridoCarro1Filtrado.addLatLng([nuevaLatitud, nuevaLongitud]);
-                    } else {
+                    } else if (carro === 'carro2')  {
                         recorridoCarro2Filtrado.addLatLng([nuevaLatitud, nuevaLongitud]);
                     }
                 });
