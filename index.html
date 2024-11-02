@@ -621,13 +621,16 @@ const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).
 
                 const popupContent = `<b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}`;
                 
-                // Crear un nuevo marcador cada vez que se mueve el slider
-                marcadorSlider = L.circleMarker(puntoActual, {
+                  if (!marcadorSlider) {
+                    marcadorSlider = L.circleMarker(puntoActual, {
                     radius: 8,
-                    color: '#800080',
+                    color: '#800080',  // Color personalizado para el marcador del slider
                     fillColor: '#800080',
                     fillOpacity: 1,
-                }).addTo(map);
+                    }).addTo(map);
+                     } else {
+                    marcadorSlider.setLatLng(puntoActual);  // Actualizar posición del marcador
+                    }
                 
                 marcadorSlider.bindPopup(popupContent).openPopup();
                 map.panTo(puntoActual);
