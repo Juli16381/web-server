@@ -540,6 +540,10 @@ function cargarDatosDesdeServidor(url, carro) {
         .catch(error => console.error('Error al cargar los datos históricos:', error));
 }
 
+// Variables para las polilíneas de los carros
+const recorridoCarro1Filtrado = L.polyline([], { color: '#FF0000', weight: 3 }).addTo(map); // Polilínea filtrada para carro 1 (rojo)
+const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).addTo(map); // Polilínea filtrada para carro 2 (azul)
+
 // Evento de filtrado de fechas que cambia según el carro seleccionado
 document.getElementById('filterForm').addEventListener('submit', function(event) {
     event.preventDefault();
@@ -563,7 +567,12 @@ document.getElementById('filterForm').addEventListener('submit', function(event)
     const endISOString = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000).toISOString();
 
     filtrando = true;
-    map.removeLayer(recorridoFiltrado);
+    // Limpiar solo la polilínea del carro que no se está utilizando
+    if (selectedValue === 'carro1') {
+        recorridoCarro2Filtrado.setLatLngs([]); // Limpiar solo los datos del carro 2
+    } else {
+        recorridoCarro1Filtrado.setLatLngs([]); // Limpiar solo los datos del carro 1
+    }
 
     const filterUrl = selectedValue === 'carro2' ? '/filterObdData' : '/filterData';
 
@@ -575,15 +584,26 @@ document.getElementById('filterForm').addEventListener('submit', function(event)
                 return;
             }
 
-            recorridoFiltrado.setLatLngs([]);
             const puntosFiltrados = data.map((registro) => {
                 const lat = parseFloat(registro.Latitud);
                 const lon = parseFloat(registro.Longitud);
-                recorridoFiltrado.addLatLng([lat, lon]);
+                // Añadir puntos a la polilínea correspondiente
+                if (selectedValue === 'carro1') {
+                    recorridoCarro1Filtrado.addLatLng([lat, lon]);
+                } else {
+                    recorridoCarro2Filtrado.addLatLng([lat, lon]);
+                }
                 return [lat, lon];
             });
 
-            recorridoFiltrado.addTo(map);
+            // Mostrar la polilínea del carro seleccionado
+            if (selectedValue === 'carro1') {
+                recorridoCarro1Filtrado.addTo(map);
+                recorridoCarro2Filtrado.remove(); // Remover la polilínea del carro 2
+            } else {
+                recorridoCarro2Filtrado.addTo(map);
+                recorridoCarro1Filtrado.remove(); // Remover la polilínea del carro 1
+            }
 
             if (puntosFiltrados.length > 0) {
                 const firstPoint = puntosFiltrados[0];
@@ -622,6 +642,7 @@ document.getElementById('filterForm').addEventListener('submit', function(event)
         })
         .catch(error => console.error('Error:', error));
 });
+
 
 
             
