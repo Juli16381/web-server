@@ -596,6 +596,7 @@ window.addEventListener('beforeunload', function() {
         alert('Carro 2'); 
         ultimaUbicacionControlCarro2.addTo(map);
         ultimaUbicacionControlCarro1.remove(map);
+        map.removeLayer(recorridoFiltrado); 
         limpiarMapa();
 
     } else if (selectedValue === 'ambos') {
