@@ -491,27 +491,28 @@ window.addEventListener('beforeunload', function() {
     ultimaUbicacionControlCarro2.remove(map);
     
     // Mostrar la ubicación y datos según el carro seleccionado
+// Mostrar la ubicación y datos según el carro seleccionado
 if (selectedValue === 'carro1') {
     ultimaUbicacionControlCarro1.addTo(map);
-    cargarDatosDesdeServidor('/historicos', 'carro1');    
-    if (marcadorSlider) {
-        map.removeLayer(marcadorSlider); // Eliminar el marcador del slider existente
-        marcadorSlider = null; // Reiniciar el marcador del slider
-    }
+    cargarDatosDesdeServidor('/historicos', 'carro1');
+    // Limpiar solo la polilínea del carro 2
+    recorridoCarro2Filtrado.setLatLngs([]);
+    recorridoCarro1Filtrado.addTo(map); // Asegurarte de que se muestra la polilínea del carro 1
 } else if (selectedValue === 'carro2') {
     ultimaUbicacionControlCarro2.addTo(map);
     cargarDatosDesdeServidor('/historicosObd', 'carro2');
-    if (marcadorSlider) {
-        map.removeLayer(marcadorSlider); // Eliminar el marcador del slider existente
-        marcadorSlider = null; // Reiniciar el marcador del slider
-    }
+    // Limpiar solo la polilínea del carro 1
+    recorridoCarro1Filtrado.setLatLngs([]);
+    recorridoCarro2Filtrado.addTo(map); // Asegurarte de que se muestra la polilínea del carro 2
 } else if (selectedValue === 'ambos') {
-    ultimaUbicacionControlCarro1.addTo(map);
     ultimaUbicacionControlCarro2.addTo(map);
+    ultimaUbicacionControlCarro1.addTo(map);
     cargarDatosDesdeServidor('/historicos', 'carro1');
     cargarDatosDesdeServidor('/historicosObd', 'carro2');
+    // Mostrar ambas polilíneas
+    recorridoCarro1Filtrado.addTo(map);
+    recorridoCarro2Filtrado.addTo(map);
 }
-});
 
 // Función para cargar datos históricos basada en la URL según el carro
 function cargarDatosDesdeServidor(url, carro) {
@@ -527,11 +528,10 @@ function cargarDatosDesdeServidor(url, carro) {
                         ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
                         return;
                     }
-                    
+
                     ultimaLatitud = nuevaLatitud;
                     ultimaLongitud = nuevaLongitud;
-                    
-                    // Añadir puntos a la polilínea correspondiente sin interferir con la otra
+
                     if (carro === 'carro1') {
                         recorridoCarro1Filtrado.addLatLng([nuevaLatitud, nuevaLongitud]);
                     } else {
@@ -548,15 +548,11 @@ function cargarDatosDesdeServidor(url, carro) {
         .catch(error => console.error('Error al cargar los datos históricos:', error));
 }
 
-// Variables para las polilíneas de los carros
-const recorridoCarro1Filtrado = L.polyline([], { color: '#FF0000', weight: 3 }).addTo(map); // Polilínea filtrada para carro 1 (rojo)
-const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).addTo(map); // Polilínea filtrada para carro 2 (azul)
-
 // Evento de filtrado de fechas que cambia según el carro seleccionado
 document.getElementById('filterForm').addEventListener('submit', function(event) {
     event.preventDefault();
 
-    const selectedValue = carSelection.value;
+    const selectedValue = carSelection.value; // Obtiene el valor seleccionado
     const startDate = new Date(document.getElementById('startDate').value);
     const endDate = new Date(document.getElementById('endDate').value);
 
@@ -569,15 +565,11 @@ document.getElementById('filterForm').addEventListener('submit', function(event)
     const endISOString = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000).toISOString();
 
     filtrando = true;
-    // Limpiar polilíneas en función del carro seleccionado
+    // Limpiar solo la polilínea del carro que no se está utilizando
     if (selectedValue === 'carro1') {
-        recorridoCarro2Filtrado.setLatLngs([]);
-    } else if (selectedValue === 'carro2') {
-        recorridoCarro1Filtrado.setLatLngs([]);
+        recorridoCarro2Filtrado.setLatLngs([]); // Limpiar solo los datos del carro 2
     } else {
-        // Limpiar ambas polilíneas si se selecciona "ambos"
-        recorridoCarro1Filtrado.setLatLngs([]);
-        recorridoCarro2Filtrado.setLatLngs([]);
+        recorridoCarro1Filtrado.setLatLngs([]); // Limpiar solo los datos del carro 1
     }
 
     const filterUrl = selectedValue === 'carro2' ? '/filterObdData' : '/filterData';
@@ -595,24 +587,22 @@ document.getElementById('filterForm').addEventListener('submit', function(event)
                 const lat = parseFloat(registro.Latitud);
                 const lon = parseFloat(registro.Longitud);
 
+                // Añadir puntos a la polilínea correspondiente
                 if (selectedValue === 'carro1') {
                     recorridoCarro1Filtrado.addLatLng([lat, lon]);
-                } else if (selectedValue === 'carro2') {
+                } else {
                     recorridoCarro2Filtrado.addLatLng([lat, lon]);
                 }
                 return [lat, lon];
             });
 
-            // Añadir las polilíneas al mapa según la selección
+            // Mostrar la polilínea del carro seleccionado
             if (selectedValue === 'carro1') {
                 recorridoCarro1Filtrado.addTo(map);
-                recorridoCarro2Filtrado.remove();
-            } else if (selectedValue === 'carro2') {
-                recorridoCarro2Filtrado.addTo(map);
-                recorridoCarro1Filtrado.remove();
+                recorridoCarro2Filtrado.remove(); // Remover la polilínea del carro 2
             } else {
-                recorridoCarro1Filtrado.addTo(map);
                 recorridoCarro2Filtrado.addTo(map);
+                recorridoCarro1Filtrado.remove(); // Remover la polilínea del carro 1
             }
 
             if (puntosFiltrados.length > 0) {
@@ -642,7 +632,7 @@ document.getElementById('filterForm').addEventListener('submit', function(event)
                         fillOpacity: 1,
                     }).addTo(map);
                 } else {
-                    marcadorSlider.setLatLng(puntoActual);
+                    marcadorSlider.setLatLng(puntoActual);  // Actualizar posición del marcador
                 }
 
                 marcadorSlider.bindPopup(popupContent).openPopup();
@@ -651,6 +641,7 @@ document.getElementById('filterForm').addEventListener('submit', function(event)
         })
         .catch(error => console.error('Error:', error));
 });
+
 
     
         });
