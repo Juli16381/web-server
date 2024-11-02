@@ -479,16 +479,16 @@ window.addEventListener('beforeunload', function() {
         ultimaLongitud2 = nuevaLongitud2;
     }
     
-    const carSelection = document.getElementById('carSelection');
-    carSelection.addEventListener('change', function() {
-    const selectedValue = carSelection.value;
+        const carSelection = document.getElementById('carSelection');
+        carSelection.addEventListener('change', function() {
+        const selectedValue = carSelection.value;
 
-    // Limpia el mapa antes de agregar nuevos datos
-    limpiarMapa();
+    
+        limpiarMapa();
 
-    // Remover ambos marcadores antes de añadir nuevos
-    ultimaUbicacionControlCarro1.remove(map);
-    ultimaUbicacionControlCarro2.remove(map);
+        // Remover ambos marcadores antes de añadir nuevos
+        ultimaUbicacionControlCarro1.remove(map);
+        ultimaUbicacionControlCarro2.remove(map);
     
     // Mostrar la ubicación y datos según el carro seleccionado
     if (selectedValue === 'carro1') {
@@ -509,14 +509,11 @@ window.addEventListener('beforeunload', function() {
 
       } else if (selectedValue === 'ambos') {
         ultimaUbicacionControlCarro2.addTo(map);
-        ultimaUbicacionControlCarro1.addTo(map);
+         ultimaUbicacionControlCarro1.addTo(map);
         cargarDatosDesdeServidor('/historicos', 'carro1');
         cargarDatosDesdeServidor('/historicosObd', 'carro2');
     } 
 });
-
-    const recorridoCarro1Filtrado = L.polyline([], { color: '#FF0000', weight: 3 }).addTo(map); // Polilínea filtrada para carro 1 (rojo)
-    const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).addTo(map); // Polilínea filtrada para carro 2 (azul)
 
 // Función para cargar datos históricos basada en la URL según el carro
 function cargarDatosDesdeServidor(url, carro) {
@@ -551,6 +548,10 @@ function cargarDatosDesdeServidor(url, carro) {
         })
         .catch(error => console.error('Error al cargar los datos históricos:', error));
 }
+
+        // Variables para las polilíneas de los carros
+    const recorridoCarro1Filtrado = L.polyline([], { color: '#FF0000', weight: 3 }).addTo(map); // Polilínea filtrada para carro 1 (rojo)
+    const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).addTo(map); // Polilínea filtrada para carro 2 (azul)
 
 // Evento de filtrado de fechas que cambia según el carro seleccionado
     document.getElementById('filterForm').addEventListener('submit', function(event) {
@@ -601,15 +602,13 @@ function cargarDatosDesdeServidor(url, carro) {
                 return [lat, lon];
             });
 
-             if (selectedValue === 'carro1') {
+            // Mostrar la polilínea del carro seleccionado
+            if (selectedValue === 'carro1') {
                 recorridoCarro1Filtrado.addTo(map);
-                recorridoCarro2Filtrado.remove();
-            } else if (selectedValue === 'carro2') {
-                recorridoCarro2Filtrado.addTo(map);
-                recorridoCarro1Filtrado.remove();
+                recorridoCarro2Filtrado.remove(); // Remover la polilínea del carro 2
             } else {
-                recorridoCarro1Filtrado.addTo(map);
                 recorridoCarro2Filtrado.addTo(map);
+                recorridoCarro1Filtrado.remove(); // Remover la polilínea del carro 1
             }
 
             if (puntosFiltrados.length > 0) {
@@ -617,12 +616,11 @@ function cargarDatosDesdeServidor(url, carro) {
                 map.setView(firstPoint, 13);
             }
 
-            let marcadorSlider = null;
-            const slider = document.getElementById('filter-slider');
-            slider.max = puntosFiltrados.length - 1;
-            slider.value = 0;
-            document.getElementById('slider-container').style.display = 'block';
-
+                let marcadorSlider = null;
+                const slider = document.getElementById('filter-slider');
+                slider.max = puntosFiltrados.length - 1;
+                slider.value = 0;
+                document.getElementById('slider-container').style.display = 'block';
 
                slider.addEventListener('input', function() {
                 const index = parseInt(slider.value);
@@ -631,7 +629,6 @@ function cargarDatosDesdeServidor(url, carro) {
                 const hora = data[index].Hora;
                 const rpm = data[index].rpm!== undefined ? data[index].rpm : 'N/A';; // Asegúrate de que estás accediendo correctamente
                 const popupContent = `<b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}<br><b>RPM:</b> ${rpm}`;
-
             
                   if (!marcadorSlider) {
                     marcadorSlider = L.circleMarker(puntoActual, {
@@ -650,8 +647,6 @@ function cargarDatosDesdeServidor(url, carro) {
         })
         .catch(error => console.error('Error:', error));
 });
-
-    
         });
     </script>
 </body>
