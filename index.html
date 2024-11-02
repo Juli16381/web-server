@@ -364,6 +364,7 @@ window.addEventListener('beforeunload', function() {
     document.getElementById('carro1Btn').addEventListener('click', function() {
     ultimaUbicacionControlCarro1.addTo(map);
     ultimaUbicacionControlCarro2.remove();
+    socket.off('new-obd-data');
     socket.on('new-data', (data) => {
         if (!filtrando) {
             actualizarMapa(data);
@@ -376,7 +377,7 @@ document.getElementById('carro2Btn').addEventListener('click', function() {
     ultimaUbicacionControlCarro1.remove();
     socket.off('new-data');
     socket.on('new-obd-data', (data) => {
-        if (!filtrando) {
+        if (!filtrando2) {
             actualizarMapa1(data);
         }
     });
@@ -394,7 +395,7 @@ document.getElementById('ambosBtn').addEventListener('click', function() {
     });
 
     socket.on('new-obd-data', (data) => {
-        if (!filtrando) {
+        if (!filtrando2) {
             actualizarMapa1(data); // Carro 2
         }
     });
