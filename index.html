@@ -524,9 +524,6 @@ function cargarDatosDesdeServidor(url, carro) {
                 data.forEach((registro) => {
                     const nuevaLatitud = parseFloat(registro.Latitud);
                     const nuevaLongitud = parseFloat(registro.Longitud);
-                    const fecha = registro.Fecha; // Obtener la fecha del registro
-                    const hora = registro.Hora; // Obtener la hora del registro
-                    const rpm = registro.RPM; 
 
                     if (ultimaLatitud !== null && ultimaLongitud !== null &&
                         ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
@@ -591,9 +588,10 @@ const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).
                 return;
             }
 
-            const puntosFiltrados = data.map((registro) => {
+                const puntosFiltrados = data.map((registro) => {
                 const lat = parseFloat(registro.Latitud);
                 const lon = parseFloat(registro.Longitud);
+             
                 // Añadir puntos a la polilínea correspondiente
                 if (selectedValue === 'carro1') {
                     recorridoCarro1Filtrado.addLatLng([lat, lon]);
@@ -629,7 +627,7 @@ const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).
                 const puntoActual = puntosFiltrados[index];
                 const fecha = data[index].Fecha;
                 const hora = data[index].Hora;
-                const rpm = data[index].RPM;
+                 const rpm = data[index].RPM !== undefined ? data[index].RPM : 'N/A'; // Manejo de undefined
                 const popupContent = `<b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}<br><b>RPM:</b> ${rpm}`;
 
             
