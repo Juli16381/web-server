@@ -125,14 +125,12 @@
     </div>
 
    
-    <form id="filterForm1">
+    <form id="filterForm1" style="margin-bottom: 10px; display: none;">
     <label for="carSelection">Seleccionar carro:</label>
     <select id="carSelection" name="carSelection">
         <option value="carro1">Carro 1</option>
         <option value="carro2">Carro 2</option>
          <option value="ambos">Ambos</option>
-        
-        
     </select>
     </form>
 
@@ -152,7 +150,6 @@
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         
-        filterForm1.style.display = 'none'; 
         document.addEventListener('DOMContentLoaded', function() {
             // Obtener la fecha y hora actuales
             const now = new Date();
@@ -236,6 +233,7 @@ window.addEventListener('beforeunload', function() {
     const sliderContainer = document.getElementById('slider-container');
     const carSelectionButtons = document.getElementById('carSelectionButtons');
     const regresarBtn = document.getElementById('regresarBtn');
+    ultimaUbicacionControlCarro2.remove();
 
     // Verificar el estado de ambos formularios
     const isFilterFormVisible = filterForm.style.display === 'block';
@@ -281,6 +279,8 @@ window.addEventListener('beforeunload', function() {
     // Ocultar botón de regresar
     this.style.display = 'none';
     limpiarMapa();
+    ultimaUbicacionControlCarro2.remove();
+    ultimaUbicacionControlCarro1.remove();
 
     // Guardar estado en localStorage
     localStorage.setItem('isFiltering', 'false');
@@ -363,6 +363,7 @@ window.addEventListener('beforeunload', function() {
     ultimaUbicacionControlCarro1.addTo(map);
     ultimaUbicacionControlCarro2.remove();
     socket.off('new-obd-data');
+    socket.removeAllListeners('new-obd-data');
     socket.on('new-data', (data) => {
         if (!filtrando) {
             actualizarMapa(data);
@@ -374,6 +375,7 @@ window.addEventListener('beforeunload', function() {
     ultimaUbicacionControlCarro2.addTo(map);
     ultimaUbicacionControlCarro1.remove();
     socket.off('new-data');
+    socket.removeAllListeners('new-data');
     socket.on('new-obd-data', (data2) => {
         if (!filtrando) {
             actualizarMapa2(data);
@@ -477,16 +479,16 @@ window.addEventListener('beforeunload', function() {
         ultimaLongitud2 = nuevaLongitud2;
     }
     
-    const carSelection = document.getElementById('carSelection');
-    carSelection.addEventListener('change', function() {
-    const selectedValue = carSelection.value;
+        const carSelection = document.getElementById('carSelection');
+        carSelection.addEventListener('change', function() {
+        const selectedValue = carSelection.value;
 
-    // Limpia el mapa antes de agregar nuevos datos
-    limpiarMapa();
+    
+        limpiarMapa();
 
-    // Remover ambos marcadores antes de añadir nuevos
-    ultimaUbicacionControlCarro1.remove(map);
-    ultimaUbicacionControlCarro2.remove(map);
+        // Remover ambos marcadores antes de añadir nuevos
+        ultimaUbicacionControlCarro1.remove(map);
+        ultimaUbicacionControlCarro2.remove(map);
     
     // Mostrar la ubicación y datos según el carro seleccionado
     if (selectedValue === 'carro1') {
@@ -548,8 +550,8 @@ function cargarDatosDesdeServidor(url, carro) {
 }
 
         // Variables para las polilíneas de los carros
-const recorridoCarro1Filtrado = L.polyline([], { color: '#FF0000', weight: 3 }).addTo(map); // Polilínea filtrada para carro 1 (rojo)
-const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).addTo(map); // Polilínea filtrada para carro 2 (azul)
+    const recorridoCarro1Filtrado = L.polyline([], { color: '#FF0000', weight: 3 }).addTo(map); // Polilínea filtrada para carro 1 (rojo)
+    const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).addTo(map); // Polilínea filtrada para carro 2 (azul)
 
 // Evento de filtrado de fechas que cambia según el carro seleccionado
     document.getElementById('filterForm').addEventListener('submit', function(event) {
@@ -614,12 +616,11 @@ const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).
                 map.setView(firstPoint, 13);
             }
 
-            let marcadorSlider = null;
-            const slider = document.getElementById('filter-slider');
-            slider.max = puntosFiltrados.length - 1;
-            slider.value = 0;
-            document.getElementById('slider-container').style.display = 'block';
-
+                let marcadorSlider = null;
+                const slider = document.getElementById('filter-slider');
+                slider.max = puntosFiltrados.length - 1;
+                slider.value = 0;
+                document.getElementById('slider-container').style.display = 'block';
 
                slider.addEventListener('input', function() {
                 const index = parseInt(slider.value);
@@ -628,7 +629,6 @@ const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).
                 const hora = data[index].Hora;
                 const rpm = data[index].rpm!== undefined ? data[index].rpm : 'N/A';; // Asegúrate de que estás accediendo correctamente
                 const popupContent = `<b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}<br><b>RPM:</b> ${rpm}`;
-
             
                   if (!marcadorSlider) {
                     marcadorSlider = L.circleMarker(puntoActual, {
@@ -647,8 +647,6 @@ const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).
         })
         .catch(error => console.error('Error:', error));
 });
-
-    
         });
     </script>
 </body>
