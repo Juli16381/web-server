@@ -583,6 +583,7 @@ const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).
     fetch(`${filterUrl}?startDate=${startISOString}&endDate=${endISOString}`)
         .then(response => response.json())
         .then(data => {
+        console.log('Datos recibidos:', data); 
             if (data.length === 0) {
                 alert('No se encontraron datos en el rango de tiempo especificado');
                 return;
