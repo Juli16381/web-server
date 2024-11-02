@@ -260,6 +260,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
                         <tr>
                             <th>ID</th>
                             <th>Latitud</th>
+                            <th>Carroid</th>
                             <th>Longitud</th>
                             <th>Fecha</th>
                             <th>Hora</th>
@@ -275,6 +276,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
                 <tr>
                     <td>${row.id}</td>
                     <td>${row.Latitud}</td>
+                    <td>${row.Carroid}</td>
                     <td>${row.Longitud}</td>
                     <td>${fechaFormateada}</td>  
                     <td>${horaFormateada}</td>  
@@ -293,7 +295,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
 
     // Ruta para mostrar los datos históricos de OBD
     app.get('/datosobd', (req, res) => {
-    let query = 'SELECT id, Aplicacion, Latitud, Longitud, FechaHora, rpm FROM datos_obd ORDER BY FechaHora DESC, id DESC';
+    let query = 'SELECT id, Carroid, Latitud, Longitud, FechaHora, rpm FROM datos_obd ORDER BY FechaHora DESC, id DESC';
     
     db.query(query, (err, results) => {
         if (err) {
@@ -332,7 +334,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Aplicación</th>
+                        <th>Carroid</th>
                         <th>Latitud</th>
                         <th>Longitud</th>
                         <th>Fecha</th>
@@ -351,7 +353,7 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
             html += `
             <tr>
                 <td>${row.id}</td>
-                <td>${row.Aplicacion}</td>
+                <td>${row.Carroid}</td>
                 <td>${row.Latitud}</td>
                 <td>${row.Longitud}</td>
                 <td>${fechaFormateada}</td>  
