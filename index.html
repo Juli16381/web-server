@@ -482,10 +482,9 @@ window.addEventListener('beforeunload', function() {
 
             
      const carSelection = document.getElementById('carSelection');
-     selectedValue === 'carro1';
      carSelection.addEventListener('change', function() {
      const selectedValue = carSelection.value; 
-
+    
     if (selectedValue === 'carro1') {
         alert('Carro 1'); 
         ultimaUbicacionControlCarro1.addTo(map);
