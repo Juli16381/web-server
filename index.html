@@ -525,6 +525,12 @@ window.addEventListener('beforeunload', function() {
         ultimaUbicacionControlCarro1.addTo(map);
         cargarDatosDesdeServidor('/historicos', 'carro1');
         cargarDatosDesdeServidor('/historicosObd', 'carro2');
+        if (!map.hasLayer(recorridoCarro1Filtrado)) {
+        recorridoCarro1Filtrado.addTo(map);
+        }
+        if (!map.hasLayer(recorridoCarro2Filtrado)) {
+        recorridoCarro2Filtrado.addTo(map);
+        }
         if (marcadorSlider) {
         map.removeLayer(marcadorSlider); // Eliminar el marcador del slider existente
         marcadorSlider = null; // Reiniciar el marcador del slider
