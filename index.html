@@ -479,7 +479,8 @@ window.addEventListener('beforeunload', function() {
     }
 
             
-     const carSelection = document.getElementById('carSelection');
+     // Escucha el evento 'change' para manejar el cambio de selección de carro
+const carSelection = document.getElementById('carSelection');
 carSelection.addEventListener('change', function() {
     const selectedValue = carSelection.value;
 
@@ -487,22 +488,17 @@ carSelection.addEventListener('change', function() {
         alert('Carro 1');
         ultimaUbicacionControlCarro1.addTo(map);
         ultimaUbicacionControlCarro2.remove(map);
-
         cargarDatosDesdeServidor('/historicos');
-
     } else if (selectedValue === 'carro2') {
         alert('Carro 2');
         ultimaUbicacionControlCarro2.addTo(map);
         ultimaUbicacionControlCarro1.remove(map);
-
         cargarDatosDesdeServidor('/historicosObd');
-        
     } else if (selectedValue === 'ambos') {
         alert('Ambos carros');
         ultimaUbicacionControlCarro2.addTo(map);
         ultimaUbicacionControlCarro1.addTo(map);
-
-        limpiarMapa();  // Limpia el mapa para ambos carros si es necesario.
+        limpiarMapa(); // Limpia el mapa para ambos carros si es necesario.
     }
 });
 
@@ -535,9 +531,16 @@ function cargarDatosDesdeServidor(url) {
         .catch(error => console.error('Error al cargar los datos históricos:', error));
 }
 
-// Evento de filtrado de fechas que cambia según el carro
+// Evento de filtrado de fechas que cambia según el carro seleccionado
 document.getElementById('filterForm').addEventListener('submit', function(event) {
     event.preventDefault();
+
+    const selectedValue = carSelection.value; // Obtiene el valor seleccionado
+
+    if (selectedValue !== 'carro1' && selectedValue !== 'carro2') {
+        alert('Por favor, seleccione un carro para filtrar.');
+        return;
+    }
 
     const startDate = new Date(document.getElementById('startDate').value);
     const endDate = new Date(document.getElementById('endDate').value);
@@ -607,6 +610,7 @@ document.getElementById('filterForm').addEventListener('submit', function(event)
         })
         .catch(error => console.error('Error:', error));
 });
+
 
             
         });
