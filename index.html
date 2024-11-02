@@ -479,15 +479,13 @@ window.addEventListener('beforeunload', function() {
         ultimaLongitud2 = nuevaLongitud2;
     }
 
-            
-
     const carSelection = document.getElementById('carSelection');
 const recorridoCarro1 = L.polyline([], { color: '#FF0000' }).addTo(map); // Polilínea para carro 1 (rojo)
 const recorridoCarro2 = L.polyline([], { color: '#0000FF' }).addTo(map); // Polilínea para carro 2 (azul)
 
-// Evento para la selección del carro
 carSelection.addEventListener('change', function() {
     const selectedValue = carSelection.value;
+    console.log(`Carro seleccionado: ${selectedValue}`); // Log de selección
 
     // Limpiar mapa antes de agregar nuevos datos
     limpiarMapa();
@@ -498,17 +496,17 @@ carSelection.addEventListener('change', function() {
 
     // Mostrar la ubicación y datos según el carro seleccionado
     if (selectedValue === 'carro1') {
-        alert('Carro 1');
+        alert('Carro 1 seleccionado');
         ultimaUbicacionControlCarro1.addTo(map);
         cargarDatosDesdeServidor('/historicos', 'carro1');
 
     } else if (selectedValue === 'carro2') {
-        alert('Carro 2');
+        alert('Carro 2 seleccionado');
         ultimaUbicacionControlCarro2.addTo(map);
         cargarDatosDesdeServidor('/historicosObd', 'carro2');
 
     } else if (selectedValue === 'ambos') {
-        alert('Ambos Carros');
+        alert('Ambos carros seleccionados');
         ultimaUbicacionControlCarro1.addTo(map);
         ultimaUbicacionControlCarro2.addTo(map);
         cargarDatosDesdeServidor('/historicos', 'carro1');
@@ -516,19 +514,24 @@ carSelection.addEventListener('change', function() {
     } 
 });
 
-// Función para cargar datos históricos basada en la URL según el carro
 function cargarDatosDesdeServidor(url, carro) {
+    console.log(`Cargando datos desde: ${url} para ${carro}`); // Log de carga
     fetch(url)
         .then(response => response.json())
         .then(data => {
+            console.log(`Datos recibidos para ${carro}:`, data); // Log de datos recibidos
             if (!filtrando && data.length > 0) {
                 data.forEach((registro) => {
                     const nuevaLatitud = parseFloat(registro.Latitud);
                     const nuevaLongitud = parseFloat(registro.Longitud);
+                    
+                    // Log de coordenadas
+                    console.log(`Coordenadas recibidas: ${nuevaLatitud}, ${nuevaLongitud}`);
 
                     // Comprobar si la nueva ubicación es la misma que la anterior
                     if (ultimaLatitud !== null && ultimaLongitud !== null &&
                         ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
+                        console.log(`Ubicación repetida: ${nuevaLatitud}, ${nuevaLongitud}`);
                         return;
                     }
 
@@ -548,88 +551,12 @@ function cargarDatosDesdeServidor(url, carro) {
                     map.setView([ultimaLatitud, ultimaLongitud], 13);
                     marcadorUltimaUbicacion.setLatLng([ultimaLatitud, ultimaLongitud]);
                 }
+            } else {
+                console.log(`No hay datos para ${carro} o estamos filtrando.`);
             }
         })
         .catch(error => console.error('Error al cargar los datos históricos:', error));
 });
-
-// Evento de filtrado de fechas que cambia según el carro seleccionado
-document.getElementById('filterForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-
-    const selectedValue = carSelection.value; // Obtiene el valor seleccionado
-
-    const startDate = new Date(document.getElementById('startDate').value);
-    const endDate = new Date(document.getElementById('endDate').value);
-
-    if (endDate < startDate) {
-        alert('La fecha de fin no puede ser menor que la fecha de inicio.');
-        return;
-    }
-
-    const startISOString = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000).toISOString();
-    const endISOString = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000).toISOString();
-
-    filtrando = true;
-    map.removeLayer(recorridoFiltrado);
-
-    // Definir URL de filtrado según el carro seleccionado
-    const filterUrl = selectedValue === 'carro2' ? '/filterObdData' : '/filterData';
-
-    fetch(`${filterUrl}?startDate=${startISOString}&endDate=${endISOString}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.length === 0) {
-                alert('No se encontraron datos en el rango de tiempo especificado');
-                return;
-            }
-
-            recorridoFiltrado.setLatLngs([]);
-
-            const puntosFiltrados = data.map((registro) => {
-                const lat = parseFloat(registro.Latitud);
-                const lon = parseFloat(registro.Longitud);
-                recorridoFiltrado.addLatLng([lat, lon]);
-                return [lat, lon];
-            });
-
-            recorridoFiltrado.addTo(map);
-
-            if (puntosFiltrados.length > 0) {
-                const firstPoint = puntosFiltrados[0];
-                map.setView(firstPoint, 13);
-            }
-
-            const slider = document.getElementById('filter-slider');
-            slider.max = puntosFiltrados.length - 1;
-            slider.value = 0;
-            document.getElementById('slider-container').style.display = 'block';
-
-            slider.addEventListener('input', function() {
-                const index = parseInt(slider.value);
-                const puntoActual = puntosFiltrados[index];
-                const fecha = data[index].Fecha;
-                const hora = data[index].Hora;
-
-                const popupContent = `<b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}`;
-                if (!marcadorSlider) {
-                    marcadorSlider = L.circleMarker(puntoActual, {
-                        radius: 8,
-                        color: '#800080',
-                        fillColor: '#800080',
-                        fillOpacity: 1,
-                    }).addTo(map);
-                } else {
-                    marcadorSlider.setLatLng(puntoActual);
-                }
-                marcadorSlider.bindPopup(popupContent).openPopup();
-                map.panTo(puntoActual);
-            });
-        })
-        .catch(error => console.error('Error:', error));
-});
-
-
 
             
         });
