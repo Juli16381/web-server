@@ -367,25 +367,20 @@ function manejarDatosCarro1(data) {
     }
 }
 
-// Configura el socket para Carro 1 una vez
-socket.on('new-data', manejarDatosCarro1);
-
-// Evento de Carro 1
-document.getElementById('carro1Btn').addEventListener('click', function() {
+  document.getElementById('carro1Btn').addEventListener('click', function() {
     ultimaUbicacionControlCarro1.addTo(map);
     ultimaUbicacionControlCarro2.remove();
-    // No necesitas hacer nada aquí, solo asegúrate de que el evento está activo
+    socket.on('new-data', (data) => {
+        if (!filtrando) {
+            actualizarMapa(data);
+        }
+    });
 });
 
-// Evento de Carro 2
 document.getElementById('carro2Btn').addEventListener('click', function() {
     ultimaUbicacionControlCarro2.addTo(map);
     ultimaUbicacionControlCarro1.remove();
-    
-    // Desactiva el evento de Carro 1
-    socket.off('new-data', manejarDatosCarro1);  // Esto desactiva solo el evento de Carro 1
-
-    // Configura el socket para Carro 2
+    socket.off('new-data');
     socket.on('new-obd-data', (data) => {
         if (!filtrando) {
             actualizarMapa1(data);
