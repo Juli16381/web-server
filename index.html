@@ -480,21 +480,21 @@ window.addEventListener('beforeunload', function() {
     }
 
             
-        const carSelection = document.getElementById('carSelection');
+
+    const carSelection = document.getElementById('carSelection');
 const recorridoCarro1 = L.polyline([], { color: '#FF0000' }).addTo(map); // Polilínea para carro 1 (rojo)
 const recorridoCarro2 = L.polyline([], { color: '#0000FF' }).addTo(map); // Polilínea para carro 2 (azul)
 
-// Evento para la selección del carro
 carSelection.addEventListener('change', function() {
     const selectedValue = carSelection.value;
 
-    // Limpiar mapa antes de agregar nuevos datos
+    // Limpia el mapa antes de agregar nuevos datos
     limpiarMapa();
+
+    // Remover ambos marcadores antes de añadir nuevos
     ultimaUbicacionControlCarro1.remove(map);
     ultimaUbicacionControlCarro2.remove(map);
-    recorridoCarro1.setLatLngs([]); // Limpiar polilínea carro 1
-    recorridoCarro2.setLatLngs([]); // Limpiar polilínea carro 2
-
+    
     // Mostrar la ubicación y datos según el carro seleccionado
     if (selectedValue === 'carro1') {
         alert('Carro 1');
@@ -525,7 +525,6 @@ function cargarDatosDesdeServidor(url, carro) {
                     const nuevaLatitud = parseFloat(registro.Latitud);
                     const nuevaLongitud = parseFloat(registro.Longitud);
 
-                    // Comprobar si la nueva ubicación es la misma que la anterior
                     if (ultimaLatitud !== null && ultimaLongitud !== null &&
                         ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
                         return;
@@ -534,7 +533,7 @@ function cargarDatosDesdeServidor(url, carro) {
                     // Cambiar el color de la polilínea según el carro
                     if (carro === 'carro1') {
                         recorridoCarro1.addLatLng([nuevaLatitud, nuevaLongitud]);
-                    } else if (carro === 'carro2') {
+                    } else {
                         recorridoCarro2.addLatLng([nuevaLatitud, nuevaLongitud]);
                     }
                     
@@ -542,7 +541,6 @@ function cargarDatosDesdeServidor(url, carro) {
                     ultimaLongitud = nuevaLongitud;
                 });
 
-                // Centrar el mapa en la última ubicación
                 if (ultimaLatitud !== null && ultimaLongitud !== null) {
                     map.setView([ultimaLatitud, ultimaLongitud], 13);
                     marcadorUltimaUbicacion.setLatLng([ultimaLatitud, ultimaLongitud]);
@@ -550,7 +548,7 @@ function cargarDatosDesdeServidor(url, carro) {
             }
         })
         .catch(error => console.error('Error al cargar los datos históricos:', error));
-});
+}
 
 // Evento de filtrado de fechas que cambia según el carro seleccionado
 document.getElementById('filterForm').addEventListener('submit', function(event) {
@@ -572,7 +570,6 @@ document.getElementById('filterForm').addEventListener('submit', function(event)
     filtrando = true;
     map.removeLayer(recorridoFiltrado);
 
-    // Definir URL de filtrado según el carro seleccionado
     const filterUrl = selectedValue === 'carro2' ? '/filterObdData' : '/filterData';
 
     fetch(`${filterUrl}?startDate=${startISOString}&endDate=${endISOString}`)
