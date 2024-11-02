@@ -128,7 +128,6 @@
     <form id="filterForm1">
     <label for="carSelection">Seleccionar carro:</label>
     <select id="carSelection" name="carSelection">
-         <option value="nada">---</option>
         <option value="carro1">Carro 1</option>
         <option value="carro2">Carro 2</option>
         
@@ -484,7 +483,7 @@ window.addEventListener('beforeunload', function() {
     const recorridoCarro1 = L.polyline([], { color: '#FF0000' }).addTo(map); // Polilínea para carro 1 (rojo)
     const recorridoCarro2 = L.polyline([], { color: '#0000FF' }).addTo(map); // Polilínea para carro 2 (azul)
 
-carSelection.addEventListener('change', function() {
+    carSelection.addEventListener('change', function() {
     const selectedValue = carSelection.value;
 
     // Limpia el mapa antes de agregar nuevos datos
@@ -547,12 +546,6 @@ function cargarDatosDesdeServidor(url, carro) {
     event.preventDefault();
 
     const selectedValue = carSelection.value; // Obtiene el valor seleccionado
-
-    if (selectedValue === '---') { 
-        alert('Por favor, selecciona un carro antes de filtrar.');
-        return; // Detiene la ejecución si no hay carro seleccionado
-    }
-
     const startDate = new Date(document.getElementById('startDate').value);
     const endDate = new Date(document.getElementById('endDate').value);
 
