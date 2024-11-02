@@ -373,6 +373,7 @@ window.addEventListener('beforeunload', function() {
 document.getElementById('carro2Btn').addEventListener('click', function() {
     ultimaUbicacionControlCarro2.addTo(map);
     ultimaUbicacionControlCarro1.remove();
+    socket.off('new-data');
     socket.on('new-obd-data', (data) => {
         if (!filtrando) {
             actualizarMapa1(data);
