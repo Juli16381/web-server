@@ -482,22 +482,28 @@ window.addEventListener('beforeunload', function() {
             
 
     const carSelection = document.getElementById('carSelection');
+const recorridoCarro1 = L.polyline([], { color: '#FF0000' }).addTo(map); // Polilínea para carro 1 (rojo)
+const recorridoCarro2 = L.polyline([], { color: '#0000FF' }).addTo(map); // Polilínea para carro 2 (azul)
+
 carSelection.addEventListener('change', function() {
     const selectedValue = carSelection.value;
 
     // Limpia el mapa antes de agregar nuevos datos
     limpiarMapa();
 
+    // Remover ambos marcadores antes de añadir nuevos
+    ultimaUbicacionControlCarro1.remove(map);
+    ultimaUbicacionControlCarro2.remove(map);
+    
+    // Mostrar la ubicación y datos según el carro seleccionado
     if (selectedValue === 'carro1') {
         alert('Carro 1');
         ultimaUbicacionControlCarro1.addTo(map);
-        ultimaUbicacionControlCarro2.remove(map);
         cargarDatosDesdeServidor('/historicos', 'carro1');
 
     } else if (selectedValue === 'carro2') {
         alert('Carro 2');
         ultimaUbicacionControlCarro2.addTo(map);
-        ultimaUbicacionControlCarro1.remove(map);
         cargarDatosDesdeServidor('/historicosObd', 'carro2');
 
     } else if (selectedValue === 'ambos') {
@@ -525,9 +531,6 @@ function cargarDatosDesdeServidor(url, carro) {
                     }
 
                     // Cambiar el color de la polilínea según el carro
-                    const color = carro === 'carro1' ? '#FF0000' : '#0000FF'; // Rojo para carro 1, Azul para carro 2
-                    const polyline = L.polyline([], { color: color }).addTo(map);
-                    polyline.addLatLng([nuevaLatitud, nuevaLongitud]);
                     if (carro === 'carro1') {
                         recorridoCarro1.addLatLng([nuevaLatitud, nuevaLongitud]);
                     } else {
@@ -548,7 +551,7 @@ function cargarDatosDesdeServidor(url, carro) {
 }
 
 // Evento de filtrado de fechas que cambia según el carro seleccionado
-   document.getElementById('filterForm').addEventListener('submit', function(event) {
+document.getElementById('filterForm').addEventListener('submit', function(event) {
     event.preventDefault();
 
     const selectedValue = carSelection.value; // Obtiene el valor seleccionado
@@ -621,7 +624,6 @@ function cargarDatosDesdeServidor(url, carro) {
         })
         .catch(error => console.error('Error:', error));
 });
-
 
 
             
