@@ -482,13 +482,12 @@ window.addEventListener('beforeunload', function() {
         const carSelection = document.getElementById('carSelection');
         carSelection.addEventListener('change', function() {
         const selectedValue = carSelection.value;
-
-    
         limpiarMapa();
-
         // Remover ambos marcadores antes de añadir nuevos
         ultimaUbicacionControlCarro1.remove(map);
         ultimaUbicacionControlCarro2.remove(map);
+        recorridoCarro2Filtrado.setLatLngs([]);
+        recorridoCarro1Filtrado.setLatLngs([]);
         recorridoCarro2Filtrado.remove();
         recorridoCarro1Filtrado.remove();
     
@@ -523,14 +522,19 @@ window.addEventListener('beforeunload', function() {
 
       } else if (selectedValue === 'ambos') {
         ultimaUbicacionControlCarro2.addTo(map);
-         ultimaUbicacionControlCarro1.addTo(map);
+        ultimaUbicacionControlCarro1.addTo(map);
         recorridoCarro1Filtrado.setLatLngs([]); 
         recorridoCarro2Filtrado.setLatLngs([]);
         cargarDatosDesdeServidor('/historicos', 'carro1');
         cargarDatosDesdeServidor('/historicosObd', 'carro2');
+          if (!map.hasLayer(recorridoCarro1Filtrado)) {
         recorridoCarro1Filtrado.addTo(map);
+    }
+        if (!map.hasLayer(recorridoCarro2Filtrado)) {
         recorridoCarro2Filtrado.addTo(map);
-    } 
+    }
+}
+    
 });
 
 // Función para cargar datos históricos basada en la URL según el carro
