@@ -582,9 +582,6 @@ function cargarDatosDesdeServidor(url, carro) {
 // Evento de filtrado de fechas que cambia según el carro seleccionado
     document.getElementById('filterForm').addEventListener('submit', function(event) {
     event.preventDefault();
-
-    limpiarmapa()
-    Marcadorslider = null; 
         
     const selectedValue = carSelection.value; // Obtiene el valor seleccionado
     const startDate = new Date(document.getElementById('startDate').value);
