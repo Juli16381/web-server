@@ -478,9 +478,6 @@ window.addEventListener('beforeunload', function() {
     }
     
     const carSelection = document.getElementById('carSelection');
-    const recorridoCarro1 = L.polyline([], { color: '#FF0000' }).addTo(map); // Polilínea para carro 1 (rojo)
-    const recorridoCarro2 = L.polyline([], { color: '#0000FF' }).addTo(map); // Polilínea para carro 2 (azul)
-
     carSelection.addEventListener('change', function() {
     const selectedValue = carSelection.value;
 
@@ -536,14 +533,21 @@ function cargarDatosDesdeServidor(url, carro) {
 const recorridoCarro1Filtrado = L.polyline([], { color: '#FF0000', weight: 3 }).addTo(map); // Polilínea filtrada para carro 1 (rojo)
 const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).addTo(map); // Polilínea filtrada para carro 2 (azul)
 
+let marcadorSlider = null; // Inicializa el marcador del slider
+
 // Evento de filtrado de fechas que cambia según el carro seleccionado
-    document.getElementById('filterForm').addEventListener('submit', function(event) {
+document.getElementById('filterForm').addEventListener('submit', function(event) {
     event.preventDefault();
 
     const selectedValue = carSelection.value; // Obtiene el valor seleccionado
     const startDate = new Date(document.getElementById('startDate').value);
     const endDate = new Date(document.getElementById('endDate').value);
 
+    // Verificar si hay carro seleccionado
+    if (selectedValue === 'default') {
+        alert('Por favor, selecciona un carro antes de filtrar.');
+        return; // Detiene la ejecución si no hay carro seleccionado
+    }
 
     if (endDate < startDate) {
         alert('La fecha de fin no puede ser menor que la fecha de inicio.');
@@ -557,8 +561,18 @@ const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).
     // Limpiar solo la polilínea del carro que no se está utilizando
     if (selectedValue === 'carro1') {
         recorridoCarro2Filtrado.setLatLngs([]); // Limpiar solo los datos del carro 2
+        // Eliminar el marcador del carro 2 si está presente
+        if (marcadorSlider) {
+            map.removeLayer(marcadorSlider);
+            marcadorSlider = null; // Resetea el marcador
+        }
     } else {
         recorridoCarro1Filtrado.setLatLngs([]); // Limpiar solo los datos del carro 1
+        // Eliminar el marcador del carro 1 si está presente
+        if (marcadorSlider) {
+            map.removeLayer(marcadorSlider);
+            marcadorSlider = null; // Resetea el marcador
+        }
     }
 
     const filterUrl = selectedValue === 'carro2' ? '/filterObdData' : '/filterData';
@@ -629,8 +643,6 @@ const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).
         })
         .catch(error => console.error('Error:', error));
 });
-
-
 
             
         });
