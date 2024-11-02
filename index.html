@@ -402,7 +402,6 @@ window.addEventListener('beforeunload', function() {
     });
 });
 
-
             function actualizarMapa(data) {
                 if (!data || !data.Latitud || !data.Longitud || !data.Fecha || !data.Hora) {
                     console.error('Datos inválidos recibidos:', data);
@@ -604,7 +603,7 @@ window.addEventListener('beforeunload', function() {
                 fetch('/historicosObd')
                     .then(response => response.json())
                     .then(data => {
-                        if (!filtrando && data.length > 0) {
+                        if (!filtrando2 && data.length > 0) {
                             data.forEach((registro) => {
                                 const nuevaLatitud2 = parseFloat(registro.Latitud);
                                 const nuevaLongitud2 = parseFloat(registro.Longitud);
@@ -627,7 +626,7 @@ window.addEventListener('beforeunload', function() {
                             }
                         }
                     })
-                    .catch(error => console.error('Error al cargar los datos históricos:', error));
+                    .catch(error => console.error('Error al cargar los datos históricos 2:', error));
             }
 
                document.getElementById('filterForm').addEventListener('submit', function(event) {
