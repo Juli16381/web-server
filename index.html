@@ -401,6 +401,23 @@ document.getElementById('ambosBtn').addEventListener('click', function() {
     });
 });
 
+            // Obtén el elemento del formulario
+const carSelection = document.getElementById('carSelection');
+
+// Añade un event listener para manejar el cambio de selección
+carSelection.addEventListener('change', function() {
+    const selectedValue = carSelection.value; // Obtiene el valor seleccionado
+
+    if (selectedValue === 'carro1') {
+        Alert('Carro 1');
+
+    } else if (selectedValue === 'carro2') {
+
+    } else if (selectedValue === 'ambos') {
+
+    }
+});
+
 
             function actualizarMapa(data) {
                 if (!data || !data.Latitud || !data.Longitud || !data.Fecha || !data.Hora) {
