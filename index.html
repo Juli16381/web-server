@@ -532,6 +532,12 @@ function cargarDatosDesdeServidor(url, carro) {
                     
                     ultimaLatitud = nuevaLatitud;
                     ultimaLongitud = nuevaLongitud;
+                    
+                      if (carro === 'carro1') {
+                        recorridoCarro1Filtrado.addLatLng([nuevaLatitud, nuevaLongitud]);
+                    } else {
+                        recorridoCarro2Filtrado.addLatLng([nuevaLatitud, nuevaLongitud]);
+                    }
                 });
 
                 if (ultimaLatitud !== null && ultimaLongitud !== null) {
