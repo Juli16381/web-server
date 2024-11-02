@@ -166,26 +166,58 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
         });
     });
 
-    // Ruta para obtener los datos históricos de datos_obd
-    app.get('/historicosObd', (req, res) => {
-        let query = 'SELECT * FROM datos_obd ORDER BY FechaHora DESC, id DESC';
-        db.query(query, (err, results) => {
-            if (err) {
-                console.error('Error al consultar la base de datos:', err);
-                res.status(500).send('Error al consultar la base de datos');
-                return;
-            }
+   // Ruta para obtener datos filtrados por rango de fechas para datos_obd
+    app.get('/filterObdData', (req, res) => {
+    const startDate = new Date(req.query.startDate);
+    const endDate = new Date(req.query.endDate);
 
+    console.log('Fechas recibidas para OBD:', {
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString()
+    });
+
+    const formattedStartDate = startDate.toISOString().slice(0, 19).replace('T', ' ');
+    const formattedEndDate = endDate.toISOString().slice(0, 19).replace('T', ' ');
+
+    const query = `SELECT * FROM datos_obd WHERE FechaHora BETWEEN ? AND ?`;
+    db.query(query, [formattedStartDate, formattedEndDate], (error, results) => {
+        if (error) {
+            console.error('Error al realizar la consulta:', error);
+            res.status(500).json({ error: 'Error al realizar la consulta.' });
+        } else {
             const formattedResults = results.map(row => ({
                 ...row,
                 Fecha: new Date(row.FechaHora).toISOString().split('T')[0],
                 Hora: new Date(row.FechaHora).toTimeString().split(' ')[0],
-                RPM: row.RPM 
+                RPM: row.RPM
             }));
 
             res.json(formattedResults);
-        });
+        }
     });
+});
+
+    // Ruta para obtener todos los datos históricos de datos_obd
+    app.get('/historicosObd', (req, res) => {
+    const query = 'SELECT * FROM datos_obd ORDER BY FechaHora DESC, id DESC';
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error al consultar la base de datos:', err);
+            res.status(500).send('Error al consultar la base de datos');
+            return;
+        }
+
+        const formattedResults = results.map(row => ({
+            ...row,
+            Fecha: new Date(row.FechaHora).toISOString().split('T')[0],
+            Hora: new Date(row.FechaHora).toTimeString().split(' ')[0],
+            RPM: row.RPM
+        }));
+
+        res.json(formattedResults);
+    });
+});
+
 
     // Ruta para filtrar los datos entre fechas
     app.get('/filterData', (req, res) => {
@@ -218,36 +250,6 @@ fs.readFile('/home/ubuntu/todoproyect/credenciales.json', 'utf8', (err, data) =>
         });
     });
 
-    app.get('/filterObdData', (req, res) => {
-    const startDate = new Date(req.query.startDate);
-    const endDate = new Date(req.query.endDate);
-
-    console.log('Fechas recibidas para OBD:', {
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString()
-    });
-
-    const formattedStartDate = startDate.toISOString().slice(0, 19).replace('T', ' ');
-    const formattedEndDate = endDate.toISOString().slice(0, 19).replace('T', ' ');
-
-    const query = `SELECT * FROM datos_obd WHERE FechaHora BETWEEN ? AND ?`;
-    db.query(query, [formattedStartDate, formattedEndDate], (error, results) => {
-        if (error) {
-            console.error('Error al realizar la consulta:', error);
-            res.status(500).json({ error: 'Error al realizar la consulta.' });
-        } else {
-            // Formatear la fecha para que siempre sea "YYYY-MM-DD"
-            const formattedResults = results.map(row => ({
-                ...row,
-                Fecha: new Date(row.FechaHora).toISOString().split('T')[0],  // Formatear fecha
-                Hora: new Date(row.FechaHora).toTimeString().split(' ')[0],   // Formatear hora
-                RPM: row.RPM  // Mantener el campo RPM
-            }));
-
-            res.json(formattedResults);
-        }
-    });
-});
 
 
        // Ruta para mostrar los datos históricos en tabla (ruta escondida)
