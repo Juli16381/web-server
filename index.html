@@ -124,7 +124,7 @@
     <button type="button" id="ambosBtn">Ambos</button>
     </div>
 
-
+   
     <form id="filterForm1">
     <label for="carSelection">Seleccionar carro:</label>
     <select id="carSelection" name="carSelection">
@@ -150,7 +150,7 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
-
+        
         filterForm1.style.display = 'none'; 
         document.addEventListener('DOMContentLoaded', function() {
             // Obtener la fecha y hora actuales
@@ -181,7 +181,7 @@
                 });
             }
 
-
+            
     // Inicializar el estado al cargar la página
     document.addEventListener('DOMContentLoaded', function() {
     const filterForm = document.getElementById('filterForm');
@@ -246,7 +246,7 @@ window.addEventListener('beforeunload', function() {
         filterForm1.style.display = 'block'; // Mostrar formulario de selección de carro
         sliderContainer.style.display = 'block'; // Mostrar slider
         limpiarMapa();
-
+        
         // Ocultar botones de selección de carro y mostrar botón de regresar
         carSelectionButtons.style.display = 'none';
         regresarBtn.style.display = 'block';
@@ -276,7 +276,7 @@ window.addEventListener('beforeunload', function() {
 
     // Mostrar botones de selección de carro
     document.getElementById('carSelectionButtons').style.display = 'block';
-
+    
     // Ocultar botón de regresar
     this.style.display = 'none';
     limpiarMapa();
@@ -344,7 +344,7 @@ window.addEventListener('beforeunload', function() {
                 fillOpacity: 1,
             }).addTo(map);
 
-
+            
             // Polilínea carro 2
             let recorrido2 = L.polyline([], { color: '#FF4500' }).addTo(map);
             let recorridoFiltrado2 = L.polyline([], { color: '#007FFF' });
@@ -443,7 +443,7 @@ window.addEventListener('beforeunload', function() {
         console.error('Datos inválidos recibidos:', data);
         return;
         }
-
+    
         const nuevaLatitud2 = parseFloat(data.Latitud);
         const nuevaLongitud2 = parseFloat(data.Longitud);
         const fechaFormateada2 = data.Fecha.split('T')[0];
@@ -474,17 +474,17 @@ window.addEventListener('beforeunload', function() {
         map.setView([nuevaLatitud2, nuevaLongitud2], 13);  // Ajustar el nivel de zoom
         primerCentrado2 = false;  // Evitar más centrados automáticos
         }
-
+    
         // Actualizar las variables de última ubicación
         ultimaLatitud2 = nuevaLatitud2;
         ultimaLongitud2 = nuevaLongitud2;
     }
 
-
+            
      const carSelection = document.getElementById('carSelection');
      carSelection.addEventListener('change', function() {
      const selectedValue = carSelection.value; 
-
+    
     if (selectedValue === 'carro1') {
         alert('Carro 1'); 
         ultimaUbicacionControlCarro1.addTo(map);
@@ -607,7 +607,22 @@ window.addEventListener('beforeunload', function() {
                             data.forEach((registro) => {
                                 const nuevaLatitud2 = parseFloat(registro.Latitud);
                                 const nuevaLongitud2 = parseFloat(registro.Longitud);
+                                const rpm = registro.RPM;
 
+                                if (ultimaLatitud2 !== null && ultimaLongitud2 !== null && 
+                                    ultimaLatitud2 === nuevaLatitud2 && ultimaLongitud2 === nuevaLongitud2) {
+                                    return;
+                                }
+
+                                recorrido2.addLatLng([nuevaLatitud2, nuevaLongitud2]);
+
+                                ultimaLatitud2 = nuevaLatitud2;
+                                ultimaLongitud2 = nuevaLongitud2;
+                            });
+
+                            if (ultimaLatitud2 !== null && ultimaLongitud2 !== null) {
+                                map.setView([ultimaLatitud2, ultimaLongitud2], 13);
+                                marcadorUltimaUbicacion2.setLatLng([ultimaLatitud2, ultimaLongitud2]);
                             }
                         }
                     })
@@ -690,7 +705,7 @@ window.addEventListener('beforeunload', function() {
                     .catch(error => console.error('Error:', error));
             });
 
-
+        
         limpiarMapa();
 
     } else if (selectedValue === 'ambos') {
@@ -699,9 +714,10 @@ window.addEventListener('beforeunload', function() {
          ultimaUbicacionControlCarro1.addTo(map);
     }
 });
-
+            
 
         });
     </script>
 </body>
 </html>
+
