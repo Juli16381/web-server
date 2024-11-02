@@ -738,10 +738,6 @@ function cargarDatosDesdeServidor(url, carro) {
                 const hora = data[index].Hora;
                 const rpm = data[index].rpm!== undefined ? data[index].rpm : 'N/A';; // Asegúrate de que estás accediendo correctamente
                 const popupContent = `<b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}<br><b>RPM:</b> ${rpm}`;
-
-                  if (marcadorSlider) {
-                    map.removeLayer(marcadorSlider); // Eliminar el marcador existente
-                    }
             
                   if (!marcadorSlider) {
                     marcadorSlider = L.circleMarker(puntoActual, {
@@ -756,6 +752,9 @@ function cargarDatosDesdeServidor(url, carro) {
                 
                 marcadorSlider.bindPopup(popupContent).openPopup();
                 map.panTo(puntoActual);
+                  if (marcadorSlider) {
+        map.removeLayer(marcadorSlider); // Eliminar el marcador existente
+    }
             });
         })
         .catch(error => console.error('Error:', error));
