@@ -478,7 +478,7 @@ window.addEventListener('beforeunload', function() {
     }
 
             
-     // Escucha el evento 'change' para manejar el cambio de selección de carro
+
 const carSelection = document.getElementById('carSelection');
 carSelection.addEventListener('change', function() {
     const selectedValue = carSelection.value;
@@ -552,7 +552,8 @@ document.getElementById('filterForm').addEventListener('submit', function(event)
     filtrando = true;
     map.removeLayer(recorrido);
 
-    const filterUrl = selectedValue === 'carro1' ? '/filterData' : '/filterObdData';
+    const filterUrl = selectedValue === 'carro2' ? '/filterObdData' : '/filterData';
+
 
     fetch(`${filterUrl}?startDate=${startISOString}&endDate=${endISOString}`)
         .then(response => response.json())
