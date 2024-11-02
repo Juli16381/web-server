@@ -131,6 +131,7 @@
          <option value="nada">---</option>
         <option value="carro1">Carro 1</option>
         <option value="carro2">Carro 2</option>
+        
     </select>
     </form>
 
@@ -480,27 +481,34 @@ window.addEventListener('beforeunload', function() {
             
 
     const carSelection = document.getElementById('carSelection');
-    carSelection.addEventListener('change', function() {
+    const recorridoCarro1 = L.polyline([], { color: '#FF0000' }).addTo(map); // Polilínea para carro 1 (rojo)
+    const recorridoCarro2 = L.polyline([], { color: '#0000FF' }).addTo(map); // Polilínea para carro 2 (azul)
+
+carSelection.addEventListener('change', function() {
     const selectedValue = carSelection.value;
 
+    // Limpia el mapa antes de agregar nuevos datos
+    limpiarMapa();
+
+    // Remover ambos marcadores antes de añadir nuevos
+    ultimaUbicacionControlCarro1.remove(map);
+    ultimaUbicacionControlCarro2.remove(map);
+    
+    // Mostrar la ubicación y datos según el carro seleccionado
     if (selectedValue === 'carro1') {
         alert('Carro 1');
         ultimaUbicacionControlCarro1.addTo(map);
-        ultimaUbicacionControlCarro2.remove(map);
-        limpiarMapa();
-        cargarDatosDesdeServidor('/historicos');
+        cargarDatosDesdeServidor('/historicos', 'carro1');
 
     } else if (selectedValue === 'carro2') {
         alert('Carro 2');
         ultimaUbicacionControlCarro2.addTo(map);
-        ultimaUbicacionControlCarro1.remove(map);
-        limpiarMapa();
-        cargarDatosDesdeServidor('/historicosObd');
-    
+        cargarDatosDesdeServidor('/historicosObd', 'carro2');
+    } 
 });
 
 // Función para cargar datos históricos basada en la URL según el carro
-function cargarDatosDesdeServidor(url) {
+function cargarDatosDesdeServidor(url, carro) {
     fetch(url)
         .then(response => response.json())
         .then(data => {
@@ -514,7 +522,13 @@ function cargarDatosDesdeServidor(url) {
                         return;
                     }
 
-                    recorrido.addLatLng([nuevaLatitud, nuevaLongitud]);
+                    // Cambiar el color de la polilínea según el carro
+                    if (carro === 'carro1') {
+                        recorridoCarro1.addLatLng([nuevaLatitud, nuevaLongitud]);
+                    } else {
+                        recorridoCarro2.addLatLng([nuevaLatitud, nuevaLongitud]);
+                    }
+                    
                     ultimaLatitud = nuevaLatitud;
                     ultimaLongitud = nuevaLongitud;
                 });
@@ -529,10 +543,10 @@ function cargarDatosDesdeServidor(url) {
 }
 
 // Evento de filtrado de fechas que cambia según el carro seleccionado
-document.getElementById('filterForm').addEventListener('submit', function(event) {
+    document.getElementById('filterForm').addEventListener('submit', function(event) {
     event.preventDefault();
 
-    const selectedValue = carSelection.value; 
+    const selectedValue = carSelection.value; // Obtiene el valor seleccionado
 
     if (selectedValue === '---') { 
         alert('Por favor, selecciona un carro antes de filtrar.');
@@ -551,10 +565,9 @@ document.getElementById('filterForm').addEventListener('submit', function(event)
     const endISOString = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000).toISOString();
 
     filtrando = true;
-    map.removeLayer(recorrido);
+    map.removeLayer(recorridoFiltrado);
 
     const filterUrl = selectedValue === 'carro2' ? '/filterObdData' : '/filterData';
-
 
     fetch(`${filterUrl}?startDate=${startISOString}&endDate=${endISOString}`)
         .then(response => response.json())
@@ -609,9 +622,9 @@ document.getElementById('filterForm').addEventListener('submit', function(event)
         .catch(error => console.error('Error:', error));
 });
 
-
             
         });
     </script>
 </body>
 </html>
+
