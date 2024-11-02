@@ -479,8 +479,8 @@ window.addEventListener('beforeunload', function() {
 
             
 
-const carSelection = document.getElementById('carSelection');
-carSelection.addEventListener('change', function() {
+    const carSelection = document.getElementById('carSelection');
+    carSelection.addEventListener('change', function() {
     const selectedValue = carSelection.value;
 
     if (selectedValue === 'carro1') {
@@ -532,7 +532,12 @@ function cargarDatosDesdeServidor(url) {
 document.getElementById('filterForm').addEventListener('submit', function(event) {
     event.preventDefault();
 
-    const selectedValue = carSelection.value; // Obtiene el valor seleccionado
+    const selectedValue = carSelection.value; 
+
+    if (selectedValue === '---') { 
+        alert('Por favor, selecciona un carro antes de filtrar.');
+        return; // Detiene la ejecución si no hay carro seleccionado
+    }
 
     const startDate = new Date(document.getElementById('startDate').value);
     const endDate = new Date(document.getElementById('endDate').value);
