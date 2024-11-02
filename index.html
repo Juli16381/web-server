@@ -279,6 +279,8 @@ window.addEventListener('beforeunload', function() {
     // Ocultar botón de regresar
     this.style.display = 'none';
     limpiarMapa();
+    ultimaUbicacionControlCarro2.remove();
+    ultimaUbicacionControlCarro1.remove();
 
     // Guardar estado en localStorage
     localStorage.setItem('isFiltering', 'false');
@@ -361,6 +363,7 @@ window.addEventListener('beforeunload', function() {
     ultimaUbicacionControlCarro1.addTo(map);
     ultimaUbicacionControlCarro2.remove();
     socket.off('new-obd-data');
+    socket.removeAllListeners('new-obd-data');
     socket.on('new-data', (data) => {
         if (!filtrando) {
             actualizarMapa(data);
@@ -372,6 +375,7 @@ window.addEventListener('beforeunload', function() {
     ultimaUbicacionControlCarro2.addTo(map);
     ultimaUbicacionControlCarro1.remove();
     socket.off('new-data');
+    socket.removeAllListeners('new-data');
     socket.on('new-obd-data', (data2) => {
         if (!filtrando) {
             actualizarMapa2(data);
