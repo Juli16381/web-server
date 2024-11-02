@@ -128,6 +128,7 @@
     <form id="filterForm1">
     <label for="carSelection">Seleccionar carro:</label>
     <select id="carSelection" name="carSelection">
+         <option value="nada">---</option>
         <option value="carro1">Carro 1</option>
         <option value="carro2">Carro 2</option>
         <option value="ambos">Ambos</option>
@@ -444,40 +445,40 @@ window.addEventListener('beforeunload', function() {
         return;
         }
     
-        const nuevaLatitud = parseFloat(data.Latitud);
-        const nuevaLongitud = parseFloat(data.Longitud);
-        const fechaFormateada = data.Fecha.split('T')[0];
-        const horaFormateada = data.Hora;
-        const rpmFormateada = data.RPM;
+        const nuevaLatitud2 = parseFloat(data.Latitud);
+        const nuevaLongitud2 = parseFloat(data.Longitud);
+        const fechaFormateada2 = data.Fecha.split('T')[0];
+        const horaFormateada2 = data.Hora;
+        const rpmFormateada2 = data.RPM;
 
         // Evitar actualizaciones si la posición no ha cambiado
         if (ultimaLatitud2 !== null && ultimaLongitud2 !== null && 
-        ultimaLatitud2 === nuevaLatitud && ultimaLongitud2 === nuevaLongitud) {
+        ultimaLatitud2 === nuevaLatitud2 && ultimaLongitud2 === nuevaLongitud2) {
         return;
         }
 
         // Actualizar los elementos de visualización
-        document.getElementById('ultima-latitud2').innerText = nuevaLatitud.toFixed(3);
-        document.getElementById('ultima-longitud2').innerText = nuevaLongitud.toFixed(3);
-        document.getElementById('ultima-fecha2').innerText = fechaFormateada;
-        document.getElementById('ultima-hora2').innerText = horaFormateada;
-        document.getElementById('ultima-rpm-carro2').innerText = rpmFormateada;  // Asegúrate de que este ID exista
+        document.getElementById('ultima-latitud2').innerText = nuevaLatitud2.toFixed(3);
+        document.getElementById('ultima-longitud2').innerText = nuevaLongitud2.toFixed(3);
+        document.getElementById('ultima-fecha2').innerText = fechaFormateada2;
+        document.getElementById('ultima-hora2').innerText = horaFormateada2;
+        document.getElementById('ultima-rpm-carro2').innerText = rpmFormateada2;  // Asegúrate de que este ID exista
 
         // Agregar la nueva posición al recorrido si no está en modo filtrado
         if (!filtrando2) {
-        recorrido2.addLatLng([nuevaLatitud, nuevaLongitud]);
+        recorrido2.addLatLng([nuevaLatitud2, nuevaLongitud2]);
         }
 
         // Actualizar la posición del marcador de la última ubicación
-        marcadorUltimaUbicacion2.setLatLng([nuevaLatitud, nuevaLongitud]);
+        marcadorUltimaUbicacion2.setLatLng([nuevaLatitud2, nuevaLongitud2]);
         if (primerCentrado2) {
-        map.setView([nuevaLatitud, nuevaLongitud], 13);  // Ajustar el nivel de zoom
+        map.setView([nuevaLatitud2, nuevaLongitud2], 13);  // Ajustar el nivel de zoom
         primerCentrado2 = false;  // Evitar más centrados automáticos
         }
     
         // Actualizar las variables de última ubicación
-        ultimaLatitud2 = nuevaLatitud;
-        ultimaLongitud2 = nuevaLongitud;
+        ultimaLatitud2 = nuevaLatitud2;
+        ultimaLongitud2 = nuevaLongitud2;
     }
 
             
@@ -647,7 +648,7 @@ window.addEventListener('beforeunload', function() {
 
                 map.removeLayer(recorrido2);
 
-                fetch(`/filterData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
+                fetch(`/filterObdData?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.length === 0) {
@@ -704,7 +705,6 @@ window.addEventListener('beforeunload', function() {
                     })
                     .catch(error => console.error('Error:', error));
             });
-
 
         
         limpiarMapa();
