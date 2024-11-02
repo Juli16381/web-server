@@ -599,7 +599,10 @@ const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).
             slider.value = 0;
             document.getElementById('slider-container').style.display = 'block';
 
-            
+             // Limpiar el marcador del slider antes de añadir uno nuevo
+                if (marcadorSlider) {
+                map.removeLayer(marcadorSlider);
+                }
 
             slider.addEventListener('input', function() {
                 const index = parseInt(slider.value);
