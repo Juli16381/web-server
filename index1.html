@@ -436,7 +436,7 @@ window.addEventListener('beforeunload', function() {
 
         // Función para actualizar el mapa con datos del carro 2
         function actualizarMapa2(data2) {
-        if (!data2 || !data2.Latitud || !data2.Longitud || !data2.Fecha || !data2.Hora || !data2.RPM) {
+        if (!data2 || !data2.Latitud || !data2.Longitud || !data2.Fecha || !data2.Hora || !data2.rpm) {
         console.error('Datos inválidos recibidos:', data2);
         return;
         }
@@ -445,7 +445,7 @@ window.addEventListener('beforeunload', function() {
         const nuevaLongitud2 = parseFloat(data2.Longitud);
         const fechaFormateada2 = data2.Fecha.split('T')[0];
         const horaFormateada2 = data2.Hora;
-        const rpmFormateada2 = data2.RPM;
+        const rpmFormateada2 = data2.rpm;
 
         // Evitar actualizaciones si la posición no ha cambiado
         if (ultimaLatitud2 !== null && ultimaLongitud2 !== null && 
@@ -490,7 +490,6 @@ window.addEventListener('beforeunload', function() {
     
     // Mostrar la ubicación y datos según el carro seleccionado
     if (selectedValue === 'carro1') {
-        alert('Carro 1');
         ultimaUbicacionControlCarro1.addTo(map);
         cargarDatosDesdeServidor('/historicos', 'carro1');    
         if (marcadorSlider) {
@@ -499,7 +498,6 @@ window.addEventListener('beforeunload', function() {
     }
 
     } else if (selectedValue === 'carro2') {
-        alert('Carro 2');
         ultimaUbicacionControlCarro2.addTo(map);
         cargarDatosDesdeServidor('/historicosObd', 'carro2');
         if (marcadorSlider) {
@@ -532,6 +530,12 @@ function cargarDatosDesdeServidor(url, carro) {
                     
                     ultimaLatitud = nuevaLatitud;
                     ultimaLongitud = nuevaLongitud;
+                    
+                      if (carro === 'carro1') {
+                        recorridoCarro1Filtrado.addLatLng([nuevaLatitud, nuevaLongitud]);
+                    } else {
+                        recorridoCarro2Filtrado.addLatLng([nuevaLatitud, nuevaLongitud]);
+                    }
                 });
 
                 if (ultimaLatitud !== null && ultimaLongitud !== null) {
@@ -577,14 +581,16 @@ const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).
     fetch(`${filterUrl}?startDate=${startISOString}&endDate=${endISOString}`)
         .then(response => response.json())
         .then(data => {
+        console.log('Datos recibidos:', data); 
             if (data.length === 0) {
                 alert('No se encontraron datos en el rango de tiempo especificado');
                 return;
             }
 
-            const puntosFiltrados = data.map((registro) => {
+                const puntosFiltrados = data.map((registro) => {
                 const lat = parseFloat(registro.Latitud);
                 const lon = parseFloat(registro.Longitud);
+             
                 // Añadir puntos a la polilínea correspondiente
                 if (selectedValue === 'carro1') {
                     recorridoCarro1Filtrado.addLatLng([lat, lon]);
@@ -620,9 +626,10 @@ const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).
                 const puntoActual = puntosFiltrados[index];
                 const fecha = data[index].Fecha;
                 const hora = data[index].Hora;
+                const rpm = data[index].rpm!== undefined ? data[index].rpm : 'N/A';; // Asegúrate de que estás accediendo correctamente
+                const popupContent = `<b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}<br><b>RPM:</b> ${rpm}`;
 
-                const popupContent = `<b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}`;
-                
+            
                   if (!marcadorSlider) {
                     marcadorSlider = L.circleMarker(puntoActual, {
                     radius: 8,
