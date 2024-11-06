@@ -678,7 +678,10 @@ function cargarDatosDesdeServidor(url, carro) {
         const index = parseInt(slider.value);
         const puntoActual = puntosFiltrados[index];
         const { Latitud, Longitud, Fecha, Hora, rpm, car } = puntoActual;
-        const popupContent = `<b>Fecha:</b> ${Fecha}<br><b>Hora:</b> ${Hora}<br><b>RPM:</b> ${rpm || 'N/A'}`;
+        const popupContent = `<b>${rpm !== 'N/A' ? 'CARRO 2' : 'CARRO 1'}</b><br>
+                          <b>Fecha:</b> ${fecha}<br>
+                          <b>Hora:</b> ${hora}<br>
+                          <b>RPM:</b> ${rpm}`;
 
         // Actualizar marcador del carro 1
         if (car === 'carro1') {
