@@ -688,7 +688,7 @@ function cargarDatosDesdeServidor(url, carro) {
         slider.value = 0;
         document.getElementById('slider-container').style.display = 'block';
 
-        // Inicializar los marcadores de ambos carros
+        // Inicializar los marcadores de ambos carros (fuera del slider)
         let marcadorCarro1 = null;
         let marcadorCarro2 = null;
 
@@ -701,13 +701,13 @@ function cargarDatosDesdeServidor(url, carro) {
 
             const popupContent = `<b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}<br><b>RPM:</b> ${rpm}`;
 
-            // Si es el primer punto del carro 1
+            // Si el índice pertenece al carro 1
             if (index < dataCarro1.length) {
                 if (!marcadorCarro1) {
                     marcadorCarro1 = L.circleMarker(puntoActual, {
                         radius: 8,
-                        color: '#0000FF',  // Color personalizado para el marcador de carro 1
-                        fillColor: '#0000FF',
+                        color: '#800080',  // Color personalizado para el marcador de carro 1
+                        fillColor: '#800080',
                         fillOpacity: 1,
                     }).addTo(map);
                 } else {
@@ -716,13 +716,13 @@ function cargarDatosDesdeServidor(url, carro) {
                 marcadorCarro1.bindPopup(popupContent).openPopup();
             }
 
-            // Si es el primer punto del carro 2
+            // Si el índice pertenece al carro 2
             if (index >= dataCarro1.length) {
                 if (!marcadorCarro2) {
                     marcadorCarro2 = L.circleMarker(puntoActual, {
                         radius: 8,
-                        color: '#FF0000',  // Color personalizado para el marcador de carro 2
-                        fillColor: '#FF0000',
+                        color: '#ff0000',  // Color personalizado para el marcador de carro 2
+                        fillColor: '#ff0000',
                         fillOpacity: 1,
                     }).addTo(map);
                 } else {
@@ -735,6 +735,7 @@ function cargarDatosDesdeServidor(url, carro) {
         });
     });
 }
+
 
     
     fetch(`${filterUrl}?startDate=${startISOString}&endDate=${endISOString}`)
