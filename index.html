@@ -4,12 +4,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title id="name-title">Datos GPS</title>
     <script>
-        // Función para obtener el nombre del servidor y actualizar el título
+    // Función para obtener el nombre del servidor y actualizar el título
         function fetchName() {
             fetch('/name')
                 .then(response => response.json())
                 .then(data => {
-                    document.title = data.name; // Cambiar el título de la página
+                    document.getElementById('name-title').textContent = data.name;  // Solo el nombre
                 })
                 .catch(err => console.error("Error al obtener el nombre:", err));
         }
