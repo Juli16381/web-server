@@ -454,10 +454,10 @@ window.addEventListener('beforeunload', function() {
         const rpmFormateada2 = data2.rpm;
 
         // Evitar actualizaciones si la posición no ha cambiado
-        if (ultimaLatitud2 !== null && ultimaLongitud2 !== null && 
-        ultimaLatitud2 === nuevaLatitud2 && ultimaLongitud2 === nuevaLongitud2) {
-        return;
-        }
+     //   if (ultimaLatitud2 !== null && ultimaLongitud2 !== null && 
+     //   ultimaLatitud2 === nuevaLatitud2 && ultimaLongitud2 === nuevaLongitud2) {
+    //   return;
+     //   }
 
         // Actualizar los elementos de visualización
         document.getElementById('ultima-latitud2').innerText = nuevaLatitud2.toFixed(3);
