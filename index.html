@@ -651,12 +651,20 @@ function cargarDatosDesdeServidor(url, carro) {
         return;
     }
 
-    // Combinar y ordenar los puntos de ambos carros por fecha y hora
+    // Crear arrays de puntos para las polilíneas de cada carro
+    const puntosCarro1 = dataCarro1.map(registro => [parseFloat(registro.Latitud), parseFloat(registro.Longitud)]);
+    const puntosCarro2 = dataCarro2.map(registro => [parseFloat(registro.Latitud), parseFloat(registro.Longitud)]);
+
+    // Crear y añadir las polilíneas filtradas para cada carro
+    const recorridoCarro1Filtrado = L.polyline(puntosCarro1, { color: 'blue' }).addTo(map);
+    const recorridoCarro2Filtrado = L.polyline(puntosCarro2, { color: 'red' }).addTo(map);
+
+    // Combinar y ordenar los puntos de ambos carros por fecha y hora para el slider
     const puntosFiltrados = [...dataCarro1.map(d => ({ ...d, car: 'carro1' })), 
                              ...dataCarro2.map(d => ({ ...d, car: 'carro2' }))]
                              .sort((a, b) => new Date(a.FechaHora) - new Date(b.FechaHora));
 
-    // Configurar el slider para recorrer todos los puntos combinados
+    // Configurar el slider
     const slider = document.getElementById('filter-slider');
     slider.max = puntosFiltrados.length - 1;
     slider.value = 0;
@@ -708,6 +716,7 @@ function cargarDatosDesdeServidor(url, carro) {
         map.panTo([parseFloat(Latitud), parseFloat(Longitud)]);
     });
 });
+
 
 }
 
