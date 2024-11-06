@@ -393,7 +393,7 @@ window.addEventListener('beforeunload', function() {
         filterForm1.style.display = 'block'; // Mostrar formulario de selección de carro
         sliderContainer.style.display = 'block'; // Mostrar slider
         filtrarBtn.style.display = 'block'; 
-        toggleFilterBtn.innerHTML = 'Regresar';
+        toggleFilterBtn.innerHTML = 'Regresar a tiempo real';
         limpiarMapa();
         // Ocultar botones de selección de carro y mostrar botón de regresar
         carSelectionButtons.style.display = 'none';
@@ -405,6 +405,7 @@ window.addEventListener('beforeunload', function() {
         filterForm.style.display = 'none';
         filterForm1.style.display = 'none';
         filtrarBtn.style.display = 'none'; 
+        toggleFilterBtn.innerHTML = 'Filtrar información';
         document.getElementById('slider-container').style.display = 'none'; 
         // Mostrar botones de selección de carro y ocultar botón de regresar
         carSelectionButtons.style.display = 'block';
