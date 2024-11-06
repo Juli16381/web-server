@@ -99,6 +99,11 @@
                 width: 100%;
                 max-width: 100vw;
             }
+
+            .active-button {
+            background-color: #555;  /* Color más oscuro */
+            color: #fff;  /* Cambiar el color del texto si es necesario */
+            }
         }
     </style>
 </head>
@@ -310,6 +315,7 @@ window.addEventListener('beforeunload', function() {
     document.getElementById('carro1Btn').addEventListener('click', function() {
     ultimaUbicacionControlCarro1.addTo(map);
     ultimaUbicacionControlCarro2.remove();
+    this.classList.add('active-button');
     socket.off('new-obd-data');
     socket.removeAllListeners('new-obd-data');
     socket.on('new-data', (data) => {
