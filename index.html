@@ -416,10 +416,10 @@ window.addEventListener('beforeunload', function() {
                 const fechaFormateada = data.Fecha.split('T')[0];
                 const horaFormateada = data.Hora;
 
-                if (ultimaLatitud !== null && ultimaLongitud !== null && 
-                    ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
-                    return;
-                }
+             //   if (ultimaLatitud !== null && ultimaLongitud !== null && 
+             //       ultimaLatitud === nuevaLatitud && ultimaLongitud === nuevaLongitud) {
+             //       return;
+             //   }
 
                 document.getElementById('ultima-latitud').innerText = nuevaLatitud.toFixed(3);
                 document.getElementById('ultima-longitud').innerText = nuevaLongitud.toFixed(3);
