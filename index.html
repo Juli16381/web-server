@@ -119,17 +119,9 @@
         <input type="datetime-local" id="startDate" name="startDate">
         <label for="endDate">Fecha y hora de fin:</label>
         <input type="datetime-local" id="endDate" name="endDate">
-        <button type="submit">Filtrar</button>
     </form>
 
-    <!-- Botones de selección de carro -->
-    <div id="carSelectionButtons">
-    <button type="button" id="carro1Btn">Carro 1</button>
-    <button type="button" id="carro2Btn">Carro 2</button>
-    <button type="button" id="ambosBtn">Ambos</button>
-    </div>
-
-   
+         
     <form id="filterForm1" style="margin-bottom: 10px; display: none;">
     <label for="carSelection">Seleccionar carro:</label>
     <select id="carSelection" name="carSelection">
@@ -138,6 +130,16 @@
          <option value="ambos">Ambos</option>
     </select>
     </form>
+
+    <button type="submit" form="filterForm">Filtrar</button>
+    
+    <!-- Botones de selección de carro -->
+    <div id="carSelectionButtons">
+    <button type="button" id="carro1Btn">Carro 1</button>
+    <button type="button" id="carro2Btn">Carro 2</button>
+    <button type="button" id="ambosBtn">Ambos</button>
+    </div>
+
 
     <!-- Slider para controlar el avance debajo del formulario de filtrado -->
     <div id="slider-container">
