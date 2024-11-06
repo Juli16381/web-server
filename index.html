@@ -67,17 +67,6 @@
             margin-bottom: 7px;
             border-radius: 5px;
         }
-         #toggle-filter-btn2 {
-            display: none;
-            padding: 8px 16px;
-            background-color: #ce72c0;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            margin-bottom: 7px;
-            border-radius: 5px;
-        }
         /* Ocultar inicialmente el formulario */
         #filterForm {
             display: none;
@@ -118,8 +107,6 @@
 
     <!-- Botón para mostrar/ocultar el formulario de filtrado -->
     <button id="toggle-filter-btn">Filtrar información</button>
-    
-     <button id="toggle-filter-btn2">Regresar a tiempo real</button>
 
     <!-- Formulario de filtrado -->
     <form id="filterForm">
@@ -146,6 +133,8 @@
          <option value="ambos">Ambos</option>
     </select>
     </form>
+
+    <button id="regresarBtn" style="display: none;">Regresar</button>
 
     <!-- Slider para controlar el avance debajo del formulario de filtrado -->
     <div id="slider-container">
@@ -237,77 +226,16 @@ window.addEventListener('beforeunload', function() {
     limpiarMapa();
 });
 
-// Mostrar/ocultar los formularios de filtrado y selección de carro al hacer clic en el botón
-    document.getElementById('toggle-filter-btn').addEventListener('click', function() {
-    const filterForm = document.getElementById('filterForm');
-    const filterForm1 = document.getElementById('filterForm1');
-    const sliderContainer = document.getElementById('slider-container');
-    const carSelectionButtons = document.getElementById('carSelectionButtons');
-    const regresarBtn = document.getElementById('regresarBtn');
-    ultimaUbicacionControlCarro2.remove();
 
-    // Verificar el estado de ambos formularios
-    const isFilterFormVisible = filterForm.style.display === 'block';
-    const isFilterForm1Visible = filterForm1.style.display === 'block';
+     const socket = io();
 
-    // Alternar la visibilidad de ambos formularios
-    if (!isFilterFormVisible || !isFilterForm1Visible) {
-        filterForm.style.display = 'block';
-        filterForm1.style.display = 'block'; // Mostrar formulario de selección de carro
-        sliderContainer.style.display = 'block'; // Mostrar slider
-        limpiarMapa();
-        
-        // Ocultar botones de selección de carro y mostrar botón de regresar
-        carSelectionButtons.style.display = 'none';
-        regresarBtn.style.display = 'block';
+    let autoCenter = true;
+    let autoCenterTimeout;
+    let filtrando = false;
+    let primerCentrado = true;
+    let primerCentrado2 = true;
 
-        // Guardar estado en localStorage
-        localStorage.setItem('isFiltering', 'true');
-    } else {
-        filterForm.style.display = 'none';
-        filterForm1.style.display = 'none'; // Ocultar formulario de selección de carro        
-        // Mostrar botones de selección de carro y ocultar botón de regresar
-        carSelectionButtons.style.display = 'block';
-        regresarBtn.style.display = 'none'; // Ocultar el botón de regresar
-
-        // Guardar estado en localStorage
-        localStorage.setItem('isFiltering', 'false');
-    }
-
-    document.getElementById('slider-container').style.display = 'none';
-    this.style.display = 'none';
-});
-
-    // Agregar evento para el botón de regresar
-    document.getElementById('toggle-filter-btn2').addEventListener('click', function() {
-    // Ocultar formularios de filtrado
-    document.getElementById('filterForm').style.display = 'none';
-    document.getElementById('filterForm1').style.display = 'none'; 
-    document.getElementById('slider-container').style.display = 'none'; 
-
-    // Mostrar botones de selección de carro
-    document.getElementById('carSelectionButtons').style.display = 'block';
-    
-    // Ocultar botón de regresar
-    this.style.display = 'none';
-    limpiarMapa();
-    document.getElementById('toggle-filter-btn').style.display = 'block';
-    ultimaUbicacionControlCarro1.addTo(map);
-    ultimaUbicacionControlCarro2.addTo(map);
-
-    // Guardar estado en localStorage
-    localStorage.setItem('isFiltering', 'false');
-});
-
-            const socket = io();
-
-            let autoCenter = true;
-            let autoCenterTimeout;
-            let filtrando = false;
-            let primerCentrado = true;
-            let primerCentrado2 = true;
-
-            // Inicializar el mapa
+    // Inicializar el mapa
             const map = L.map('map').setView([10.96854, -74.78132], 13);
 
             // Añadir el mapa base
@@ -371,10 +299,10 @@ window.addEventListener('beforeunload', function() {
             let ultimaLatitud2 = null;
             let ultimaLongitud2 = null;
 
-
+    
     ultimaUbicacionControlCarro2.addTo(map);
     ultimaUbicacionControlCarro1.addTo(map);
-    // Lógica para manejar ambos carros si es necesario
+    //inicio con los dos carros en tiempo real
     socket.on('new-data', (data) => {
         if (!filtrando) {
             actualizarMapa(data); // Carro 1
@@ -387,10 +315,9 @@ window.addEventListener('beforeunload', function() {
         }
     });
 
-
     document.getElementById('carro1Btn').addEventListener('click', function() {
+    ultimaUbicacionControlCarro1.addTo(map);
     ultimaUbicacionControlCarro2.remove();
-      ultimaUbicacionControlCarro1.addTo(map);
     socket.off('new-obd-data');
     socket.removeAllListeners('new-obd-data');
     socket.on('new-data', (data) => {
@@ -401,8 +328,8 @@ window.addEventListener('beforeunload', function() {
 });
 
     document.getElementById('carro2Btn').addEventListener('click', function() {
-    ultimaUbicacionControlCarro1.remove();
     ultimaUbicacionControlCarro2.addTo(map);
+    ultimaUbicacionControlCarro1.remove();
     socket.off('new-data');
     socket.removeAllListeners('new-data');
     socket.on('new-obd-data', (data2) => {
@@ -428,6 +355,61 @@ window.addEventListener('beforeunload', function() {
             actualizarMapa2(data2); // Carro 2
         }
     });
+});
+
+            // Mostrar/ocultar los formularios de filtrado y selección de carro al hacer clic en el botón
+    document.getElementById('toggle-filter-btn').addEventListener('click', function() {
+    const filterForm = document.getElementById('filterForm');
+    const filterForm1 = document.getElementById('filterForm1');
+    const sliderContainer = document.getElementById('slider-container');
+    const carSelectionButtons = document.getElementById('carSelectionButtons');
+    const regresarBtn = document.getElementById('regresarBtn');
+    ultimaUbicacionControlCarro2.remove();
+
+    // Verificar el estado de ambos formularios
+    const isFilterFormVisible = filterForm.style.display === 'block';
+    const isFilterForm1Visible = filterForm1.style.display === 'block';
+
+    // Alternar la visibilidad de ambos formularios
+    if (!isFilterFormVisible || !isFilterForm1Visible) {
+        filterForm.style.display = 'block';
+        filterForm1.style.display = 'block'; // Mostrar formulario de selección de carro
+        sliderContainer.style.display = 'block'; // Mostrar slider
+        limpiarMapa();
+        
+        // Ocultar botones de selección de carro y mostrar botón de regresar
+        carSelectionButtons.style.display = 'none';
+        regresarBtn.style.display = 'block';
+
+        // Guardar estado en localStorage
+        localStorage.setItem('isFiltering', 'true');
+    } else {
+        limpiarMapa();
+        filterForm.style.display = 'none';
+        filterForm1.style.display = 'none'; 
+        // Mostrar botones de selección de carro y ocultar botón de regresar
+        carSelectionButtons.style.display = 'block';
+        ultimaUbicacionControlCarro2.addTo(map);
+        ultimaUbicacionControlCarro1.addTo(map);
+        //inicio con los dos carros en tiempo real
+        socket.on('new-data', (data) => {
+        if (!filtrando) {
+            actualizarMapa(data); // Carro 1
+        }
+    });
+
+    socket.on('new-obd-data', (data2) => {
+        if (!filtrando) {
+            actualizarMapa2(data2); // Carro 2
+        }
+    });
+
+        // Guardar estado en localStorage
+        localStorage.setItem('isFiltering', 'false');
+        document.getElementById('slider-container').style.display = 'none';
+    }
+
+    document.getElementById('slider-container').style.display = 'none';
 });
 
             function actualizarMapa(data) {
