@@ -190,14 +190,6 @@ def insertar_en_mysql(datos):
     except Exception as e:
         print(f"Otro error ocurrió al insertar en MySQL: {e}")  # Capturar cualquier otro tipo de error
 
-    finally:
-        # Cerrar el cursor y la conexión si están abiertos
-        if cursor:
-            cursor.close()
-            print("Cursor cerrado.")
-        if cnx:
-            cnx.close()
-            print("Conexión a la base de datos cerrada.")
 
 def main():
     """
