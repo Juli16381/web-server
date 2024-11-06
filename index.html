@@ -379,7 +379,7 @@ window.addEventListener('beforeunload', function() {
     const filterForm1 = document.getElementById('filterForm1');
     const sliderContainer = document.getElementById('slider-container');
     const carSelectionButtons = document.getElementById('carSelectionButtons');
-    const regresarBtn = document.getElementById('regresarBtn');
+    const toggleFilterBtn = document.getElementById('toggle-filter-btn');
     ultimaUbicacionControlCarro2.remove();
     ultimaUbicacionControlCarro1.remove();
 
@@ -393,15 +393,13 @@ window.addEventListener('beforeunload', function() {
         filterForm1.style.display = 'block'; // Mostrar formulario de selección de carro
         sliderContainer.style.display = 'block'; // Mostrar slider
         filtrarBtn.style.display = 'block'; 
+        toggleFilterBtn.innerHTML = 'Regresar';
         limpiarMapa();
-        
         // Ocultar botones de selección de carro y mostrar botón de regresar
         carSelectionButtons.style.display = 'none';
-        toggleFilterBtn.innerHTML = 'Regresar';
-
-
         // Guardar estado en localStorage
         localStorage.setItem('isFiltering', 'true');
+        
     } else {
         limpiarMapa();
         filterForm.style.display = 'none';
