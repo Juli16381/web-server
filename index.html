@@ -358,17 +358,7 @@ window.addEventListener('beforeunload', function() {
             let ultimaLatitud2 = null;
             let ultimaLongitud2 = null;
 
-             socket.on('new-data', (data) => {
-        if (!filtrando) {
-            actualizarMapa(data);
-        }
-    });
-
-            socket.on('new-obd-data', (data2) => {
-        if (!filtrando) {
-            actualizarMapa2(data2); // Carro 2
-        }
-    });
+ 
 
 
     document.getElementById('carro1Btn').addEventListener('click', function() {
@@ -376,6 +366,11 @@ window.addEventListener('beforeunload', function() {
     ultimaUbicacionControlCarro2.remove();
    socket.off('new-obd-data');
    socket.removeAllListeners('new-obd-data');
+         socket.on('new-data', (data) => {
+        if (!filtrando) {
+            actualizarMapa(data);
+        }
+    });
 });
 
     document.getElementById('carro2Btn').addEventListener('click', function() {
@@ -383,6 +378,11 @@ window.addEventListener('beforeunload', function() {
     ultimaUbicacionControlCarro1.remove();
     socket.off('new-data');
    socket.removeAllListeners('new-data');
+          socket.on('new-obd-data', (data2) => {
+        if (!filtrando) {
+            actualizarMapa2(data2); // Carro 2
+        }
+    });
     
 });
 
@@ -391,8 +391,17 @@ window.addEventListener('beforeunload', function() {
      ultimaUbicacionControlCarro2.addTo(map);
      ultimaUbicacionControlCarro1.addTo(map);
     // Lógica para manejar ambos carros si es necesario
+         socket.on('new-data', (data) => {
+        if (!filtrando) {
+            actualizarMapa(data);
+        }
+    });
 
-
+      socket.on('new-obd-data', (data2) => {
+        if (!filtrando) {
+            actualizarMapa2(data2); // Carro 2
+        }
+    });
 
 });
 
