@@ -371,7 +371,9 @@ window.addEventListener('beforeunload', function() {
         
         // Ocultar botones de selección de carro y mostrar botón de regresar
         carSelectionButtons.style.display = 'none';
-        toggleFilterBtn.textContent = 'Regresar a tiempo real';
+         setTimeout(() => {
+            toggleFilterBtn.textContent = 'Regresar';
+        }, 0);
 
         // Guardar estado en localStorage
         localStorage.setItem('isFiltering', 'true');
