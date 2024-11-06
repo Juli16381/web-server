@@ -296,6 +296,19 @@ window.addEventListener('beforeunload', function() {
             let ultimaLatitud2 = null;
             let ultimaLongitud2 = null;
 
+    function setActiveButton(selectedButtonId) {
+    const buttons = ['carro1Btn', 'carro2Btn', 'ambosBtn'];
+    
+    buttons.forEach(buttonId => {
+        const button = document.getElementById(buttonId);
+        if (buttonId === selectedButtonId) {
+            button.classList.add('active-button');  // Activar el botón seleccionado
+        } else {
+            button.classList.remove('active-button');  // Desactivar los demás
+        }
+    });
+}
+
     
     ultimaUbicacionControlCarro2.addTo(map);
     ultimaUbicacionControlCarro1.addTo(map);
@@ -315,7 +328,7 @@ window.addEventListener('beforeunload', function() {
     document.getElementById('carro1Btn').addEventListener('click', function() {
     ultimaUbicacionControlCarro1.addTo(map);
     ultimaUbicacionControlCarro2.remove();
-    this.classList.add('active-button');
+    setActiveButton('carro1Btn');
     socket.off('new-obd-data');
     socket.removeAllListeners('new-obd-data');
     socket.on('new-data', (data) => {
@@ -328,7 +341,7 @@ window.addEventListener('beforeunload', function() {
     document.getElementById('carro2Btn').addEventListener('click', function() {
     ultimaUbicacionControlCarro2.addTo(map);
     ultimaUbicacionControlCarro1.remove();
-    this.classList.add('active-button');
+     setActiveButton('carro2Btn');
     socket.off('new-data');
     socket.removeAllListeners('new-data');
     socket.on('new-obd-data', (data2) => {
@@ -342,7 +355,7 @@ window.addEventListener('beforeunload', function() {
     document.getElementById('ambosBtn').addEventListener('click', function() {
      ultimaUbicacionControlCarro2.addTo(map);
      ultimaUbicacionControlCarro1.addTo(map);
-     this.classList.add('active-button');
+     setActiveButton('ambosBtn');
 
     // Lógica para manejar ambos carros si es necesario
     socket.on('new-data', (data) => {
