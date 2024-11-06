@@ -358,6 +358,12 @@ window.addEventListener('beforeunload', function() {
             let ultimaLatitud2 = null;
             let ultimaLongitud2 = null;
 
+             socket.on('new-data', (data) => {
+        if (!filtrando) {
+            actualizarMapa(data);
+        }
+    });
+
 
     document.getElementById('carro1Btn').addEventListener('click', function() {
     ultimaUbicacionControlCarro1.addTo(map);
