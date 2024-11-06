@@ -510,6 +510,7 @@ window.addEventListener('beforeunload', function() {
     
     // Mostrar la ubicación y datos según el carro seleccionado
     if (selectedValue === 'carro1') {
+        ultimaUbicacionControlCarro1.remove(map);
         cargarDatosDesdeServidor('/historicos', 'carro1');   
         recorridoCarro2Filtrado.setLatLngs([]); // Limpiar solo los datos del carro 2
         recorridoCarro2Filtrado.remove(); // Asegúrate de remover la polilínea del carro 2 del mapa
