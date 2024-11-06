@@ -131,7 +131,7 @@
     </select>
     </form>
 
-    <button type="submit" form="filterForm">Filtrar</button>
+    <button type="submit" form="filterForm" id="filtrarBtn" style="display: none;">Filtrar</button>
     
     <!-- Botones de selección de carro -->
     <div id="carSelectionButtons">
@@ -404,7 +404,8 @@ window.addEventListener('beforeunload', function() {
     } else {
         limpiarMapa();
         filterForm.style.display = 'none';
-        filterForm1.style.display = 'none'; 
+        filterForm1.style.display = 'none';
+        filtrarBtn.style.display = 'none'; 
         document.getElementById('slider-container').style.display = 'none'; 
         // Mostrar botones de selección de carro y ocultar botón de regresar
         carSelectionButtons.style.display = 'block';
