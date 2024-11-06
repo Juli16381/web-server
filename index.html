@@ -639,73 +639,103 @@ function cargarDatosDesdeServidor(url, carro) {
     filterUrl = '/filterObdData'; // URL para carro 2
     recorridoCarro1Filtrado.setLatLngs([]); 
 
-     } else if (selectedValue === 'ambos') {
-        Promise.all([
-            fetch(`/filterData?startDate=${startISOString}&endDate=${endISOString}`),
-            fetch(`/filterObdData?startDate=${startISOString}&endDate=${endISOString}`)
-        ])
-        .then(responses => Promise.all(responses.map(res => res.json())))
-        .then(([dataCarro1, dataCarro2]) => {
-            if (dataCarro1.length === 0 && dataCarro2.length === 0) {
-                alert('No se encontraron datos para ambos carros en el rango de tiempo especificado');
-                return;
-            }
-            // Añadir puntos de carro 1
-            dataCarro1.forEach(registro => {
-                const lat = parseFloat(registro.Latitud);
-                const lon = parseFloat(registro.Longitud);
-                recorridoCarro1Filtrado.addLatLng([lat, lon]);
-            });
+        else if (selectedValue === 'ambos') {
+    Promise.all([
+        fetch(`/filterData?startDate=${startISOString}&endDate=${endISOString}`),
+        fetch(`/filterObdData?startDate=${startISOString}&endDate=${endISOString}`)
+    ])
+    .then(responses => Promise.all(responses.map(res => res.json())))
+    .then(([dataCarro1, dataCarro2]) => {
+        if (dataCarro1.length === 0 && dataCarro2.length === 0) {
+            alert('No se encontraron datos para ambos carros en el rango de tiempo especificado');
+            return;
+        }
 
-            // Añadir puntos de carro 2
-            dataCarro2.forEach(registro => {
-                const lat = parseFloat(registro.Latitud);
-                const lon = parseFloat(registro.Longitud);
-                recorridoCarro2Filtrado.addLatLng([lat, lon]);
-            });
+        // Inicializar los arrays de puntos de cada carro
+        const puntosCarro1 = [];
+        const puntosCarro2 = [];
 
-            // Añadir ambas polilíneas al mapa
-            recorridoCarro1Filtrado.addTo(map);
-            recorridoCarro2Filtrado.addTo(map);
+        // Añadir puntos de carro 1
+        dataCarro1.forEach(registro => {
+            const lat = parseFloat(registro.Latitud);
+            const lon = parseFloat(registro.Longitud);
+            puntosCarro1.push([lat, lon]);
+        });
 
-            // Ajustar vista del mapa a los puntos
-            const firstPointCarro1 = dataCarro1.length > 0 ? [dataCarro1[0].Latitud, dataCarro1[0].Longitud] : [dataCarro2[0].Latitud, dataCarro2[0].Longitud];
-            map.setView(firstPointCarro1, 13);
+        // Añadir puntos de carro 2
+        dataCarro2.forEach(registro => {
+            const lat = parseFloat(registro.Latitud);
+            const lon = parseFloat(registro.Longitud);
+            puntosCarro2.push([lat, lon]);
+        });
 
-            // Configurar el slider
-            const puntosFiltrados = [...dataCarro1, ...dataCarro2]; // Combinar puntos de ambos carros
-            const slider = document.getElementById('filter-slider');
-            slider.max = puntosFiltrados.length - 1;
-            slider.value = 0;
-            document.getElementById('slider-container').style.display = 'block';
+        // Crear las polilíneas de cada recorrido
+        const recorridoCarro1Filtrado = L.polyline(puntosCarro1, { color: 'blue' });
+        const recorridoCarro2Filtrado = L.polyline(puntosCarro2, { color: 'red' });
 
-            let marcadorSlider = null;
+        // Añadir ambas polilíneas al mapa
+        recorridoCarro1Filtrado.addTo(map);
+        recorridoCarro2Filtrado.addTo(map);
 
-            slider.addEventListener('input', function() {
-                const index = parseInt(slider.value);
-                const puntoActual = [parseFloat(puntosFiltrados[index].Latitud), parseFloat(puntosFiltrados[index].Longitud)];
-                const fecha = puntosFiltrados[index].Fecha;
-                const hora = puntosFiltrados[index].Hora;
-                const rpm = puntosFiltrados[index].rpm !== undefined ? puntosFiltrados[index].rpm : 'N/A';
+        // Ajustar vista del mapa a los puntos
+        const firstPointCarro1 = puntosCarro1.length > 0 ? puntosCarro1[0] : puntosCarro2[0];
+        map.setView(firstPointCarro1, 13);
 
-                const popupContent = `<b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}<br><b>RPM:</b> ${rpm}`;
+        // Configurar el slider
+        const puntosFiltrados = [...dataCarro1, ...dataCarro2]; // Combinar puntos de ambos carros
+        const slider = document.getElementById('filter-slider');
+        slider.max = puntosFiltrados.length - 1;
+        slider.value = 0;
+        document.getElementById('slider-container').style.display = 'block';
 
-                if (!marcadorSlider) {
-                    marcadorSlider = L.circleMarker(puntoActual, {
+        // Inicializar los marcadores de ambos carros
+        let marcadorCarro1 = null;
+        let marcadorCarro2 = null;
+
+        slider.addEventListener('input', function() {
+            const index = parseInt(slider.value);
+            const puntoActual = [parseFloat(puntosFiltrados[index].Latitud), parseFloat(puntosFiltrados[index].Longitud)];
+            const fecha = puntosFiltrados[index].Fecha;
+            const hora = puntosFiltrados[index].Hora;
+            const rpm = puntosFiltrados[index].rpm !== undefined ? puntosFiltrados[index].rpm : 'N/A';
+
+            const popupContent = `<b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}<br><b>RPM:</b> ${rpm}`;
+
+            // Si es el primer punto del carro 1
+            if (index < dataCarro1.length) {
+                if (!marcadorCarro1) {
+                    marcadorCarro1 = L.circleMarker(puntoActual, {
                         radius: 8,
-                        color: '#800080',  // Color personalizado para el marcador del slider
+                        color: '#800080',  // Color personalizado para el marcador de carro 1
                         fillColor: '#800080',
                         fillOpacity: 1,
                     }).addTo(map);
                 } else {
-                    marcadorSlider.setLatLng(puntoActual);  // Actualizar posición del marcador
+                    marcadorCarro1.setLatLng(puntoActual);  // Actualizar la posición del marcador de carro 1
                 }
+                marcadorCarro1.bindPopup(popupContent).openPopup();
+            }
 
-                marcadorSlider.bindPopup(popupContent).openPopup();
-                map.panTo(puntoActual);
-            });
-        })
-        }
+            // Si es el primer punto del carro 2
+            if (index >= dataCarro1.length) {
+                if (!marcadorCarro2) {
+                    marcadorCarro2 = L.circleMarker(puntoActual, {
+                        radius: 8,
+                        color: '#ff0000',  // Color personalizado para el marcador de carro 2
+                        fillColor: '#ff0000',
+                        fillOpacity: 1,
+                    }).addTo(map);
+                } else {
+                    marcadorCarro2.setLatLng(puntoActual);  // Actualizar la posición del marcador de carro 2
+                }
+                marcadorCarro2.bindPopup(popupContent).openPopup();
+            }
+
+            map.panTo(puntoActual);
+        });
+    });
+}
+
     
     fetch(`${filterUrl}?startDate=${startISOString}&endDate=${endISOString}`)
         .then(response => response.json())
