@@ -341,17 +341,18 @@ window.addEventListener('beforeunload', function() {
             let ultimaLatitud2 = null;
             let ultimaLongitud2 = null;
 
+      ultimaUbicacionControlCarro1.addTo(map);
+      ultimaUbicacionControlCarro2.addTo(map);
+            
              socket.on('new-data', (data) => {
         if (!filtrando) {
             actualizarMapa(data);
-            ultimaUbicacionControlCarro1.addTo(map);
         }
     });
 
             socket.on('new-obd-data', (data2) => {
         if (!filtrando) {
             actualizarMapa2(data2); // Carro 2
-            ultimaUbicacionControlCarro2.addTo(map);
         }
     });
  
