@@ -265,6 +265,7 @@ window.addEventListener('beforeunload', function() {
     limpiarMapa();
     ultimaUbicacionControlCarro1.addTo(map);
     ultimaUbicacionControlCarro2.addTo(map);
+    toggleFilterBtn.style.display = 'block';
             
              socket.on('new-data', (data) => {
         if (!filtrando) {
