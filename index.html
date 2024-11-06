@@ -262,23 +262,11 @@ window.addEventListener('beforeunload', function() {
     
     // Ocultar botón de regresar
     this.style.display = 'none';
+    document.getElementById('toggle-filter-btn').style.display = 'block';
     limpiarMapa();
     ultimaUbicacionControlCarro1.addTo(map);
     ultimaUbicacionControlCarro2.addTo(map);
-    toggleFilterBtn.style.display = 'block';
             
-             socket.on('new-data', (data) => {
-        if (!filtrando) {
-            actualizarMapa(data);
-        }
-    });
-
-            socket.on('new-obd-data', (data2) => {
-        if (!filtrando) {
-            actualizarMapa2(data2); // Carro 2
-        }
-    });
-
     // Guardar estado en localStorage
     localStorage.setItem('isFiltering', 'false');
 });
