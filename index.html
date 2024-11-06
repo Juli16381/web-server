@@ -406,6 +406,7 @@ window.addEventListener('beforeunload', function() {
         filterForm1.style.display = 'none';
         filtrarBtn.style.display = 'none'; 
         toggleFilterBtn.innerHTML = 'Filtrar información';
+        classList.remove('active-button');
         document.getElementById('slider-container').style.display = 'none'; 
         // Mostrar botones de selección de carro y ocultar botón de regresar
         carSelectionButtons.style.display = 'block';
