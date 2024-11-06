@@ -701,16 +701,6 @@ function cargarDatosDesdeServidor(url, carro) {
 
             const popupContent = `<b>Fecha:</b> ${fecha}<br><b>Hora:</b> ${hora}<br><b>RPM:</b> ${rpm}`;
 
-             if (marcadorCarro1) {
-             map.removeLayer(marcadorSlider); 
-             marcadorCarro1 = null; 
-                }
-
-             if (marcadorCarro2) {
-             map.removeLayer(marcadorSlider); 
-             marcadorCarro2 = null; 
-                }
-
             // Si el índice pertenece al carro 1
             if (index < dataCarro1.length) {
                 if (!marcadorCarro1) {
