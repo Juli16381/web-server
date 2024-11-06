@@ -67,6 +67,17 @@
             margin-bottom: 7px;
             border-radius: 5px;
         }
+         #toggle-filter-btn2 {
+            display: none;
+            padding: 8px 16px;
+            background-color: #ce72c0;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 7px;
+            border-radius: 5px;
+        }
         /* Ocultar inicialmente el formulario */
         #filterForm {
             display: none;
@@ -107,6 +118,8 @@
 
     <!-- Botón para mostrar/ocultar el formulario de filtrado -->
     <button id="toggle-filter-btn">Filtrar información</button>
+    
+     <button id="toggle-filter-btn2">Regresar a tiempo real</button>
 
     <!-- Formulario de filtrado -->
     <form id="filterForm">
@@ -133,8 +146,6 @@
          <option value="ambos">Ambos</option>
     </select>
     </form>
-
-    <button id="regresarBtn" style="display: none;">Regresar</button>
 
     <!-- Slider para controlar el avance debajo del formulario de filtrado -->
     <div id="slider-container">
@@ -264,10 +275,11 @@ window.addEventListener('beforeunload', function() {
     }
 
     document.getElementById('slider-container').style.display = 'none';
+    this.style.display = 'none';
 });
 
     // Agregar evento para el botón de regresar
-    document.getElementById('regresarBtn').addEventListener('click', function() {
+    document.getElementById('toggle-filter-btn2').addEventListener('click', function() {
     // Ocultar formularios de filtrado
     document.getElementById('filterForm').style.display = 'none';
     document.getElementById('filterForm1').style.display = 'none'; 
@@ -279,8 +291,9 @@ window.addEventListener('beforeunload', function() {
     // Ocultar botón de regresar
     this.style.display = 'none';
     limpiarMapa();
-    ultimaUbicacionControlCarro2.remove();
-    ultimaUbicacionControlCarro1.remove();
+    document.getElementById('toggle-filter-btn').style.display = 'block';
+    ultimaUbicacionControlCarro1.addTo(map);
+    ultimaUbicacionControlCarro2.addTo(map);
 
     // Guardar estado en localStorage
     localStorage.setItem('isFiltering', 'false');
