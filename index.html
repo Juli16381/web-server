@@ -562,10 +562,10 @@ window.addEventListener('beforeunload', function() {
     
 });
 
-const recorridoCarro1Filtrado = L.polyline([], { color: '#FF0000', weight: 3 }).addTo(map); // Polilínea filtrada para carro 1 (rojo)
-const recorridoCarro2Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).addTo(map); // Polilínea filtrada para carro 2 (azul)
+const recorridoCarro1Filtrado = L.polyline([], { color: '#0000FF', weight: 3 }).addTo(map); // Polilínea filtrada para carro 1 (rojo)
+const recorridoCarro2Filtrado = L.polyline([], { color: '#FF0000', weight: 3 }).addTo(map); // Polilínea filtrada para carro 2 (azul)
 // Función para cargar datos históricos basada en la URL según el carro
-function cargarDatosDesdeServidor(url, carro) {
+function cargarDatosDesdeServidor(url, carro) { 
     fetch(url)
         .then(response => response.json())
         .then(data => {
