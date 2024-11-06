@@ -117,13 +117,6 @@
         <button type="submit">Filtrar</button>
     </form>
 
-    <!-- Botones de selección de carro -->
-    <div id="carSelectionButtons">
-    <button type="button" id="carro1Btn">Carro 1</button>
-    <button type="button" id="carro2Btn">Carro 2</button>
-    <button type="button" id="ambosBtn">Ambos</button>
-    </div>
-
    
     <form id="filterForm1" style="margin-bottom: 10px; display: none;">
     <label for="carSelection">Seleccionar carro:</label>
@@ -185,7 +178,6 @@
     const filterForm = document.getElementById('filterForm');
     const filterForm1 = document.getElementById('filterForm1');
     const sliderContainer = document.getElementById('slider-container');
-    const carSelectionButtons = document.getElementById('carSelectionButtons');
     const regresarBtn = document.getElementById('regresarBtn');
 
     // Comprobar el estado almacenado en localStorage
@@ -195,13 +187,11 @@
         filterForm.style.display = 'block';
         filterForm1.style.display = 'block'; 
         sliderContainer.style.display = 'block'; 
-        carSelectionButtons.style.display = 'none';
         regresarBtn.style.display = 'block'; 
     } else {
         filterForm.style.display = 'none';
         filterForm1.style.display = 'none'; 
         sliderContainer.style.display = 'none'; 
-        carSelectionButtons.style.display = 'block'; 
         regresarBtn.style.display = 'none'; 
     }
 });
@@ -210,14 +200,12 @@
     const filterForm = document.getElementById('filterForm');
     const filterForm1 = document.getElementById('filterForm1');
     const sliderContainer = document.getElementById('slider-container');
-    const carSelectionButtons = document.getElementById('carSelectionButtons');
     const regresarBtn = document.getElementById('regresarBtn');
 
     // Establecer todos los elementos en su estado inicial
     filterForm.style.display = 'none';
     filterForm1.style.display = 'none'; // Asegurarse de que este formulario esté oculto
     sliderContainer.style.display = 'none'; // Ocultar slider
-    carSelectionButtons.style.display = 'block'; // Mostrar botones de selección de carro
     regresarBtn.style.display = 'none'; // Asegurarse de que el botón de regresar esté oculto
 });
 
@@ -231,7 +219,6 @@ window.addEventListener('beforeunload', function() {
     const filterForm = document.getElementById('filterForm');
     const filterForm1 = document.getElementById('filterForm1');
     const sliderContainer = document.getElementById('slider-container');
-    const carSelectionButtons = document.getElementById('carSelectionButtons');
     const regresarBtn = document.getElementById('regresarBtn');
     ultimaUbicacionControlCarro2.remove();
 
@@ -247,7 +234,6 @@ window.addEventListener('beforeunload', function() {
         limpiarMapa();
         
         // Ocultar botones de selección de carro y mostrar botón de regresar
-        carSelectionButtons.style.display = 'none';
         regresarBtn.style.display = 'block';
 
         // Guardar estado en localStorage
@@ -256,7 +242,6 @@ window.addEventListener('beforeunload', function() {
         filterForm.style.display = 'none';
         filterForm1.style.display = 'none'; // Ocultar formulario de selección de carro        
         // Mostrar botones de selección de carro y ocultar botón de regresar
-        carSelectionButtons.style.display = 'block';
         regresarBtn.style.display = 'none'; // Ocultar el botón de regresar
 
         // Guardar estado en localStorage
@@ -273,8 +258,6 @@ window.addEventListener('beforeunload', function() {
     document.getElementById('filterForm1').style.display = 'none'; 
     document.getElementById('slider-container').style.display = 'none'; 
 
-    // Mostrar botones de selección de carro
-    document.getElementById('carSelectionButtons').style.display = 'block';
     
     // Ocultar botón de regresar
     this.style.display = 'none';
@@ -358,52 +341,20 @@ window.addEventListener('beforeunload', function() {
             let ultimaLatitud2 = null;
             let ultimaLongitud2 = null;
 
+             socket.on('new-data', (data) => {
+        if (!filtrando) {
+            actualizarMapa(data);
+            ultimaUbicacionControlCarro1.addTo(map);
+        }
+    });
+
+            socket.on('new-obd-data', (data2) => {
+        if (!filtrando) {
+            actualizarMapa2(data2); // Carro 2
+            ultimaUbicacionControlCarro2.addTo(map);
+        }
+    });
  
-
-
-    document.getElementById('carro1Btn').addEventListener('click', function() {
-    ultimaUbicacionControlCarro1.addTo(map);
-    ultimaUbicacionControlCarro2.remove();
-   socket.off('new-obd-data');
-   socket.removeAllListeners('new-obd-data');
-         socket.on('new-data', (data) => {
-        if (!filtrando) {
-            actualizarMapa(data);
-        }
-    });
-});
-
-    document.getElementById('carro2Btn').addEventListener('click', function() {
-    ultimaUbicacionControlCarro2.addTo(map);
-    ultimaUbicacionControlCarro1.remove();
-    socket.off('new-data');
-   socket.removeAllListeners('new-data');
-          socket.on('new-obd-data', (data2) => {
-        if (!filtrando) {
-            actualizarMapa2(data2); // Carro 2
-        }
-    });
-    
-});
-
-
-    document.getElementById('ambosBtn').addEventListener('click', function() {
-     ultimaUbicacionControlCarro2.addTo(map);
-     ultimaUbicacionControlCarro1.addTo(map);
-    // Lógica para manejar ambos carros si es necesario
-         socket.on('new-data', (data) => {
-        if (!filtrando) {
-            actualizarMapa(data);
-        }
-    });
-
-      socket.on('new-obd-data', (data2) => {
-        if (!filtrando) {
-            actualizarMapa2(data2); // Carro 2
-        }
-    });
-
-});
 
             function actualizarMapa(data) {
                 if (!data || !data.Latitud || !data.Longitud || !data.Fecha || !data.Hora) {
