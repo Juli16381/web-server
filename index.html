@@ -639,7 +639,7 @@ function cargarDatosDesdeServidor(url, carro) {
     filterUrl = '/filterObdData'; // URL para carro 2
     recorridoCarro1Filtrado.setLatLngs([]); 
 
-        else if (selectedValue === 'ambos') {
+       } else if (selectedValue === 'ambos') {
     Promise.all([
         fetch(`/filterData?startDate=${startISOString}&endDate=${endISOString}`),
         fetch(`/filterObdData?startDate=${startISOString}&endDate=${endISOString}`)
