@@ -371,9 +371,8 @@ window.addEventListener('beforeunload', function() {
         
         // Ocultar botones de selección de carro y mostrar botón de regresar
         carSelectionButtons.style.display = 'none';
-         setTimeout(() => {
-            toggleFilterBtn.textContent = 'Regresar';
-        }, 0);
+        toggleFilterBtn.innerHTML = 'Regresar';
+
 
         // Guardar estado en localStorage
         localStorage.setItem('isFiltering', 'true');
@@ -386,7 +385,6 @@ window.addEventListener('beforeunload', function() {
         carSelectionButtons.style.display = 'block';
         ultimaUbicacionControlCarro2.addTo(map);
         ultimaUbicacionControlCarro1.addTo(map);
-        toggleFilterBtn.textContent = 'Filtrar información';
         //inicio con los dos carros en tiempo real
         socket.on('new-data', (data) => {
         if (!filtrando) {
