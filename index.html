@@ -352,7 +352,7 @@ window.addEventListener('beforeunload', function() {
 });
 
 
-    document.getElementById('ambosBtn').addEventListener('click', function() {
+     document.getElementById('ambosBtn').addEventListener('click', function() {
      ultimaUbicacionControlCarro2.addTo(map);
      ultimaUbicacionControlCarro1.addTo(map);
      setActiveButton('ambosBtn');
@@ -510,7 +510,6 @@ window.addEventListener('beforeunload', function() {
     
     // Mostrar la ubicación y datos según el carro seleccionado
     if (selectedValue === 'carro1') {
-        ultimaUbicacionControlCarro1.addTo(map);
         cargarDatosDesdeServidor('/historicos', 'carro1');   
         recorridoCarro2Filtrado.setLatLngs([]); // Limpiar solo los datos del carro 2
         recorridoCarro2Filtrado.remove(); // Asegúrate de remover la polilínea del carro 2 del mapa
@@ -523,7 +522,6 @@ window.addEventListener('beforeunload', function() {
     }
 
     } else if (selectedValue === 'carro2') {
-        ultimaUbicacionControlCarro2.addTo(map);
         cargarDatosDesdeServidor('/historicosObd', 'carro2');
         recorridoCarro1Filtrado.setLatLngs([]); // Limpiar solo los datos del carro 1
         recorridoCarro1Filtrado.remove(); // Asegúrate de remover la polilínea del carro 1 del mapa
@@ -538,8 +536,6 @@ window.addEventListener('beforeunload', function() {
     }
 
         } else if (selectedValue === 'ambos') {
-        ultimaUbicacionControlCarro2.addTo(map);
-        ultimaUbicacionControlCarro1.addTo(map);
         cargarDatosDesdeServidor('/historicos', 'carro1');
         cargarDatosDesdeServidor('/historicosObd', 'carro2');
         if (!map.hasLayer(recorridoCarro1Filtrado)) {
