@@ -330,6 +330,7 @@ window.addEventListener('beforeunload', function() {
     document.getElementById('carro1Btn').addEventListener('click', function() {
     ultimaUbicacionControlCarro1.addTo(map);
     ultimaUbicacionControlCarro2.remove();
+    limpiarMapa()
     setActiveButton('carro1Btn');
     socket.off('new-obd-data');
     socket.removeAllListeners('new-obd-data');
@@ -343,6 +344,7 @@ window.addEventListener('beforeunload', function() {
     document.getElementById('carro2Btn').addEventListener('click', function() {
     ultimaUbicacionControlCarro2.addTo(map);
     ultimaUbicacionControlCarro1.remove();
+    limpiarMapa()
      setActiveButton('carro2Btn');
     socket.off('new-data');
     socket.removeAllListeners('new-data');
@@ -357,6 +359,7 @@ window.addEventListener('beforeunload', function() {
      document.getElementById('ambosBtn').addEventListener('click', function() {
      ultimaUbicacionControlCarro2.addTo(map);
      ultimaUbicacionControlCarro1.addTo(map);
+     limpiarMapa()
      setActiveButton('ambosBtn');
 
     // Lógica para manejar ambos carros si es necesario
