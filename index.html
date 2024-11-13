@@ -16,6 +16,10 @@
 
         // Ejecutar la función cuando la página cargue
         document.addEventListener('DOMContentLoaded', fetchName);
+        document.addEventListener('DOMContentLoaded', function() {
+        // Simular clic en el botón 'Ambos' al cargar la página
+        document.getElementById('ambosBtn').click();
+        });
     </script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
@@ -125,9 +129,9 @@
     <form id="filterForm1" style="margin-bottom: 10px; display: none;">
     <label for="carSelection">Seleccionar carro:</label>
     <select id="carSelection" name="carSelection">
+        <option value="ambos">Ambos</option>
         <option value="carro1">Carro 1</option>
-        <option value="carro2">Carro 2</option>
-         <option value="ambos">Ambos</option>
+         <option value="carro2">Carro 2</option>
     </select>
     </form>
 
